@@ -1,0 +1,10 @@
+FROM node:20
+
+WORKDIR /usr/src/app
+COPY package.json package-lock.json* ./
+RUN npm ci || npm install
+
+# source is mounted in dev; keep a default start in case
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
+
