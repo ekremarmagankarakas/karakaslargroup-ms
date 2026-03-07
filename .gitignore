@@ -36,6 +36,7 @@ htmlcov/
 .cache/
 .dmypy.json
 pytestdebug.log
+.ruff_cache/
 
 # --- FastAPI / Alembic ---
 alembic.ini

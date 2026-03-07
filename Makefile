@@ -15,7 +15,7 @@
 #   make help            # list targets
 
 # ---------- Variables (override with make VAR=value) ----------
-COMPOSE ?= infra/compose/docker-compose.dev.yml
+COMPOSE ?= docker-compose.yml
 
 BACKEND_DIR    ?= apps/backend
 FRONTEND_DIR   ?= apps/frontend
@@ -24,11 +24,11 @@ BACKEND_SVC    ?= backend
 FRONTEND_SVC   ?= frontend
 DB_SVC         ?= db
 
-DB_USER        ?= kg
-DB_NAME        ?= kgdb
+DB_USER        ?= karakaslar
+DB_NAME        ?= karakaslar
 
 API_HOST       ?= http://localhost:8000
-WEB_HOST       ?= http://localhost:5173
+WEB_HOST       ?= http://localhost:80
 
 DC := docker compose -f $(COMPOSE)
 
@@ -38,7 +38,7 @@ DC := docker compose -f $(COMPOSE)
         logs-backend logs-frontend \
         exec-backend exec-frontend sh-backend sh-frontend \
         psql db-backup db-restore \
-        alembic-init alembic-rev alembic-up alembic-down \
+        alembic-init alembic-rev alembic-up alembic-down seed seed-data \
         check check-backend check-frontend \
         build-frontend clean-images clean-volumes
 
@@ -59,6 +59,7 @@ help:
 	@echo "  make alembic-rev m=MSG   Autogenerate migration with message"
 	@echo "  make alembic-up          Apply migrations to head"
 	@echo "  make alembic-down        Downgrade one revision"
+	@echo "  make seed                Seed DB with one user per role"
 	@echo
 	@echo "Frontend:"
 	@echo "  make rebuild-frontend    Rebuild frontend image and start frontend"
@@ -72,8 +73,8 @@ help:
 	@echo "  make clean-volumes       Remove all local Docker volumes (DANGEROUS)"
 	@echo
 	@echo "Checks:"
-	@echo "  make check               Hit health/ping endpoints"
-	@echo "  make check-backend       GET $${API_HOST}/api/core/health"
+	@echo "  make check               Hit API endpoints"
+	@echo "  make check-backend       POST $${API_HOST}/api/auth/login"
 	@echo "  make check-frontend      Opens $(WEB_HOST) in your browser (best-effort)"
 	@echo
 
@@ -127,18 +128,24 @@ db-restore:
 
 # ---------- Alembic (run inside backend container) ----------
 alembic-init:
-	$(DC) exec $(BACKEND_SVC) bash -lc 'alembic init app/migrations || true && echo "Edit app/migrations/env.py to load Base.metadata and include_schemas=True"'
+	$(DC) exec $(BACKEND_SVC) uv run alembic init alembic
 
 # Example: make alembic-rev m="baseline"
 alembic-rev:
-	@if [ -z "$(m)" ]; then echo "❌ Missing message. Usage: make alembic-rev m=\"your message\""; exit 1; fi
-	$(DC) exec $(BACKEND_SVC) alembic revision --autogenerate -m "$(m)"
+	@if [ -z "$(m)" ]; then echo "Missing message. Usage: make alembic-rev m=\"your message\""; exit 1; fi
+	$(DC) exec $(BACKEND_SVC) uv run alembic revision --autogenerate -m "$(m)"
 
 alembic-up:
-	$(DC) exec $(BACKEND_SVC) alembic upgrade head
+	$(DC) exec $(BACKEND_SVC) uv run alembic upgrade head
 
 alembic-down:
-	$(DC) exec $(BACKEND_SVC) alembic downgrade -1
+	$(DC) exec $(BACKEND_SVC) uv run alembic downgrade -1
+
+seed:
+	$(DC) exec -e PYTHONPATH=/app $(BACKEND_SVC) uv run python scripts/seed.py
+
+seed-data:
+	$(DC) exec -e PYTHONPATH=/app $(BACKEND_SVC) uv run python scripts/seed_data.py
 
 # ---------- Frontend build (optional) ----------
 build-frontend:
@@ -150,14 +157,8 @@ check: check-backend
 	@echo "Open in browser if not already: make check-frontend"
 
 check-backend:
-	@echo "GET $(API_HOST)/api/core/health"
-	@curl -fsS $(API_HOST)/api/core/health | jq . || curl -fsS $(API_HOST)/api/core/health || true
-	@echo
-	@echo "GET $(API_HOST)/api/build/projects/hello"
-	@curl -fsS $(API_HOST)/api/build/projects/hello | jq . || curl -fsS $(API_HOST)/api/build/projects/hello || true
-	@echo
-	@echo "GET $(API_HOST)/api/manage/sites/hello"
-	@curl -fsS $(API_HOST)/api/manage/sites/hello | jq . || curl -fsS $(API_HOST)/api/manage/sites/hello || true
+	@echo "GET $(API_HOST)/api/auth/login"
+	@curl -fsS -X POST $(API_HOST)/api/auth/login -H "Content-Type: application/json" -d '{"username":"test","password":"test"}' | jq . || true
 	@echo
 
 # Best-effort: tries to open in default browser on macOS/Linux/WSL

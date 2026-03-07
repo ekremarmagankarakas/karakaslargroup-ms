@@ -197,7 +197,15 @@ make alembic-up
 | Path                        | Description                       |
 | --------------------------- | --------------------------------- |
 | `/api/core/health`          | Health check                      |
+| `/api/core/auth/login`      | OAuth2 password login (JWT)       |
+| `/api/core/auth/me`         | Current user                      |
+| `/api/core/files/upload`    | Upload attachment (JPG/PNG/PDF)   |
+| `/api/core/files/{id}`      | Download attachment               |
 | `/api/build/projects/hello` | Test endpoint for Build division  |
+| `/api/build/requisitions`   | Create/list requisitions          |
+| `/api/build/requisitions/{id}/decision` | Manager accept/decline |
+| `/api/build/requisitions/{id}/payment`  | Accountant paid/unpaid  |
+| `/api/build/requisitions/{id}/favorite` | Toggle favorite         |
 | `/api/manage/sites/hello`   | Test endpoint for Manage division |
 
 ### Run manually (optional)
@@ -232,6 +240,14 @@ npm run dev
 ```
 
 **Local URL:** [http://localhost:5173](http://localhost:5173)
+
+### Dev login accounts
+
+When `APP_ENV=dev` and `SEED_DEV_USERS=true`, the backend auto-seeds three users:
+
+* `manager@kg.dev` / `manager123`
+* `employee@kg.dev` / `employee123`
+* `accountant@kg.dev` / `accountant123`
 
 ### Key Features
 
@@ -336,4 +352,3 @@ All rights reserved. This software is proprietary and intended for internal use 
 ---
 
 Would you like me to extend this README with a **“Quick Start for New Developers”** section that walks through cloning, spinning up Docker, and verifying API endpoints in <5 minutes? It’s great for onboarding new team members.
-

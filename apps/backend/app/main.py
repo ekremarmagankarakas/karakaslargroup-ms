@@ -1,42 +1,36 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import CORS_ORIGINS
-from app.core.db import Base, engine
-from sqlalchemy import text
 
-# import routers
-from app.core.api import router as core_router
-from app.build.api import router as build_router
-from app.manage.api import router as manage_router
+from app.core.config import get_settings
+from app.api.routes import auth, favorites, requirements, statistics, users
 
-# import models so tables are known to metadata
-from app.core import models as core_models
-from app.build import models as build_models
-from app.manage import models as manage_models
 
-app = FastAPI(title="KarakaslarGroup API", version="0.1.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-# ensure schemas exist (dev convenience; in prod use Alembic)
-with engine.begin() as conn:
-    conn.execute(text('CREATE SCHEMA IF NOT EXISTS "core"'))
-    conn.execute(text('CREATE SCHEMA IF NOT EXISTS "build"'))
-    conn.execute(text('CREATE SCHEMA IF NOT EXISTS "manage"'))
-    Base.metadata.create_all(bind=conn)
+def create_app() -> FastAPI:
+    settings = get_settings()
+    app = FastAPI(title="KarakaslarGroup API", lifespan=lifespan)
 
-# mount routers
-app.include_router(core_router)
-app.include_router(build_router)
-app.include_router(manage_router)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-@app.get("/")
-def root():
-    return {"name": "KarakaslarGroup API", "routes": ["/api/core/health", "/api/build/projects/hello", "/api/manage/sites/hello"]}
+    app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+    app.include_router(users.router, prefix="/api/users", tags=["users"])
+    app.include_router(requirements.router, prefix="/api/requirements", tags=["requirements"])
+    app.include_router(favorites.router, prefix="/api/favorites", tags=["favorites"])
+    app.include_router(statistics.router, prefix="/api/statistics", tags=["statistics"])
 
+    return app
+
+
+app = create_app()
