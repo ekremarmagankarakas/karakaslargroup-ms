@@ -1,16 +1,16 @@
 # ===== KarakaslarGroup - Makefile =====
 # Usage:
-#   make up              # build & start all services (frontend, backend, db)
+#   make up              # build & start all services (prod Dockerfiles)
+#   make dev             # build & start with hot reload (Dockerfile.dev + volumes)
 #   make down            # stop services (keep volumes)
 #   make downv           # stop & remove volumes (db wipe)
 #   make rebuild-backend # rebuild backend image & start just backend
 #   make logs-backend    # tail backend logs
 #   make exec-backend    # bash into backend container
 #   make psql            # open psql shell to Postgres
-#   make alembic-init    # (once) initialize Alembic folder
 #   make alembic-rev m="baseline"   # autogenerate migration
 #   make alembic-up      # upgrade DB to head
-#   make alembic-down    # downgrade one revision
+#   make seed            # seed users (add COMPOSE=docker-compose.dev.yml for dev)
 #   make check           # curl basic health endpoints
 #   make help            # list targets
 
@@ -30,15 +30,17 @@ DB_NAME        ?= karakaslar
 API_HOST       ?= http://localhost:8000
 WEB_HOST       ?= http://localhost:80
 
-DC := docker compose -f $(COMPOSE)
+DC     := docker compose -f $(COMPOSE)
+DC_DEV := docker compose -f docker-compose.dev.yml
 
 # ---------- Meta ----------
-.PHONY: help up down downv restart ps logs \
+.PHONY: help up dev down downv dev-down restart ps logs \
         rebuild-backend rebuild-frontend \
-        logs-backend logs-frontend \
-        exec-backend exec-frontend sh-backend sh-frontend \
+        logs-backend logs-frontend dev-logs-backend dev-logs-frontend \
+        exec-backend exec-frontend sh-backend sh-frontend dev-exec-backend \
         psql db-backup db-restore \
         alembic-init alembic-rev alembic-up alembic-down seed seed-data \
+        dev-alembic-up dev-alembic-down dev-seed dev-seed-data \
         check check-backend check-frontend \
         build-frontend clean-images clean-volumes
 
@@ -46,24 +48,29 @@ help:
 	@echo "KarakaslarGroup — common tasks"
 	@echo
 	@echo "Stack:"
-	@echo "  make up                  Build & start all services"
-	@echo "  make down                Stop services (keep volumes)"
-	@echo "  make downv               Stop services and remove volumes (DB wipe)"
+	@echo "  make up                  Build & start all services (prod)"
+	@echo "  make dev                 Build & start with hot reload (dev)"
+	@echo "  make down                Stop prod services (keep volumes)"
+	@echo "  make dev-down            Stop dev services"
+	@echo "  make downv               Stop & remove volumes (DB wipe)"
 	@echo "  make restart             Restart backend & frontend"
 	@echo
 	@echo "Backend:"
 	@echo "  make rebuild-backend     Rebuild backend image and start backend"
-	@echo "  make logs-backend        Tail backend logs"
+	@echo "  make logs-backend        Tail backend logs (prod)"
+	@echo "  make dev-logs-backend    Tail backend logs (dev)"
 	@echo "  make exec-backend        Bash into backend container"
 	@echo "  make alembic-init        Initialize Alembic (once)"
 	@echo "  make alembic-rev m=MSG   Autogenerate migration with message"
 	@echo "  make alembic-up          Apply migrations to head"
 	@echo "  make alembic-down        Downgrade one revision"
-	@echo "  make seed                Seed DB with one user per role"
+	@echo "  make seed                Seed DB with users (add COMPOSE=docker-compose.dev.yml for dev)"
+	@echo "  make seed-data           Seed DB with sample data"
 	@echo
 	@echo "Frontend:"
 	@echo "  make rebuild-frontend    Rebuild frontend image and start frontend"
-	@echo "  make logs-frontend       Tail frontend logs"
+	@echo "  make logs-frontend       Tail frontend logs (prod)"
+	@echo "  make dev-logs-frontend   Tail frontend logs (dev)"
 	@echo "  make exec-frontend       Bash into frontend container"
 	@echo "  make build-frontend      Run 'npm run build' inside container"
 	@echo
@@ -82,8 +89,14 @@ help:
 up:
 	$(DC) up --build
 
+dev:
+	$(DC_DEV) up --build
+
 down:
 	$(DC) down
+
+dev-down:
+	$(DC_DEV) down
 
 downv:
 	$(DC) down -v
@@ -104,6 +117,15 @@ logs-backend:
 
 logs-frontend:
 	$(DC) logs -f $(FRONTEND_SVC)
+
+dev-logs-backend:
+	$(DC_DEV) logs -f $(BACKEND_SVC)
+
+dev-logs-frontend:
+	$(DC_DEV) logs -f $(FRONTEND_SVC)
+
+dev-exec-backend:
+	$(DC_DEV) exec $(BACKEND_SVC) bash
 
 # ---------- Shell / Exec ----------
 exec-backend:
@@ -146,6 +168,19 @@ seed:
 
 seed-data:
 	$(DC) exec -e PYTHONPATH=/app $(BACKEND_SVC) uv run python scripts/seed_data.py
+
+# ---------- Dev DB helpers ----------
+dev-alembic-up:
+	$(DC_DEV) exec $(BACKEND_SVC) uv run alembic upgrade head
+
+dev-alembic-down:
+	$(DC_DEV) exec $(BACKEND_SVC) uv run alembic downgrade -1
+
+dev-seed:
+	$(DC_DEV) exec -e PYTHONPATH=/app $(BACKEND_SVC) uv run python scripts/seed.py
+
+dev-seed-data:
+	$(DC_DEV) exec -e PYTHONPATH=/app $(BACKEND_SVC) uv run python scripts/seed_data.py
 
 # ---------- Frontend build (optional) ----------
 build-frontend:

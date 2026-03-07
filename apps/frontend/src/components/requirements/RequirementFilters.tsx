@@ -1,10 +1,16 @@
+import SearchIcon from '@mui/icons-material/Search';
+import TuneIcon from '@mui/icons-material/Tune';
 import {
   Box,
+  Button,
   FormControl,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
   TextField,
+  Tooltip,
+  Typography,
 } from '@mui/material';
 import type { RequirementFilters, RequirementStatus, UserDropdownItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -28,15 +34,45 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
   const isEmployee = user?.role === 'employee';
   const isAccountant = user?.role === 'accountant';
 
+  const activeCount = [
+    filters.search,
+    filters.user_id,
+    filters.status,
+    filters.paid !== undefined ? true : undefined,
+    filters.month,
+    filters.year,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => onChange({ page: 1, limit: filters.limit });
+
   return (
-    <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 1,
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        mb: 2,
+      }}
+    >
+      {/* Search */}
       <TextField
-        label="Ara"
+        placeholder="Ara..."
         size="small"
         value={filters.search ?? ''}
         onChange={(e) => onChange({ ...filters, search: e.target.value || undefined, page: 1 })}
-        sx={{ minWidth: 150 }}
+        sx={{ width: 200 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon sx={{ fontSize: 17, color: 'text.disabled' }} />
+            </InputAdornment>
+          ),
+        }}
       />
+
+      {/* Separator */}
+      <Box sx={{ width: 1, height: 32, bgcolor: 'divider', mx: 0.5 }} />
 
       {!isEmployee && (
         <FormControl size="small" sx={{ minWidth: 130 }}>
@@ -50,9 +86,7 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
           >
             <MenuItem value="">Tümü</MenuItem>
             {users.map((u) => (
-              <MenuItem key={u.id} value={u.id}>
-                {u.username}
-              </MenuItem>
+              <MenuItem key={u.id} value={u.id}>{u.username}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -106,14 +140,12 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
         >
           <MenuItem value="">Tümü</MenuItem>
           {MONTHS.map((m, i) => (
-            <MenuItem key={i + 1} value={i + 1}>
-              {m}
-            </MenuItem>
+            <MenuItem key={i + 1} value={i + 1}>{m}</MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <FormControl size="small" sx={{ minWidth: 100 }}>
+      <FormControl size="small" sx={{ minWidth: 95 }}>
         <InputLabel>Yıl</InputLabel>
         <Select
           value={filters.year ?? ''}
@@ -124,12 +156,35 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
         >
           <MenuItem value="">Tümü</MenuItem>
           {years.map((y) => (
-            <MenuItem key={y} value={y}>
-              {y}
-            </MenuItem>
+            <MenuItem key={y} value={y}>{y}</MenuItem>
           ))}
         </Select>
       </FormControl>
+
+      {activeCount > 0 && (
+        <Tooltip title="Tüm filtreleri temizle">
+          <Button
+            size="small"
+            onClick={clearFilters}
+            sx={{
+              color: 'text.secondary',
+              borderColor: 'divider',
+              ml: 0.5,
+              height: 40,
+              px: 1.5,
+              minWidth: 0,
+              border: '1px solid',
+              borderRadius: 2,
+              '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
+            }}
+          >
+            <TuneIcon sx={{ fontSize: 16, mr: 0.75 }} />
+            <Typography variant="caption" fontWeight={600}>
+              Temizle ({activeCount})
+            </Typography>
+          </Button>
+        </Tooltip>
+      )}
     </Box>
   );
 }

@@ -1,11 +1,14 @@
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
   Button,
+  Chip,
   CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
+  IconButton,
   TextField,
   Typography,
 } from '@mui/material';
@@ -41,24 +44,61 @@ export function RequirementForm({ open, onClose }: Props) {
     onClose();
   };
 
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleClose = () => {
+    setItemName('');
+    setPrice('');
+    setExplanation('');
+    setFiles([]);
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Yeni Talep Oluştur</DialogTitle>
-      <DialogContent>
-        <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2} mt={1}>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          pb: 1.5,
+        }}
+      >
+        <Box>
+          <Typography variant="h6" fontWeight={700}>
+            Yeni Talep Oluştur
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Satın alma talebi gönderin
+          </Typography>
+        </Box>
+        <IconButton onClick={handleClose} size="small" sx={{ color: 'text.secondary' }}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ pt: 2.5 }}>
+        <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2.5}>
           <TextField
-            label="Ürün Adı"
+            label="Ürün / Hizmet Adı"
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
             required
             fullWidth
+            placeholder="Örn: MacBook Pro 14 inch"
+            helperText="Talep ettiğiniz ürün veya hizmetin adını girin"
           />
           <TextField
-            label="Fiyat (TL)"
+            label="Tahmini Fiyat (₺)"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             required
             fullWidth
+            placeholder="0,00"
             inputProps={{ inputMode: 'decimal' }}
           />
           <TextField
@@ -68,34 +108,62 @@ export function RequirementForm({ open, onClose }: Props) {
             multiline
             rows={3}
             fullWidth
+            placeholder="Bu talebin neden gerekli olduğunu açıklayın..."
           />
-          <Button variant="outlined" component="label" startIcon={<AttachFileIcon />}>
-            Dosya Ekle ({files.length} seçili)
-            <input
-              type="file"
-              hidden
-              multiple
-              accept="image/jpeg,image/png,image/gif,application/pdf"
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-            />
-          </Button>
-          {files.length > 0 && (
-            <Box>
-              {files.map((f, i) => (
-                <Typography key={i} variant="caption" display="block">
-                  {f.name}
-                </Typography>
-              ))}
-            </Box>
-          )}
-          <Box display="flex" gap={1} justifyContent="flex-end">
-            <Button onClick={onClose}>İptal</Button>
+
+          {/* File attachment */}
+          <Box>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<AttachFileIcon />}
+              color="inherit"
+              sx={{ borderColor: 'divider', color: 'text.secondary' }}
+            >
+              Dosya Ekle
+              <input
+                type="file"
+                hidden
+                multiple
+                accept="image/jpeg,image/png,image/gif,application/pdf"
+                onChange={(e) => {
+                  const newFiles = Array.from(e.target.files ?? []);
+                  setFiles((prev) => [...prev, ...newFiles]);
+                  e.target.value = '';
+                }}
+              />
+            </Button>
+            <Typography variant="caption" color="text.disabled" sx={{ ml: 1 }}>
+              JPG, PNG, GIF, PDF · Maks 20MB
+            </Typography>
+
+            {files.length > 0 && (
+              <Box display="flex" gap={1} flexWrap="wrap" mt={1.5}>
+                {files.map((f, i) => (
+                  <Chip
+                    key={i}
+                    label={f.name}
+                    size="small"
+                    onDelete={() => removeFile(i)}
+                    deleteIcon={<CloseIcon />}
+                    sx={{ maxWidth: 200 }}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+
+          <Box display="flex" gap={1.5} justifyContent="flex-end" pt={0.5}>
+            <Button onClick={handleClose} color="inherit" sx={{ color: 'text.secondary' }}>
+              İptal
+            </Button>
             <Button
               type="submit"
               variant="contained"
               disabled={createReq.isPending || !itemName || !price}
+              sx={{ minWidth: 100 }}
             >
-              {createReq.isPending ? <CircularProgress size={20} /> : 'Gönder'}
+              {createReq.isPending ? <CircularProgress size={20} color="inherit" /> : 'Gönder'}
             </Button>
           </Box>
         </Box>

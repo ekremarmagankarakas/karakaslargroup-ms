@@ -1,3 +1,4 @@
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import {
@@ -6,12 +7,14 @@ import {
   Grid,
   IconButton,
   Paper,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -37,23 +40,71 @@ export function FavoritesSection() {
   };
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-        <Typography variant="h6">Favoriler</Typography>
-        <Box>
-          <IconButton onClick={() => handleLayoutChange('grid-layout')} color={layout === 'grid-layout' ? 'primary' : 'default'}>
-            <GridViewIcon />
-          </IconButton>
-          <IconButton onClick={() => handleLayoutChange('list-layout')} color={layout === 'list-layout' ? 'primary' : 'default'}>
-            <ViewListIcon />
-          </IconButton>
+    <>
+      {/* Layout toggle — only show when there's content */}
+      {data && data.items.length > 0 && (
+        <Box display="flex" justifyContent="flex-end" mb={1.5}>
+          <Box display="flex" gap={0.5}>
+            <Tooltip title="Kart görünümü">
+              <IconButton
+                size="small"
+                onClick={() => handleLayoutChange('grid-layout')}
+                sx={{
+                  color: layout === 'grid-layout' ? 'primary.main' : 'text.disabled',
+                  bgcolor: layout === 'grid-layout' ? '#eff6ff' : 'transparent',
+                  borderRadius: 1.5,
+                }}
+              >
+                <GridViewIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Liste görünümü">
+              <IconButton
+                size="small"
+                onClick={() => handleLayoutChange('list-layout')}
+                sx={{
+                  color: layout === 'list-layout' ? 'primary.main' : 'text.disabled',
+                  bgcolor: layout === 'list-layout' ? '#eff6ff' : 'transparent',
+                  borderRadius: 1.5,
+                }}
+              >
+                <ViewListIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
-      </Box>
+      )}
 
       {isLoading ? (
-        <CircularProgress size={24} />
+        layout === 'grid-layout' ? (
+          <Grid container spacing={2}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
+                <Skeleton variant="rounded" height={160} sx={{ borderRadius: 3 }} />
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <CircularProgress size={24} />
+        )
       ) : !data || data.items.length === 0 ? (
-        <Typography color="text.secondary">Favori talep bulunmuyor.</Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            py: 5,
+            color: 'text.disabled',
+          }}
+        >
+          <FavoriteIcon sx={{ fontSize: 48, mb: 1.5, opacity: 0.2 }} />
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Henüz favori talep eklemediniz
+          </Typography>
+          <Typography variant="caption" color="text.disabled" align="center">
+            Taleplerin yanındaki kalp ikonuna tıklayarak favoriye ekleyebilirsiniz.
+          </Typography>
+        </Box>
       ) : layout === 'grid-layout' ? (
         <Grid container spacing={2}>
           {data.items.map((req) => (
@@ -69,16 +120,16 @@ export function FavoritesSection() {
           ))}
         </Grid>
       ) : (
-        <TableContainer component={Paper} variant="outlined">
+        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Ürün</TableCell>
-                <TableCell>Kullanıcı</TableCell>
-                <TableCell>Fiyat</TableCell>
-                <TableCell>Durum</TableCell>
-                <TableCell>Ödeme</TableCell>
-                <TableCell>Tarih</TableCell>
+                <TableCell>ÜRÜN</TableCell>
+                <TableCell>KULLANICI</TableCell>
+                <TableCell>FİYAT</TableCell>
+                <TableCell>DURUM</TableCell>
+                <TableCell>ÖDEME</TableCell>
+                <TableCell>TARİH</TableCell>
                 <TableCell />
               </TableRow>
             </TableHead>
@@ -98,15 +149,13 @@ export function FavoritesSection() {
         </TableContainer>
       )}
 
-      {data && (
-        <PaginationControls page={page} totalPages={data.total_pages} onChange={setPage} />
-      )}
+      {data && <PaginationControls page={page} totalPages={data.total_pages} onChange={setPage} />}
 
       <RequirementModal
         requirement={selectedReq}
         open={selectedReq !== null}
         onClose={() => setSelectedReq(null)}
       />
-    </Box>
+    </>
   );
 }
