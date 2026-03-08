@@ -3,7 +3,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import UndoIcon from '@mui/icons-material/Undo';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import { Box, Button, Chip, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Checkbox, Chip, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
 import type { Requirement } from '../../types';
 import { formatDate, formatPrice } from '../../utils/formatters';
 
@@ -30,18 +30,30 @@ interface Props {
   onClick: () => void;
   onToggleFavorite: () => void;
   onUpdateStatus?: (status: 'accepted' | 'declined') => void;
+  selected?: boolean;
+  onSelect?: (id: number) => void;
 }
 
-export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdateStatus }: Props) {
+export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdateStatus, selected, onSelect }: Props) {
   return (
     <TableRow
       hover
+      selected={selected}
       sx={{
         cursor: 'pointer',
         '&:hover': { bgcolor: '#f8fafc' },
         borderLeft: `3px solid ${STATUS_DOT[requirement.status] ?? 'transparent'}`,
       }}
     >
+      {onSelect && (
+        <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            size="small"
+            checked={selected ?? false}
+            onChange={() => onSelect(requirement.id)}
+          />
+        </TableCell>
+      )}
       <TableCell onClick={onClick}>
         <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: 280 }}>
           {requirement.item_name}

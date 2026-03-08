@@ -31,8 +31,15 @@ class UserResponse(BaseModel):
     username: str
     email: str
     role: UserRole
+    is_active: bool
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserUpdate(BaseModel):
+    role: UserRole | None = None
+    email: str | None = None
+    is_active: bool | None = None
 
 
 class UserDropdownItem(BaseModel):

@@ -48,6 +48,18 @@ class EmailService:
         """
         await self.send(recipients, subject, html)
 
+    async def send_password_reset(self, email: str, raw_token: str) -> None:
+        settings = self.settings
+        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={raw_token}"
+        subject = "Şifre Sıfırlama"
+        html = f"""
+        <h2>Şifre Sıfırlama Talebi</h2>
+        <p>Şifrenizi sıfırlamak için aşağıdaki bağlantıya tıklayın:</p>
+        <p><a href="{reset_url}">{reset_url}</a></p>
+        <p>Bu bağlantı 1 saat geçerlidir. Talep etmediyseniz bu e-postayı görmezden gelebilirsiniz.</p>
+        """
+        await self.send([email], subject, html)
+
     async def send_status_update(self, requirement: object, new_status: str, recipients: list[str]) -> None:
         subject = "Istek Durum Guncellemesi"
         status_label = STATUS_LABELS.get(new_status, new_status)

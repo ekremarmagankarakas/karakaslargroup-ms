@@ -1,10 +1,13 @@
 import AddIcon from '@mui/icons-material/Add';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import {
   Box,
+  Button,
   Fab,
   Grid,
   Paper,
@@ -22,7 +25,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useRequirements, useUpdateStatus } from '../hooks/useRequirements';
+import { useBulkUpdateStatus, useRequirements, useUpdateStatus } from '../hooks/useRequirements';
 import { useToggleFavorite } from '../hooks/useFavorites';
 import { useUsers } from '../hooks/useUsers';
 import type { Requirement, RequirementFilters } from '../types';
@@ -95,11 +98,13 @@ export function DashboardPage() {
   );
   const [selectedReq, setSelectedReq] = useState<Requirement | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data, isLoading } = useRequirements(filters);
   const { data: usersData } = useUsers();
   const toggleFavorite = useToggleFavorite();
   const updateStatus = useUpdateStatus();
+  const bulkUpdate = useBulkUpdateStatus();
 
   const canManageStatus = user?.role === 'manager' || user?.role === 'admin';
 
@@ -137,6 +142,20 @@ export function DashboardPage() {
   const handleUpdateStatus = (req: Requirement, status: 'accepted' | 'declined') =>
     updateStatus.mutate({ id: req.id, status });
 
+  const handleToggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkStatus = async (status: 'accepted' | 'declined') => {
+    await bulkUpdate.mutateAsync({ ids: Array.from(selectedIds), status });
+    setSelectedIds(new Set());
+  };
+
   const renderCard = (req: Requirement) => (
     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={req.id}>
       <RequirementCard
@@ -159,6 +178,8 @@ export function DashboardPage() {
         toggleFavorite.mutate({ requirementId: req.id, isFavorited: req.is_favorited })
       }
       onUpdateStatus={canManageStatus ? (status) => handleUpdateStatus(req, status) : undefined}
+      selected={selectedIds.has(req.id)}
+      onSelect={canManageStatus ? handleToggleSelect : undefined}
     />
   );
 
@@ -388,6 +409,7 @@ export function DashboardPage() {
             <Table>
               <TableHead>
                 <TableRow>
+                  {canManageStatus && <TableCell padding="checkbox" />}
                   <TableCell>ÜRÜN</TableCell>
                   <TableCell>KULLANICI</TableCell>
                   <TableCell>FİYAT</TableCell>
@@ -434,6 +456,58 @@ export function DashboardPage() {
         onClose={() => setSelectedReq(null)}
       />
       <RequirementForm open={showForm} onClose={() => setShowForm(false)} />
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <Paper
+          elevation={4}
+          sx={{
+            position: 'fixed',
+            bottom: 28,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 200,
+            px: 3,
+            py: 1.5,
+            borderRadius: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <Typography variant="body2" fontWeight={600}>
+            {selectedIds.size} talep seçildi
+          </Typography>
+          <Button
+            size="small"
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircleIcon />}
+            onClick={() => handleBulkStatus('accepted')}
+            disabled={bulkUpdate.isPending}
+          >
+            Toplu Onayla
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            startIcon={<CancelIcon />}
+            onClick={() => handleBulkStatus('declined')}
+            disabled={bulkUpdate.isPending}
+          >
+            Toplu Reddet
+          </Button>
+          <Button
+            size="small"
+            color="inherit"
+            onClick={() => setSelectedIds(new Set())}
+            sx={{ color: 'text.secondary' }}
+          >
+            Seçimi Temizle
+          </Button>
+        </Paper>
+      )}
 
       {/* FAB */}
       {canSubmit && (

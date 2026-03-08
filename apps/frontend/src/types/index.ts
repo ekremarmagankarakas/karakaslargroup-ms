@@ -6,6 +6,7 @@ export interface User {
   username: string;
   email: string;
   role: UserRole;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -118,4 +119,40 @@ export interface AnalyticsFilters {
   paid?: boolean;
   month?: number;
   year?: number;
+}
+
+export interface Comment {
+  id: number;
+  requirement_id: number;
+  user_id: number;
+  username: string;
+  body: string;
+  created_at: string;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  requirement_id: number;
+  actor_id: number;
+  actor_username: string;
+  action: string;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+}
+
+export interface Notification {
+  id: number;
+  user_id: number;
+  requirement_id: number | null;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+export interface BudgetStatus {
+  budget_amount: string | null;
+  budget_used: string;
+  budget_period_month: number | null;
+  budget_period_year: number | null;
 }

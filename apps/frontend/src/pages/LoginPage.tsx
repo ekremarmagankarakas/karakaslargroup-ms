@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
@@ -205,6 +205,15 @@ export function LoginPage() {
             >
               {loading ? <CircularProgress size={22} color="inherit" /> : 'Giriş Yap'}
             </Button>
+
+            <Box textAlign="center" mt={1}>
+              <Link
+                to="/forgot-password"
+                style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.875rem' }}
+              >
+                Şifremi Unuttum
+              </Link>
+            </Box>
           </Box>
         </Box>
       </Grid>

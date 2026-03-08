@@ -76,6 +76,7 @@ def _make_mock_db() -> AsyncMock:
     mock_db.refresh = AsyncMock()
     mock_db.add = MagicMock()
     mock_db.delete = AsyncMock()
+    mock_db.get = AsyncMock(return_value=None)
     return mock_db
 
 
@@ -128,3 +129,18 @@ async def anon_client():
     """Unauthenticated client — no dependency overrides."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
+
+
+@pytest.fixture
+async def no_auth_client():
+    """Unauthenticated client with mocked DB (for open endpoints like password reset)."""
+    mock_db = _make_mock_db()
+
+    async def _get_db():
+        yield mock_db
+
+    app.dependency_overrides[get_db] = _get_db
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        yield client
+    app.dependency_overrides.pop(get_db, None)

@@ -20,8 +20,45 @@ class RequirementCreate(BaseModel):
     explanation: str | None = None
 
 
+class RequirementUpdate(BaseModel):
+    item_name: str | None = None
+    price: Decimal | None = None
+    explanation: str | None = None
+
+
 class RequirementStatusUpdate(BaseModel):
     status: Literal[RequirementStatus.accepted, RequirementStatus.declined]
+
+
+class BulkStatusUpdate(BaseModel):
+    ids: list[int]
+    status: Literal[RequirementStatus.accepted, RequirementStatus.declined]
+
+
+class CommentCreate(BaseModel):
+    body: str
+
+
+class CommentResponse(BaseModel):
+    id: int
+    requirement_id: int
+    user_id: int
+    username: str
+    body: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    requirement_id: int
+    actor_id: int
+    actor_username: str
+    action: str
+    old_value: str | None
+    new_value: str | None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RequirementResponse(BaseModel):

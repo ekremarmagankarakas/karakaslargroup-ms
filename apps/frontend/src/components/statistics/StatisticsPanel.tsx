@@ -2,8 +2,12 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import { Box, Grid, Skeleton, Typography } from '@mui/material';
+import SavingsIcon from '@mui/icons-material/Savings';
+import { Box, Button, Dialog, DialogContent, DialogTitle, Grid, LinearProgress, Skeleton, TextField, Tooltip, Typography } from '@mui/material';
+import { useState } from 'react';
 import { useStatistics } from '../../hooks/useStatistics';
+import { useBudgetStatus, useSetBudget } from '../../hooks/useBudget';
+import { useAuth } from '../../context/AuthContext';
 import type { StatisticsFilters } from '../../types';
 import { formatPrice } from '../../utils/formatters';
 
@@ -52,6 +56,11 @@ const STATS_CONFIG = [
 
 export function StatisticsPanel({ filters }: Props) {
   const { data, isLoading } = useStatistics(filters);
+  const { user } = useAuth();
+  const { data: budget } = useBudgetStatus(filters.month, filters.year);
+  const setBudget = useSetBudget();
+  const [showBudgetDialog, setShowBudgetDialog] = useState(false);
+  const [budgetAmount, setBudgetAmount] = useState('');
 
   if (isLoading) {
     return (
@@ -74,7 +83,17 @@ export function StatisticsPanel({ filters }: Props) {
     declined: { count: data.declined_count, price: data.declined_price },
   };
 
+  const budgetUsed = budget ? parseFloat(budget.budget_used) : 0;
+  const budgetAmount_ = budget?.budget_amount ? parseFloat(budget.budget_amount) : null;
+  const budgetPct = budgetAmount_ ? Math.min((budgetUsed / budgetAmount_) * 100, 100) : 0;
+  const budgetColor = budgetPct >= 100 ? 'error' : budgetPct >= 80 ? 'warning' : 'primary';
+
+  const now = new Date();
+  const currentMonth = filters.month ?? now.getMonth() + 1;
+  const currentYear = filters.year ?? now.getFullYear();
+
   return (
+    <>
     <Grid container spacing={2} mb={3}>
       {STATS_CONFIG.map(({ key, label, Icon, color, gradient, light, featured }) => (
         <Grid size={{ xs: 6, md: 3 }} key={key}>
@@ -161,6 +180,92 @@ export function StatisticsPanel({ filters }: Props) {
           </Box>
         </Grid>
       ))}
+
+      {/* Budget bar */}
+      {budget && (
+        <Grid size={12}>
+          <Box
+            sx={{
+              bgcolor: 'background.paper',
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
+            <SavingsIcon sx={{ color: '#2563eb', flexShrink: 0 }} />
+            <Box flex={1}>
+              <Box display="flex" justifyContent="space-between" mb={0.5}>
+                <Typography variant="caption" fontWeight={600} color="text.secondary">
+                  {currentMonth}/{currentYear} Bütçe
+                </Typography>
+                <Typography variant="caption" fontWeight={700} color={`${budgetColor}.main`}>
+                  ₺{formatPrice(budget.budget_used)}
+                  {budgetAmount_ ? ` / ₺${formatPrice(budget.budget_amount!)}` : ''}
+                </Typography>
+              </Box>
+              {budgetAmount_ ? (
+                <Tooltip title={`%${budgetPct.toFixed(1)} kullanıldı`}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={budgetPct}
+                    color={budgetColor}
+                    sx={{ height: 8, borderRadius: 4 }}
+                  />
+                </Tooltip>
+              ) : (
+                <Typography variant="caption" color="text.disabled">Bütçe belirlenmemiş</Typography>
+              )}
+            </Box>
+            {user?.role === 'admin' && (
+              <Button size="small" variant="outlined" onClick={() => setShowBudgetDialog(true)} sx={{ flexShrink: 0 }}>
+                Bütçe Belirle
+              </Button>
+            )}
+          </Box>
+        </Grid>
+      )}
     </Grid>
+
+    {/* Budget dialog */}
+    <Dialog open={showBudgetDialog} onClose={() => setShowBudgetDialog(false)} maxWidth="xs" fullWidth>
+      <DialogTitle>Bütçe Belirle</DialogTitle>
+      <DialogContent>
+        <Box display="flex" flexDirection="column" gap={2} pt={1}>
+          <Typography variant="body2" color="text.secondary">
+            {currentMonth}/{currentYear} dönemi için bütçe limitini girin.
+          </Typography>
+          <TextField
+            label="Bütçe (₺)"
+            value={budgetAmount}
+            onChange={(e) => setBudgetAmount(e.target.value)}
+            fullWidth
+            size="small"
+            type="number"
+          />
+          <Box display="flex" gap={1} justifyContent="flex-end">
+            <Button onClick={() => setShowBudgetDialog(false)} color="inherit">İptal</Button>
+            <Button
+              variant="contained"
+              disabled={!budgetAmount || setBudget.isPending}
+              onClick={async () => {
+                await setBudget.mutateAsync({
+                  amount: budgetAmount,
+                  period_month: currentMonth,
+                  period_year: currentYear,
+                });
+                setShowBudgetDialog(false);
+                setBudgetAmount('');
+              }}
+            >
+              Kaydet
+            </Button>
+          </Box>
+        </Box>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

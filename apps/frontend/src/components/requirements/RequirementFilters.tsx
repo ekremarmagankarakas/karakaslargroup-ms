@@ -1,3 +1,4 @@
+import DownloadIcon from '@mui/icons-material/Download';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import {
@@ -14,6 +15,7 @@ import {
 } from '@mui/material';
 import type { RequirementFilters, RequirementStatus, UserDropdownItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { exportRequirements } from '../../api/endpoints/requirements';
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: currentYear - 2020 + 1 }, (_, i) => 2020 + i);
@@ -33,6 +35,7 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
   const { user } = useAuth();
   const isEmployee = user?.role === 'employee';
   const isAccountant = user?.role === 'accountant';
+  const canExport = user?.role === 'manager' || user?.role === 'accountant' || user?.role === 'admin';
 
   const activeCount = [
     filters.search,
@@ -181,6 +184,31 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
             <TuneIcon sx={{ fontSize: 16, mr: 0.75 }} />
             <Typography variant="caption" fontWeight={600}>
               Temizle ({activeCount})
+            </Typography>
+          </Button>
+        </Tooltip>
+      )}
+
+      {canExport && (
+        <Tooltip title="CSV olarak indir">
+          <Button
+            size="small"
+            onClick={() => exportRequirements(filters)}
+            sx={{
+              color: 'text.secondary',
+              borderColor: 'divider',
+              ml: 'auto',
+              height: 40,
+              px: 1.5,
+              minWidth: 0,
+              border: '1px solid',
+              borderRadius: 2,
+              '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
+            }}
+          >
+            <DownloadIcon sx={{ fontSize: 16, mr: 0.75 }} />
+            <Typography variant="caption" fontWeight={600}>
+              CSV İndir
             </Typography>
           </Button>
         </Tooltip>

@@ -44,3 +44,6 @@ class Requirement(Base):
     favorites: Mapped[list["Favorite"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         back_populates="requirement", cascade="all, delete-orphan"
     )
+    comments: Mapped[list["RequirementComment"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        back_populates="requirement", cascade="all, delete-orphan"
+    )

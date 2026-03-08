@@ -2,10 +2,13 @@ from decimal import Decimal
 
 from fastapi import BackgroundTasks, HTTPException, UploadFile, status
 
+from app.models.audit_log import AuditAction
 from app.models.requirement import Requirement, RequirementStatus
 from app.models.user import User, UserRole
+from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.favorite_repository import FavoriteRepository
 from app.repositories.image_repository import ImageRepository
+from app.repositories.notification_repository import NotificationRepository
 from app.repositories.requirement_repository import RequirementRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.image import ImageResponse
@@ -23,6 +26,8 @@ class RequirementService:
         user_repo: UserRepository,
         storage: StorageService,
         email: EmailService,
+        notif_repo: NotificationRepository | None = None,
+        audit_repo: AuditLogRepository | None = None,
     ) -> None:
         self.req_repo = req_repo
         self.img_repo = img_repo
@@ -30,6 +35,8 @@ class RequirementService:
         self.user_repo = user_repo
         self.storage = storage
         self.email = email
+        self.notif_repo = notif_repo
+        self.audit_repo = audit_repo
 
     def _build_response(self, req: Requirement, favorited_ids: set[int]) -> RequirementResponse:
         images = [
@@ -119,7 +126,50 @@ class RequirementService:
             self.email.send_new_requirement, req, current_user.username, manager_emails
         )
 
+        # Audit log
+        if self.audit_repo:
+            await self.audit_repo.create(req.id, current_user.id, AuditAction.created, new_value=item_name)
+
+        # Notify managers/admins
+        if self.notif_repo:
+            manager_users = await self.user_repo.get_users_by_roles(["manager", "admin"])
+            for mgr in manager_users:
+                await self.notif_repo.create(
+                    user_id=mgr.id,
+                    message=f"{current_user.username} yeni bir talep oluşturdu: {item_name}",
+                    requirement_id=req.id,
+                )
+
         return self._build_response(req, set())
+
+    async def update_requirement(
+        self,
+        requirement_id: int,
+        current_user: User,
+        item_name: str | None,
+        price: Decimal | None,
+        explanation: str | None,
+    ) -> RequirementResponse:
+        req = await self.req_repo.get_by_id(requirement_id)
+        if not req:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Requirement not found")
+
+        if current_user.role != UserRole.admin and req.user_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+        if req.status != RequirementStatus.pending:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending requirements can be edited")
+
+        old_values = f"item_name={req.item_name}, price={req.price}"
+        await self.req_repo.update_fields(req, item_name, price, explanation)
+        req = await self.req_repo.get_by_id(req.id)
+
+        if self.audit_repo:
+            new_values = f"item_name={req.item_name}, price={req.price}"
+            await self.audit_repo.create(req.id, current_user.id, AuditAction.edited, old_value=old_values, new_value=new_values)
+
+        favorited_ids = await self.fav_repo.get_favorited_ids_for_user(current_user.id, [req.id])
+        return self._build_response(req, favorited_ids)
 
     async def upload_images(
         self, requirement_id: int, current_user: User, files: list[UploadFile]
@@ -197,17 +247,59 @@ class RequirementService:
             self.email.send_status_update, req, final_status.value, recipients
         )
 
+        # Audit log
+        if self.audit_repo:
+            old_status = new_status.value if final_status == RequirementStatus.pending else "pending"
+            await self.audit_repo.create(
+                req.id, current_user.id, AuditAction.status_changed,
+                old_value=old_status, new_value=final_status.value
+            )
+
+        # Notify owner
+        if self.notif_repo and owner:
+            STATUS_LABELS = {"accepted": "onaylandı", "declined": "reddedildi", "pending": "beklemede"}
+            label = STATUS_LABELS.get(final_status.value, final_status.value)
+            await self.notif_repo.create(
+                user_id=owner.id,
+                message=f'"{req.item_name}" talebiniz {label}.',
+                requirement_id=req.id,
+            )
+
         favorited_ids = await self.fav_repo.get_favorited_ids_for_user(current_user.id, [req.id])
         return self._build_response(req, favorited_ids)
 
-    async def toggle_paid(self, requirement_id: int) -> None:
+    async def toggle_paid(self, requirement_id: int, current_user: User) -> None:
         req = await self.req_repo.get_by_id(requirement_id)
         if not req:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Requirement not found")
+        old_val = str(req.paid)
         await self.req_repo.set_paid(req, not req.paid)
+        if self.audit_repo:
+            await self.audit_repo.create(
+                requirement_id, current_user.id, AuditAction.paid_toggled,
+                old_value=old_val, new_value=str(not req.paid)
+            )
 
-    async def delete_requirement(self, requirement_id: int) -> None:
+    async def delete_requirement(self, requirement_id: int, current_user: User) -> None:
         req = await self.req_repo.get_by_id(requirement_id)
         if not req:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Requirement not found")
+        if self.audit_repo:
+            await self.audit_repo.create(requirement_id, current_user.id, AuditAction.deleted, old_value=req.item_name)
         await self.req_repo.delete(req)
+
+    async def bulk_update_status(
+        self,
+        ids: list[int],
+        new_status: RequirementStatus,
+        current_user: User,
+        background_tasks: BackgroundTasks,
+    ) -> list[RequirementResponse]:
+        results = []
+        for req_id in ids:
+            try:
+                resp = await self.update_status(req_id, new_status, current_user, background_tasks)
+                results.append(resp)
+            except HTTPException:
+                pass
+        return results

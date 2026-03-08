@@ -111,6 +111,17 @@ class RequirementRepository:
         req.paid = paid
         await self.db.commit()
 
+    async def update_fields(
+        self, req: Requirement, item_name: str | None, price: "Decimal | None", explanation: str | None
+    ) -> None:
+        if item_name is not None:
+            req.item_name = item_name
+        if price is not None:
+            req.price = price
+        if explanation is not None:
+            req.explanation = explanation
+        await self.db.commit()
+
     async def delete(self, req: Requirement) -> None:
         await self.db.delete(req)
         await self.db.commit()

@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  bulkUpdateStatus,
+  createComment,
   createRequirement,
   deleteRequirement,
+  editRequirement,
+  fetchAuditLog,
+  fetchComments,
   fetchRequirements,
   togglePaid,
   updateStatus,
@@ -119,5 +124,55 @@ export function useDeleteRequirement() {
       qc.invalidateQueries({ queryKey: ['statistics'] });
       qc.invalidateQueries({ queryKey: ['favorites'] });
     },
+  });
+}
+
+export function useEditRequirement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { item_name?: string; price?: string; explanation?: string } }) =>
+      editRequirement(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['requirements'] });
+    },
+  });
+}
+
+export function useBulkUpdateStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: number[]; status: 'accepted' | 'declined' }) =>
+      bulkUpdateStatus(ids, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['requirements'] });
+      qc.invalidateQueries({ queryKey: ['statistics'] });
+      qc.invalidateQueries({ queryKey: ['favorites'] });
+    },
+  });
+}
+
+export function useComments(requirementId: number) {
+  return useQuery({
+    queryKey: ['comments', requirementId],
+    queryFn: () => fetchComments(requirementId),
+    enabled: requirementId > 0,
+  });
+}
+
+export function useCreateComment(requirementId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: string) => createComment(requirementId, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['comments', requirementId] });
+    },
+  });
+}
+
+export function useAuditLog(requirementId: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['audit', requirementId],
+    queryFn: () => fetchAuditLog(requirementId),
+    enabled: enabled && requirementId > 0,
   });
 }
