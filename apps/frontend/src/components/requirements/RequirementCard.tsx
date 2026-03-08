@@ -1,6 +1,9 @@
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import UndoIcon from '@mui/icons-material/Undo';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, IconButton, Tooltip, Typography } from '@mui/material';
 import type { Requirement } from '../../types';
 import { formatDate, formatPrice } from '../../utils/formatters';
 
@@ -26,9 +29,10 @@ interface Props {
   requirement: Requirement;
   onClick: () => void;
   onToggleFavorite: () => void;
+  onUpdateStatus?: (status: 'accepted' | 'declined') => void;
 }
 
-export function RequirementCard({ requirement, onClick, onToggleFavorite }: Props) {
+export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpdateStatus }: Props) {
   const accent = STATUS_ACCENT[requirement.status] ?? '#94a3b8';
 
   return (
@@ -100,6 +104,48 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite }: Prop
       <Typography variant="caption" color="text.disabled" display="block" mt={1.5}>
         {formatDate(requirement.created_at)}
       </Typography>
+
+      {/* Status action buttons */}
+      {onUpdateStatus && (
+        <Box display="flex" gap={0.75} mt={1.5} onClick={(e) => e.stopPropagation()}>
+          {requirement.status === 'pending' && (
+            <>
+              <Button
+                size="small"
+                variant="contained"
+                color="success"
+                startIcon={<CheckIcon sx={{ fontSize: '14px !important' }} />}
+                onClick={() => onUpdateStatus('accepted')}
+                sx={{ flex: 1, fontSize: '0.72rem', py: 0.5, textTransform: 'none', fontWeight: 600 }}
+              >
+                Onayla
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                startIcon={<CloseIcon sx={{ fontSize: '14px !important' }} />}
+                onClick={() => onUpdateStatus('declined')}
+                sx={{ flex: 1, fontSize: '0.72rem', py: 0.5, textTransform: 'none', fontWeight: 600 }}
+              >
+                Reddet
+              </Button>
+            </>
+          )}
+          {(requirement.status === 'accepted' || requirement.status === 'declined') && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              startIcon={<UndoIcon sx={{ fontSize: '14px !important' }} />}
+              onClick={() => onUpdateStatus(requirement.status as 'accepted' | 'declined')}
+              sx={{ flex: 1, fontSize: '0.72rem', py: 0.5, textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
+            >
+              Geri Al
+            </Button>
+          )}
+        </Box>
+      )}
 
       {/* Favorite button */}
       <Tooltip title={requirement.is_favorited ? 'Favoriden kaldır' : 'Favoriye ekle'}>

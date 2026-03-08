@@ -87,7 +87,7 @@ class RequirementRepository:
         total = count_result.scalar_one()
 
         # Paginate
-        stmt = stmt.order_by(Requirement.created_at.desc()).offset((page - 1) * limit).limit(limit)
+        stmt = stmt.order_by(Requirement.created_at.desc(), Requirement.id.desc()).offset((page - 1) * limit).limit(limit)
         result = await self.db.execute(stmt)
         items = list(result.scalars().unique().all())
 

@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str | None = None
     USE_LOCALSTACK: bool = False
     LOCALSTACK_ENDPOINT: str = "http://localstack:4566"
+    # Public URL the browser uses to reach LocalStack (host-side)
+    LOCALSTACK_PUBLIC_URL: str = "http://localhost:4566"
 
     # SMTP
     SMTP_HOST: str = "smtp.hostinger.com"

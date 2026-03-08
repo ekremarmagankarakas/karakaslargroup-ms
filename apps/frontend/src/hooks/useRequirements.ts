@@ -54,10 +54,47 @@ export function useUpdateStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: 'accepted' | 'declined' }) =>
       updateStatus(id, status),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['requirements'] });
+
+    onMutate: async ({ id, status }) => {
+      // Cancel in-flight refetches so they don't overwrite the optimistic update
+      await qc.cancelQueries({ queryKey: ['requirements'] });
+
+      // Snapshot all requirements cache entries for rollback
+      const snapshots = qc.getQueriesData<any>({ queryKey: ['requirements'] });
+
+      // Apply the toggle logic optimistically (mirrors backend toggle behaviour)
+      qc.setQueriesData<any>({ queryKey: ['requirements'] }, (old: any) => {
+        if (!old?.items) return old;
+        return {
+          ...old,
+          items: old.items.map((item: any) =>
+            item.id === id
+              ? { ...item, status: item.status === status ? 'pending' : status }
+              : item
+          ),
+        };
+      });
+
+      return { snapshots };
+    },
+
+    onError: (_err, _vars, context) => {
+      // Roll back to snapshot on failure
+      context?.snapshots?.forEach(([key, data]: [any, any]) =>
+        qc.setQueryData(key, data)
+      );
+    },
+
+    onSettled: () => {
+      // Sync stats and favorites immediately — they're small and non-visual
       qc.invalidateQueries({ queryKey: ['statistics'] });
       qc.invalidateQueries({ queryKey: ['favorites'] });
+      // Mark requirements stale but don't actively refetch — the optimistic
+      // update already shows the correct state, and an active refetch can
+      // return items in a different position even with deterministic sorting
+      // if the response races with other mutations. Data will resync on the
+      // next navigation or window focus.
+      qc.invalidateQueries({ queryKey: ['requirements'], refetchType: 'none' });
     },
   });
 }

@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useRequirements } from '../hooks/useRequirements';
+import { useRequirements, useUpdateStatus } from '../hooks/useRequirements';
 import { useToggleFavorite } from '../hooks/useFavorites';
 import { useUsers } from '../hooks/useUsers';
 import type { Requirement, RequirementFilters } from '../types';
@@ -99,6 +99,10 @@ export function DashboardPage() {
   const { data, isLoading } = useRequirements(filters);
   const { data: usersData } = useUsers();
   const toggleFavorite = useToggleFavorite();
+  const updateStatus = useUpdateStatus();
+
+  const canManageStatus = user?.role === 'manager' || user?.role === 'admin';
+
 
   const canSubmit = user?.role === 'employee' || user?.role === 'admin';
   const canSectionView = user?.role !== 'accountant';
@@ -130,6 +134,9 @@ export function DashboardPage() {
     year: filters.year,
   };
 
+  const handleUpdateStatus = (req: Requirement, status: 'accepted' | 'declined') =>
+    updateStatus.mutate({ id: req.id, status });
+
   const renderCard = (req: Requirement) => (
     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={req.id}>
       <RequirementCard
@@ -138,6 +145,7 @@ export function DashboardPage() {
         onToggleFavorite={() =>
           toggleFavorite.mutate({ requirementId: req.id, isFavorited: req.is_favorited })
         }
+        onUpdateStatus={canManageStatus ? (status) => handleUpdateStatus(req, status) : undefined}
       />
     </Grid>
   );
@@ -150,6 +158,7 @@ export function DashboardPage() {
       onToggleFavorite={() =>
         toggleFavorite.mutate({ requirementId: req.id, isFavorited: req.is_favorited })
       }
+      onUpdateStatus={canManageStatus ? (status) => handleUpdateStatus(req, status) : undefined}
     />
   );
 
@@ -354,6 +363,7 @@ export function DashboardPage() {
                             onToggleFavorite={() =>
                               toggleFavorite.mutate({ requirementId: req.id, isFavorited: req.is_favorited })
                             }
+                            onUpdateStatus={canManageStatus ? (status) => handleUpdateStatus(req, status) : undefined}
                           />
                         ))}
                       </Box>

@@ -1,6 +1,9 @@
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import UndoIcon from '@mui/icons-material/Undo';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import { Box, Chip, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
 import type { Requirement } from '../../types';
 import { formatDate, formatPrice } from '../../utils/formatters';
 
@@ -26,9 +29,10 @@ interface Props {
   requirement: Requirement;
   onClick: () => void;
   onToggleFavorite: () => void;
+  onUpdateStatus?: (status: 'accepted' | 'declined') => void;
 }
 
-export function RequirementRow({ requirement, onClick, onToggleFavorite }: Props) {
+export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdateStatus }: Props) {
   return (
     <TableRow
       hover
@@ -82,8 +86,45 @@ export function RequirementRow({ requirement, onClick, onToggleFavorite }: Props
           {formatDate(requirement.created_at)}
         </Typography>
       </TableCell>
-      <TableCell sx={{ width: 48, p: 0.5 }}>
-        <Tooltip title={requirement.is_favorited ? 'Favoriden kaldır' : 'Favoriye ekle'}>
+      <TableCell sx={{ width: onUpdateStatus && requirement.status === 'pending' ? 180 : 48, p: 0.5 }}>
+        <Box display="flex" alignItems="center" gap={0.5}>
+          {onUpdateStatus && requirement.status === 'pending' && (
+            <>
+              <Button
+                size="small"
+                variant="contained"
+                color="success"
+                startIcon={<CheckIcon sx={{ fontSize: '13px !important' }} />}
+                onClick={(e) => { e.stopPropagation(); onUpdateStatus('accepted'); }}
+                sx={{ fontSize: '0.72rem', py: 0.4, px: 1, textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}
+              >
+                Onayla
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                startIcon={<CloseIcon sx={{ fontSize: '13px !important' }} />}
+                onClick={(e) => { e.stopPropagation(); onUpdateStatus('declined'); }}
+                sx={{ fontSize: '0.72rem', py: 0.4, px: 1, textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}
+              >
+                Reddet
+              </Button>
+            </>
+          )}
+          {onUpdateStatus && (requirement.status === 'accepted' || requirement.status === 'declined') && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              startIcon={<UndoIcon sx={{ fontSize: '13px !important' }} />}
+              onClick={(e) => { e.stopPropagation(); onUpdateStatus(requirement.status as 'accepted' | 'declined'); }}
+              sx={{ fontSize: '0.72rem', py: 0.4, px: 1, textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap', color: 'text.secondary' }}
+            >
+              Geri Al
+            </Button>
+          )}
+          <Tooltip title={requirement.is_favorited ? 'Favoriden kaldır' : 'Favoriye ekle'}>
           <IconButton
             size="small"
             onClick={(e) => {
@@ -102,6 +143,7 @@ export function RequirementRow({ requirement, onClick, onToggleFavorite }: Props
             )}
           </IconButton>
         </Tooltip>
+        </Box>
       </TableCell>
     </TableRow>
   );
