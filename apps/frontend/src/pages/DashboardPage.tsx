@@ -5,7 +5,6 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import {
   Box,
-  CircularProgress,
   Fab,
   Grid,
   Paper,

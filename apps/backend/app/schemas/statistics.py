@@ -12,3 +12,28 @@ class StatisticsResponse(BaseModel):
     pending_price: Decimal
     accepted_price: Decimal
     declined_price: Decimal
+
+
+class SpendDataPoint(BaseModel):
+    year: int
+    month: int
+    month_label: str
+    total_price: Decimal
+    accepted_price: Decimal
+    count: int
+
+
+class SpendOverTimeResponse(BaseModel):
+    data: list[SpendDataPoint]
+
+
+class TopRequesterItem(BaseModel):
+    user_id: int
+    username: str
+    total_price: Decimal
+    total_count: int
+    accepted_count: int
+
+
+class TopRequestersResponse(BaseModel):
+    data: list[TopRequesterItem]

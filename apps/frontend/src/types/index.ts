@@ -82,3 +82,35 @@ export interface TokenResponse {
   token_type: string;
   user: User;
 }
+
+export interface SpendDataPoint {
+  year: number;
+  month: number;
+  month_label: string;
+  total_price: string;
+  accepted_price: string;
+  count: number;
+}
+
+export interface SpendOverTimeResponse {
+  data: SpendDataPoint[];
+}
+
+export interface TopRequesterItem {
+  user_id: number;
+  username: string;
+  total_price: string;
+  total_count: number;
+  accepted_count: number;
+}
+
+export interface TopRequestersResponse {
+  data: TopRequesterItem[];
+}
+
+export interface AnalyticsFilters {
+  user_id?: number;
+  paid?: boolean;
+  month?: number;
+  year?: number;
+}

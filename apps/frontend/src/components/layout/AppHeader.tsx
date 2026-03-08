@@ -1,5 +1,6 @@
 import LogoutIcon from '@mui/icons-material/Logout';
 import { AppBar, Avatar, Box, Chip, IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -16,8 +17,14 @@ const ROLE_COLORS: Record<string, 'error' | 'warning' | 'info' | 'default'> = {
   employee: 'default',
 };
 
+const NAV_LINKS = [
+  { label: 'Dashboard', path: '/dashboard' },
+  { label: 'Analitik', path: '/analytics' },
+];
+
 export function AppHeader() {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
 
   return (
@@ -57,6 +64,35 @@ export function AppHeader() {
           <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 400 }}>
             Yönetim Paneli
           </Typography>
+
+          <Box display="flex" alignItems="center" gap={0.5} ml={2}>
+            {NAV_LINKS.map(({ label, path }) => {
+              const active = location.pathname === path;
+              return (
+                <Box
+                  key={path}
+                  component={Link}
+                  to={path}
+                  sx={{
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 2,
+                    textDecoration: 'none',
+                    bgcolor: active ? 'primary.main' : 'transparent',
+                    color: active ? 'white' : 'text.secondary',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                    transition: 'background 0.15s',
+                    '&:hover': {
+                      bgcolor: active ? 'primary.dark' : '#f1f5f9',
+                    },
+                  }}
+                >
+                  {label}
+                </Box>
+              );
+            })}
+          </Box>
         </Box>
 
         <Box display="flex" alignItems="center" gap={1.5}>

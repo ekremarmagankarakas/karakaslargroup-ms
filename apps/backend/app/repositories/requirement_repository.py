@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import case, func, or_, select
@@ -5,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.models.requirement import Requirement, RequirementStatus
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 
 
 class RequirementRepository:
@@ -113,6 +114,110 @@ class RequirementRepository:
     async def delete(self, req: Requirement) -> None:
         await self.db.delete(req)
         await self.db.commit()
+
+    async def get_spend_over_time(
+        self,
+        *,
+        user_id: int,
+        role: UserRole,
+        filter_user_id: int | None = None,
+        paid: bool | None = None,
+        month: int | None = None,
+        year: int | None = None,
+    ) -> list[dict]:
+        from datetime import timedelta
+
+        stmt = select(
+            func.extract("year", Requirement.created_at).label("year"),
+            func.extract("month", Requirement.created_at).label("month"),
+            func.coalesce(func.sum(Requirement.price), 0).label("total_price"),
+            func.coalesce(
+                func.sum(case((Requirement.status == RequirementStatus.accepted, Requirement.price))), 0
+            ).label("accepted_price"),
+            func.count().label("count"),
+        )
+
+        if year is None:
+            now = datetime.now(timezone.utc)
+            cutoff = now.replace(day=1) - timedelta(days=365)
+            stmt = stmt.where(Requirement.created_at >= cutoff)
+        else:
+            stmt = stmt.where(func.extract("year", Requirement.created_at) == year)
+
+        if month is not None:
+            stmt = stmt.where(func.extract("month", Requirement.created_at) == month)
+
+        if role == UserRole.employee:
+            stmt = stmt.where(Requirement.user_id == user_id)
+
+        if filter_user_id is not None and role in (UserRole.manager, UserRole.admin, UserRole.accountant):
+            stmt = stmt.where(Requirement.user_id == filter_user_id)
+
+        if paid is not None:
+            stmt = stmt.where(Requirement.paid == paid)
+
+        stmt = stmt.group_by(
+            func.extract("year", Requirement.created_at),
+            func.extract("month", Requirement.created_at),
+        ).order_by(
+            func.extract("year", Requirement.created_at),
+            func.extract("month", Requirement.created_at),
+        )
+
+        result = await self.db.execute(stmt)
+        rows = result.all()
+        return [
+            {
+                "year": int(row.year),
+                "month": int(row.month),
+                "total_price": row.total_price,
+                "accepted_price": row.accepted_price,
+                "count": row.count,
+            }
+            for row in rows
+        ]
+
+    async def get_top_requesters(
+        self,
+        *,
+        limit: int = 8,
+        paid: bool | None = None,
+        month: int | None = None,
+        year: int | None = None,
+    ) -> list[dict]:
+        stmt = select(
+            Requirement.user_id,
+            User.username,
+            func.coalesce(func.sum(Requirement.price), 0).label("total_price"),
+            func.count().label("total_count"),
+            func.count(case((Requirement.status == RequirementStatus.accepted, 1))).label("accepted_count"),
+        ).join(User, User.id == Requirement.user_id)
+
+        if paid is not None:
+            stmt = stmt.where(Requirement.paid == paid)
+
+        if month is not None:
+            stmt = stmt.where(func.extract("month", Requirement.created_at) == month)
+
+        if year is not None:
+            stmt = stmt.where(func.extract("year", Requirement.created_at) == year)
+
+        stmt = stmt.group_by(Requirement.user_id, User.username).order_by(
+            func.sum(Requirement.price).desc()
+        ).limit(limit)
+
+        result = await self.db.execute(stmt)
+        rows = result.all()
+        return [
+            {
+                "user_id": row.user_id,
+                "username": row.username,
+                "total_price": row.total_price,
+                "total_count": row.total_count,
+                "accepted_count": row.accepted_count,
+            }
+            for row in rows
+        ]
 
     async def get_statistics(
         self,
