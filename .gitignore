@@ -1,13 +1,30 @@
-# --- OS / System ---
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 Icon?
-*.swp
-*.swo
 
-# --- Python ---
-__pycache__/
+# ── IDE / Editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+*.code-workspace
+
+# ── Environment & Secrets ─────────────────────────────────────────────────────
+# Keep .env.example committed so new devs know what vars are needed
+.env
+.env.*
+!.env.example
+*.secret
+*.pem
+*.crt
+*.csr
+*.key
+
+# ── Python ────────────────────────────────────────────────────────────────────
+**/__pycache__/
 *.py[cod]
 *.pyo
 *.pyd
@@ -15,163 +32,74 @@ __pycache__/
 *.egg
 *.egg-info/
 .eggs/
-dist/
-develop-eggs/
-.installed.cfg
-*.manifest
-*.spec
-.Python
-pip-wheel-metadata/
-*.sqlite3
 .venv/
 venv/
 env/
 ENV/
-*.log
 .mypy_cache/
+.ruff_cache/
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
-.cache/
-.dmypy.json
-pytestdebug.log
-.ruff_cache/
+pip-wheel-metadata/
 
-# --- FastAPI / Alembic ---
-alembic.ini
-app/migrations/versions/*.pyc
-app/migrations/__pycache__/
-app/migrations/versions/__pycache__/
-*.db
-*.pid
+# ── uv ────────────────────────────────────────────────────────────────────────
+# uv.lock IS committed — it pins exact versions for reproducible installs
+# .python-version is project config, commit it if present
+.python-version
 
-# --- Node / React / Vite ---
+# ── Node / npm ────────────────────────────────────────────────────────────────
+# package-lock.json IS committed — required for reproducible npm installs
 node_modules/
+.npm/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
-coverage/
-dist/
-.vscode/
-.idea/
-.DS_Store
 .eslintcache
-vite.config.ts.timestamp*
 *.tsbuildinfo
+vite.config.ts.timestamp*
 
-# --- Environment & Secrets ---
-.env
-.env.*
-!.env.example
-!.env.template
-*.env.local
-*.env.production
-*.env.development
-*.secret
-*.key
-*.pem
-*.crt
-*.csr
+# ── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+build/
+apps/frontend/.vite/
 
-# --- Logs & Temp Files ---
+# ── Logs & Temp ───────────────────────────────────────────────────────────────
 *.log
 logs/
 tmp/
 temp/
+*.tmp
 *.bak
 *.orig
+*.rej
 *.old
-
-# --- Docker ---
-# Ignore local Docker Compose override files and volumes
-docker-compose.override.yml
 *.pid
 *.seed
-*.tar
-*.tgz
-*.gz
-*.zip
-*.bak
-*.tar.gz
 
-# --- Database Volumes / Data ---
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Database & Storage Volumes ────────────────────────────────────────────────
 db_data/
 pg_data/
 data/
 volume_data/
 uploads/
 media/
-files/
 __db_backups__/
 
-# --- Frontend Artifacts ---
-apps/frontend/.vite/
-apps/frontend/dist/
-apps/frontend/node_modules/
-apps/frontend/.env.local
-apps/frontend/.env.development
-apps/frontend/.env.production
-apps/frontend/npm-debug.log*
+# ── Archives ──────────────────────────────────────────────────────────────────
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.zip
 
-# --- Backend Artifacts ---
-apps/backend/.venv/
-apps/backend/venv/
-apps/backend/env/
-apps/backend/__pycache__/
-apps/backend/.mypy_cache/
-apps/backend/.pytest_cache/
-apps/backend/.env.dev
-apps/backend/.env.local
-apps/backend/.env.production
-apps/backend/.coverage
-apps/backend/coverage/
-apps/backend/logs/
-
-# --- IDE / Editor / Tooling ---
-.vscode/
-.idea/
-*.iml
-*.code-workspace
-.editorconfig
-.prettierignore
-.prettierrc
-eslintcache
-
-# --- OS specific ---
-*.swp
-*.swo
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# --- Misc. / Generated ---
-**/__pycache__/
-**/.ipynb_checkpoints
-*.ipynb_checkpoints
-*.bak
-*.tmp
-*.old
-*.orig
-*.rej
-
-# --- Makefile outputs (if any) ---
+# ── Compiled / Binary ─────────────────────────────────────────────────────────
 *.out
 *.o
 *.obj
 *.class
-
-# --- Ignore Infra Build Outputs ---
-infra/compose/db_data/
-infra/compose/tmp/
-infra/compose/cache/
-infra/compose/logs/
-infra/compose/.env.local
-infra/compose/.secrets/
-
-# --- Keep Example/Template Files ---
-!*.example
-!*.template

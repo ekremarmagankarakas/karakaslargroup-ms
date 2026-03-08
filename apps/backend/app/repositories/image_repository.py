@@ -1,4 +1,3 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.requirement_image import RequirementImage
@@ -25,12 +24,6 @@ class ImageRepository:
         await self.db.commit()
         await self.db.refresh(img)
         return img
-
-    async def get_by_requirement(self, requirement_id: int) -> list[RequirementImage]:
-        result = await self.db.execute(
-            select(RequirementImage).where(RequirementImage.requirement_id == requirement_id)
-        )
-        return list(result.scalars().all())
 
     async def delete(self, image: RequirementImage) -> None:
         await self.db.delete(image)
