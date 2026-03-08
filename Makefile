@@ -42,7 +42,8 @@ DC_DEV := docker compose -f docker-compose.dev.yml
         alembic-init alembic-rev alembic-up alembic-down seed seed-data \
         dev-alembic-up dev-alembic-down dev-seed dev-seed-data \
         check check-backend check-frontend \
-        build-frontend clean-images clean-volumes
+        build-frontend clean-images clean-volumes \
+        test
 
 help:
 	@echo "KarakaslarGroup — common tasks"
@@ -78,6 +79,9 @@ help:
 	@echo "  make psql                Open psql shell to Postgres"
 	@echo "  make clean-images        Prune dangling Docker images"
 	@echo "  make clean-volumes       Remove all local Docker volumes (DANGEROUS)"
+	@echo
+	@echo "Tests:"
+	@echo "  make test                Run backend pytest suite"
 	@echo
 	@echo "Checks:"
 	@echo "  make check               Hit API endpoints"
@@ -185,6 +189,10 @@ dev-seed-data:
 # ---------- Frontend build (optional) ----------
 build-frontend:
 	$(DC) exec $(FRONTEND_SVC) npm run build
+
+# ---------- Tests ----------
+test:
+	cd $(BACKEND_DIR) && uv run --group dev pytest
 
 # ---------- Health checks ----------
 check: check-backend
