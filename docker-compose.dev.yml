@@ -57,6 +57,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
       ALLOWED_ORIGINS: '["http://localhost","http://localhost:5173","http://localhost:3000"]'
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     volumes:
       - ./apps/backend:/app
       # Preserve the uv virtualenv installed during image build

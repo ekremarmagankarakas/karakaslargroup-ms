@@ -1,4 +1,5 @@
 import { Box, Toolbar } from '@mui/material';
+import { ChatWidget } from '../chat/ChatWidget';
 import { AppHeader } from './AppHeader';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <Toolbar />
         {children}
       </Box>
+      <ChatWidget />
     </Box>
   );
 }

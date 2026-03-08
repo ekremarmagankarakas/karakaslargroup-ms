@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str
     SMTP_FROM_NAME: str = "KarakaslarGroup Yonetim"
 
+    # Anthropic
+    ANTHROPIC_API_KEY: str = ""
+
     # CORS
     ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
 

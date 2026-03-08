@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.api.routes import auth, favorites, requirements, statistics, users
+from app.api.routes import auth, chat, favorites, requirements, statistics, users
 
 
 @asynccontextmanager
@@ -29,6 +29,7 @@ def create_app() -> FastAPI:
     app.include_router(requirements.router, prefix="/api/requirements", tags=["requirements"])
     app.include_router(favorites.router, prefix="/api/favorites", tags=["favorites"])
     app.include_router(statistics.router, prefix="/api/statistics", tags=["statistics"])
+    app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 
     return app
 

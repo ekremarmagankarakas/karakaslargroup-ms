@@ -108,6 +108,11 @@ export interface TopRequestersResponse {
   data: TopRequesterItem[];
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface AnalyticsFilters {
   user_id?: number;
   paid?: boolean;
