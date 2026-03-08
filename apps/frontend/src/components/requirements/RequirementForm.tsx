@@ -8,12 +8,17 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { useCreateRequirement } from '../../hooks/useRequirements';
+import { useLocations } from '../../hooks/useLocations';
 import { parsePriceInput } from '../../utils/formatters';
 
 interface Props {
@@ -25,8 +30,10 @@ export function RequirementForm({ open, onClose }: Props) {
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
   const [explanation, setExplanation] = useState('');
+  const [locationId, setLocationId] = useState<number | ''>('');
   const [files, setFiles] = useState<File[]>([]);
   const createReq = useCreateRequirement();
+  const { data: locations = [] } = useLocations();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,11 +42,13 @@ export function RequirementForm({ open, onClose }: Props) {
       item_name: itemName,
       price: parsedPrice,
       explanation: explanation || undefined,
+      location_id: locationId !== '' ? locationId : undefined,
       files,
     });
     setItemName('');
     setPrice('');
     setExplanation('');
+    setLocationId('');
     setFiles([]);
     onClose();
   };
@@ -52,6 +61,7 @@ export function RequirementForm({ open, onClose }: Props) {
     setItemName('');
     setPrice('');
     setExplanation('');
+    setLocationId('');
     setFiles([]);
     onClose();
   };
@@ -110,6 +120,21 @@ export function RequirementForm({ open, onClose }: Props) {
             fullWidth
             placeholder="Bu talebin neden gerekli olduğunu açıklayın..."
           />
+          {locations.length > 0 && (
+            <FormControl fullWidth size="small">
+              <InputLabel>Lokasyon</InputLabel>
+              <Select
+                value={locationId}
+                label="Lokasyon"
+                onChange={(e) => setLocationId(e.target.value as number | '')}
+              >
+                <MenuItem value=""><em>Belirtilmemiş</em></MenuItem>
+                {locations.map((loc) => (
+                  <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
           {/* File attachment */}
           <Box>

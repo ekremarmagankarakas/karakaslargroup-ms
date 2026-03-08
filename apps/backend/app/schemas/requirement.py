@@ -18,6 +18,7 @@ class RequirementCreate(BaseModel):
     item_name: str
     price: Decimal
     explanation: str | None = None
+    location_id: int | None = None
 
 
 class RequirementUpdate(BaseModel):
@@ -72,6 +73,8 @@ class RequirementResponse(BaseModel):
     paid: bool
     approved_by: int | None
     approved_by_username: str | None
+    location_id: int | None = None
+    location_name: str | None = None
     images: list[ImageResponse]
     is_favorited: bool
     created_at: datetime

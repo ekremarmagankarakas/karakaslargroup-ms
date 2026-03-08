@@ -33,3 +33,6 @@ class User(Base):
     favorites: Mapped[list["Favorite"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         back_populates="user"
     )
+    locations: Mapped[list["Location"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        secondary="user_locations", back_populates="users"
+    )

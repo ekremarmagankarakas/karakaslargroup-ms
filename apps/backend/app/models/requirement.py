@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, Enum as SAEnum, ForeignKey, Numeric, String, Text
+from sqlalchemy import Boolean, Enum as SAEnum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import TIMESTAMP as TIMESTAMPTZ
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -30,6 +30,9 @@ class Requirement(Base):
     )
     paid: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     approved_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    location_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("locations.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(TIMESTAMPTZ(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship(  # type: ignore[name-defined]  # noqa: F821
@@ -46,4 +49,7 @@ class Requirement(Base):
     )
     comments: Mapped[list["RequirementComment"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         back_populates="requirement", cascade="all, delete-orphan"
+    )
+    location: Mapped["Location | None"] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        foreign_keys=[location_id], back_populates="requirements"
     )

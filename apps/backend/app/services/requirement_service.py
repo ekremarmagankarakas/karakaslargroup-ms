@@ -8,6 +8,7 @@ from app.models.user import User, UserRole
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.favorite_repository import FavoriteRepository
 from app.repositories.image_repository import ImageRepository
+from app.repositories.location_repository import LocationRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.requirement_repository import RequirementRepository
 from app.repositories.user_repository import UserRepository
@@ -28,6 +29,7 @@ class RequirementService:
         email: EmailService,
         notif_repo: NotificationRepository | None = None,
         audit_repo: AuditLogRepository | None = None,
+        location_repo: LocationRepository | None = None,
     ) -> None:
         self.req_repo = req_repo
         self.img_repo = img_repo
@@ -37,6 +39,7 @@ class RequirementService:
         self.email = email
         self.notif_repo = notif_repo
         self.audit_repo = audit_repo
+        self.location_repo = location_repo
 
     def _build_response(self, req: Requirement, favorited_ids: set[int]) -> RequirementResponse:
         images = [
@@ -60,6 +63,8 @@ class RequirementService:
             paid=req.paid,
             approved_by=req.approved_by,
             approved_by_username=req.approver.username if req.approver else None,
+            location_id=req.location_id,
+            location_name=req.location.name if req.location else None,
             images=images,
             is_favorited=req.id in favorited_ids,
             created_at=req.created_at,
@@ -76,7 +81,13 @@ class RequirementService:
         paid: bool | None,
         month: int | None,
         year: int | None,
+        location_id: int | None = None,
     ) -> PaginatedRequirementsResponse:
+        # Resolve manager's location scope
+        manager_location_ids: list[int] | None = None
+        if current_user.role == UserRole.manager and self.location_repo:
+            manager_location_ids = await self.location_repo.get_location_ids_for_user(current_user.id)
+
         requirements, total = await self.req_repo.get_paginated(
             user_id=current_user.id,
             role=current_user.role,
@@ -88,6 +99,8 @@ class RequirementService:
             paid=paid,
             month=month,
             year=year,
+            location_id=location_id,
+            manager_location_ids=manager_location_ids,
         )
 
         req_ids = [r.id for r in requirements]
@@ -111,12 +124,20 @@ class RequirementService:
         price: Decimal,
         explanation: str | None,
         background_tasks: BackgroundTasks,
+        location_id: int | None = None,
     ) -> RequirementResponse:
+        # Auto-fill location from user's first assignment if not specified
+        if location_id is None and self.location_repo:
+            user_loc_ids = await self.location_repo.get_location_ids_for_user(current_user.id)
+            if user_loc_ids:
+                location_id = user_loc_ids[0]
+
         req = await self.req_repo.create(
             user_id=current_user.id,
             item_name=item_name,
             price=price,
             explanation=explanation,
+            location_id=location_id,
         )
         # Re-fetch with relationships
         req = await self.req_repo.get_by_id(req.id)
@@ -130,9 +151,17 @@ class RequirementService:
         if self.audit_repo:
             await self.audit_repo.create(req.id, current_user.id, AuditAction.created, new_value=item_name)
 
-        # Notify managers/admins
+        # Notify managers/admins — prefer location-scoped managers if possible
         if self.notif_repo:
-            manager_users = await self.user_repo.get_users_by_roles(["manager", "admin"])
+            if location_id and self.location_repo:
+                manager_users = await self.location_repo.get_users_for_location(location_id)
+                # Filter to only managers/admins
+                from app.models.user import UserRole as _UserRole
+                manager_users = [u for u in manager_users if u.role in (_UserRole.manager, _UserRole.admin)]
+                if not manager_users:
+                    manager_users = await self.user_repo.get_users_by_roles(["manager", "admin"])
+            else:
+                manager_users = await self.user_repo.get_users_by_roles(["manager", "admin"])
             for mgr in manager_users:
                 await self.notif_repo.create(
                     user_id=mgr.id,

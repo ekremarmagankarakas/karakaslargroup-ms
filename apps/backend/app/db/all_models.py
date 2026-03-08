@@ -1,6 +1,7 @@
 # Import all models so Alembic autogenerate can discover them.
 # Only imported by alembic/env.py — never from application code.
 from app.models.audit_log import AuditLog  # noqa: F401
+from app.models.location import Location  # noqa: F401
 from app.models.budget_limit import BudgetLimit  # noqa: F401
 from app.models.favorite import Favorite  # noqa: F401
 from app.models.notification import Notification  # noqa: F401

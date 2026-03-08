@@ -35,6 +35,7 @@ export function AppHeader() {
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Analitik', path: '/analytics' },
     ...(user?.role === 'admin' ? [{ label: 'Kullanıcılar', path: '/users' }] : []),
+    ...(user?.role === 'admin' ? [{ label: 'Lokasyonlar', path: '/locations' }] : []),
   ];
 
   const handleOpenNotifs = (e: React.MouseEvent<HTMLElement>) => {

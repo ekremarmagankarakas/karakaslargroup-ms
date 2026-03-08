@@ -133,6 +133,7 @@ class TestAuditLogGeneration:
         created_req.user = MagicMock()
         created_req.user.username = "employee"
         created_req.approver = None
+        created_req.location = None
         req_repo.create.return_value = created_req
         req_repo.get_by_id.return_value = created_req
         user_repo.get_users_by_roles = AsyncMock(return_value=[])
@@ -198,6 +199,7 @@ class TestAuditLogGeneration:
         req.user = MagicMock()
         req.user.username = "owner"
         req.approver = None
+        req.location = None
 
         updated_req = MagicMock(spec=Requirement)
         updated_req.id = 1
@@ -214,6 +216,7 @@ class TestAuditLogGeneration:
         updated_req.user.username = "owner"
         updated_req.approver = MagicMock()
         updated_req.approver.username = "manager"
+        updated_req.location = None
         req_repo.get_by_id.side_effect = [req, updated_req]
 
         svc = RequirementService(

@@ -38,6 +38,8 @@ class RequirementRepository:
         paid: bool | None = None,
         month: int | None = None,
         year: int | None = None,
+        location_id: int | None = None,
+        manager_location_ids: list[int] | None = None,
     ) -> tuple[list[Requirement], int]:
         stmt = (
             select(Requirement)
@@ -51,6 +53,15 @@ class RequirementRepository:
         # Role-scoped visibility
         if role == UserRole.employee:
             stmt = stmt.where(Requirement.user_id == user_id)
+        elif role == UserRole.manager:
+            # Managers see requirements from their assigned locations + unscoped legacy records
+            if manager_location_ids is not None:
+                stmt = stmt.where(
+                    or_(
+                        Requirement.location_id.in_(manager_location_ids),
+                        Requirement.location_id.is_(None),
+                    )
+                )
         elif role == UserRole.accountant:
             stmt = stmt.where(Requirement.status == RequirementStatus.accepted)
             if paid is None:
@@ -80,6 +91,10 @@ class RequirementRepository:
         if year is not None:
             stmt = stmt.where(func.extract("year", Requirement.created_at) == year)
 
+        # Explicit location filter (for privileged roles browsing a specific mall)
+        if location_id is not None and role in (UserRole.manager, UserRole.admin, UserRole.accountant):
+            stmt = stmt.where(Requirement.location_id == location_id)
+
         # Count
         count_result = await self.db.execute(
             select(func.count()).select_from(stmt.subquery())
@@ -93,8 +108,10 @@ class RequirementRepository:
 
         return items, total
 
-    async def create(self, user_id: int, item_name: str, price: Decimal, explanation: str | None) -> Requirement:
-        req = Requirement(user_id=user_id, item_name=item_name, price=price, explanation=explanation)
+    async def create(
+        self, user_id: int, item_name: str, price: Decimal, explanation: str | None, location_id: int | None = None
+    ) -> Requirement:
+        req = Requirement(user_id=user_id, item_name=item_name, price=price, explanation=explanation, location_id=location_id)
         self.db.add(req)
         await self.db.commit()
         await self.db.refresh(req)

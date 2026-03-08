@@ -16,6 +16,7 @@ import {
 import type { RequirementFilters, RequirementStatus, UserDropdownItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { exportRequirements } from '../../api/endpoints/requirements';
+import { useLocations } from '../../hooks/useLocations';
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: currentYear - 2020 + 1 }, (_, i) => 2020 + i);
@@ -36,6 +37,8 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
   const isEmployee = user?.role === 'employee';
   const isAccountant = user?.role === 'accountant';
   const canExport = user?.role === 'manager' || user?.role === 'accountant' || user?.role === 'admin';
+  const showLocationFilter = !isEmployee;
+  const { data: locations = [] } = useLocations();
 
   const activeCount = [
     filters.search,
@@ -44,6 +47,7 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
     filters.paid !== undefined ? true : undefined,
     filters.month,
     filters.year,
+    filters.location_id,
   ].filter(Boolean).length;
 
   const clearFilters = () => onChange({ page: 1, limit: filters.limit });
@@ -163,6 +167,24 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
           ))}
         </Select>
       </FormControl>
+
+      {showLocationFilter && locations.length > 0 && (
+        <FormControl size="small" sx={{ minWidth: 130 }}>
+          <InputLabel>Lokasyon</InputLabel>
+          <Select
+            value={filters.location_id ?? ''}
+            label="Lokasyon"
+            onChange={(e) =>
+              onChange({ ...filters, location_id: e.target.value ? Number(e.target.value) : undefined, page: 1 })
+            }
+          >
+            <MenuItem value="">Tümü</MenuItem>
+            {locations.map((loc) => (
+              <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
 
       {activeCount > 0 && (
         <Tooltip title="Tüm filtreleri temizle">

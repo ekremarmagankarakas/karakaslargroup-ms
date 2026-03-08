@@ -25,6 +25,7 @@ def _make_requirement(req_id=1, status=RequirementStatus.pending, user_id=10):
     req.user = MagicMock()
     req.user.username = "owner"
     req.approver = None
+    req.location = None
     return req
 
 

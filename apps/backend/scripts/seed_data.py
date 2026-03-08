@@ -1,28 +1,59 @@
 """
-Seed script — creates sample requirements and favorites.
+Seed script — creates sample data for all tables.
 Requires seed.py to have been run first (users must exist).
 Run inside the backend container:
     uv run python scripts/seed_data.py
 """
 import asyncio
+import hashlib
 import random
+import secrets
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 import app.db.all_models  # noqa: F401 — registers all models
 from app.core.config import get_settings
+from app.models.audit_log import AuditAction, AuditLog
+from app.models.budget_limit import BudgetLimit
 from app.models.favorite import Favorite
+from app.models.location import Location, user_locations
+from app.models.notification import Notification
 from app.models.requirement import Requirement, RequirementStatus
+from app.models.requirement_comment import RequirementComment
 from app.models.user import User
 
 TARGET = 200
 SEED = 42
-FAVORITE_COUNT = 40  # total favorites to spread across manager + admin
+FAVORITE_COUNT = 40
 
-# ── Item pool ──────────────────────────────────────────────────────────────
-# (item_name, price_min, price_max)
+# ── Locations (shopping malls) ──────────────────────────────────────────────
+
+LOCATIONS_DATA = [
+    {
+        "name": "Kanyon AVM",
+        "address": "Büyükdere Cad. No:185, 34394 Levent/İstanbul",
+        "managers": ["manager"],
+        "employees": ["employee", "ali_demir", "ayse_kaya"],
+    },
+    {
+        "name": "Forum İstanbul AVM",
+        "address": "Kocatepe Mah. E-5 Yanyol No:2, 34295 Bayrampaşa/İstanbul",
+        "managers": ["manager_forum"],
+        "employees": ["mehmet_yilmaz", "fatma_celik"],
+    },
+    {
+        "name": "Cevahir AVM",
+        "address": "Büyükdere Cad. No:22, 34381 Şişli/İstanbul",
+        "managers": ["manager_cevahir"],
+        "employees": ["emre_arslan", "zeynep_sahin"],
+    },
+]
+
+# ── Item pool ────────────────────────────────────────────────────────────────
 
 LAPTOPS = [
     ("MacBook Pro 14 inch M3", 65000, 95000),
@@ -184,61 +215,324 @@ EXPLANATIONS = [
     "Yedek ekipman olarak stokta bulundurulması planlanmaktadır.",
 ]
 
+COMMENT_BODIES = [
+    "Bu talep için fiyat araştırması yapıldı, uygun görünüyor.",
+    "Alternatif bir ürün de değerlendirilebilir, lütfen inceleyin.",
+    "Bu ay bütçemiz doldu, gelecek aya aktarabilir miyiz?",
+    "Acil ihtiyaç durumu var, önceliklendirilmesi gerekmektedir.",
+    "Fiyat biraz yüksek, pazarlık yapılabilir mi?",
+    "Tedarikçiyle görüşüldü, 2 hafta içinde teslim edilebilir.",
+    "Ek belgeler eklendi, incelemenizi rica ederim.",
+    "Bu ekipman başka departmanla paylaşılabilir mi?",
+    "Onay süreci başlatıldı, takipte olunuz.",
+    "Teknik özellikleri karşılıyor, onaylıyorum.",
+]
+
 STATUS_WEIGHTS = [
     (RequirementStatus.pending, 0.35),
     (RequirementStatus.accepted, 0.45),
     (RequirementStatus.declined, 0.20),
 ]
 
-USER_WEIGHTS = [
-    ("employee", 0.50),
-    ("admin", 0.28),
-    ("manager", 0.16),
-    ("accountant", 0.06),
-]
 
-
-def weighted_choice(rng: random.Random, choices: list[tuple]) -> str:
+def weighted_choice(rng: random.Random, choices: list[tuple]):
     items, weights = zip(*choices)
-    return rng.choices(items, weights=weights, k=1)[0]  # type: ignore[return-value]
+    return rng.choices(items, weights=weights, k=1)[0]
 
 
-def generate_requirements(n: int, offset: int, users: dict) -> list[dict]:
-    rng = random.Random(SEED + offset)
-    result = []
-    approvers = [u for u in ("manager", "admin") if u in users]
+# ── Seed helpers ────────────────────────────────────────────────────────────
 
-    for _ in range(n):
-        name, price_min, price_max = rng.choice(ALL_ITEMS)
-        price = Decimal(str(round(rng.uniform(price_min, price_max), 2)))
-        status = weighted_choice(rng, STATUS_WEIGHTS)
-        username = weighted_choice(rng, USER_WEIGHTS)
+async def seed_locations(db, users: dict) -> dict:
+    """Create locations and assign users. Returns {name: Location}."""
+    result = await db.execute(select(Location))
+    existing = {loc.name: loc for loc in result.scalars().all()}
 
-        # Fallback if user not in db
-        if username not in users and users:
-            username = next(iter(users))
+    locs: dict[str, Location] = {}
+    for data in LOCATIONS_DATA:
+        if data["name"] in existing:
+            print(f"  skip  location '{data['name']}' (already exists)")
+            locs[data["name"]] = existing[data["name"]]
+            continue
 
-        approved_by = None
-        if status in (RequirementStatus.accepted, RequirementStatus.declined) and approvers:
-            approved_by = rng.choice(approvers)
+        loc = Location(name=data["name"], address=data["address"])
+        db.add(loc)
+        await db.flush()
+        print(f"  create location '{data['name']}'")
+        locs[data["name"]] = loc
 
-        paid = False
-        if status == RequirementStatus.accepted and rng.random() < 0.55:
-            paid = True
+    # Assign users to locations (idempotent via ON CONFLICT DO NOTHING)
+    for data in LOCATIONS_DATA:
+        loc = locs.get(data["name"])
+        if not loc:
+            continue
+        assigned_usernames = data["managers"] + data["employees"]
+        for uname in assigned_usernames:
+            if uname not in users:
+                continue
+            uid = users[uname].id
+            await db.execute(
+                insert(user_locations)
+                .values(user_id=uid, location_id=loc.id)
+                .on_conflict_do_nothing()
+            )
 
-        explanation = rng.choice(EXPLANATIONS + [None, None])  # type: ignore[list-item]
+    print(f"  assigned users to {len(locs)} locations")
+    return locs
 
-        result.append({
-            "item_name": name,
-            "price": price,
-            "status": status,
-            "user": username,
-            "approved_by": approved_by,
-            "paid": paid,
-            "explanation": explanation,
-        })
 
-    return result
+async def seed_requirements(db, users: dict, locs: dict) -> list:
+    """Create requirements up to TARGET. Returns all requirement objects."""
+    count_result = await db.execute(select(func.count()).select_from(Requirement))
+    existing_count = count_result.scalar_one()
+
+    # Build location mapping: username → location
+    username_to_location: dict[str, Location] = {}
+    for loc_data in LOCATIONS_DATA:
+        loc = locs.get(loc_data["name"])
+        if not loc:
+            continue
+        for uname in loc_data["employees"] + loc_data["managers"]:
+            username_to_location[uname] = loc
+
+    to_create = TARGET - existing_count
+    if to_create <= 0:
+        print(f"  skip  requirements (already {existing_count} exist, target {TARGET})")
+    else:
+        print(f"  creating {to_create} requirements (existing: {existing_count}, target: {TARGET})...")
+        rng = random.Random(SEED + existing_count)
+        approvers = [u for u in ("manager", "manager_forum", "manager_cevahir", "admin") if u in users]
+
+        for _ in range(to_create):
+            name, price_min, price_max = rng.choice(ALL_ITEMS)
+            price = Decimal(str(round(rng.uniform(price_min, price_max), 2)))
+            status = weighted_choice(rng, STATUS_WEIGHTS)
+
+            # Pick a random user, weighted toward employees
+            candidates = list(users.keys())
+            username = rng.choice(candidates)
+
+            approved_by = None
+            if status in (RequirementStatus.accepted, RequirementStatus.declined) and approvers:
+                approved_by = rng.choice(approvers)
+
+            paid = False
+            if status == RequirementStatus.accepted and rng.random() < 0.55:
+                paid = True
+
+            explanation = rng.choice(EXPLANATIONS + [None, None])  # type: ignore[list-item]
+            loc = username_to_location.get(username)
+
+            db.add(Requirement(
+                user_id=users[username].id,
+                item_name=name,
+                price=price,
+                explanation=explanation,
+                status=status,
+                paid=paid,
+                approved_by=users[approved_by].id if approved_by else None,
+                location_id=loc.id if loc else None,
+            ))
+
+        await db.flush()
+        print(f"  created {to_create} requirements")
+
+    result = await db.execute(select(Requirement))
+    return result.scalars().all()
+
+
+async def seed_favorites(db, users: dict, all_reqs: list) -> None:
+    fav_users = {u: users[u] for u in ("manager", "admin") if u in users}
+    if not fav_users or not all_reqs:
+        return
+
+    rng = random.Random(SEED)
+    sample = rng.sample(all_reqs, min(FAVORITE_COUNT, len(all_reqs)))
+    half = len(sample) // 2
+    user_list = list(fav_users.values())
+    assignments = (
+        [(user_list[0], req) for req in sample[:half]] +
+        [(user_list[-1], req) for req in sample[half:]]
+    )
+
+    new_favs = 0
+    for fav_user, req in assignments:
+        exists = await db.execute(
+            select(Favorite).where(
+                Favorite.user_id == fav_user.id,
+                Favorite.requirement_id == req.id,
+            )
+        )
+        if not exists.scalar_one_or_none():
+            db.add(Favorite(user_id=fav_user.id, requirement_id=req.id))
+            new_favs += 1
+
+    if new_favs:
+        print(f"  created {new_favs} favorites")
+    else:
+        print(f"  skip  favorites (already exist)")
+
+
+async def seed_comments(db, users: dict, all_reqs: list) -> None:
+    count_result = await db.execute(select(func.count()).select_from(RequirementComment))
+    if count_result.scalar_one() > 0:
+        print(f"  skip  comments (already exist)")
+        return
+
+    rng = random.Random(SEED + 1)
+    # Add 1-3 comments to ~30% of requirements
+    commenters = list(users.values())
+    created = 0
+    for req in rng.sample(all_reqs, min(int(len(all_reqs) * 0.30), len(all_reqs))):
+        n_comments = rng.randint(1, 3)
+        for _ in range(n_comments):
+            db.add(RequirementComment(
+                requirement_id=req.id,
+                user_id=rng.choice(commenters).id,
+                body=rng.choice(COMMENT_BODIES),
+            ))
+            created += 1
+
+    print(f"  created {created} comments")
+
+
+async def seed_notifications(db, users: dict, all_reqs: list) -> None:
+    count_result = await db.execute(select(func.count()).select_from(Notification))
+    if count_result.scalar_one() > 0:
+        print(f"  skip  notifications (already exist)")
+        return
+
+    rng = random.Random(SEED + 2)
+    all_users = list(users.values())
+    created = 0
+
+    # Status-change notifications (for requirement owners)
+    accepted_reqs = [r for r in all_reqs if r.status == RequirementStatus.accepted]
+    declined_reqs = [r for r in all_reqs if r.status == RequirementStatus.declined]
+
+    for req in rng.sample(accepted_reqs, min(30, len(accepted_reqs))):
+        db.add(Notification(
+            user_id=req.user_id,
+            requirement_id=req.id,
+            message=f"Talebiniz onaylandı: {req.item_name[:50]}",
+            read=rng.random() > 0.4,
+        ))
+        created += 1
+
+    for req in rng.sample(declined_reqs, min(15, len(declined_reqs))):
+        db.add(Notification(
+            user_id=req.user_id,
+            requirement_id=req.id,
+            message=f"Talebiniz reddedildi: {req.item_name[:50]}",
+            read=rng.random() > 0.6,
+        ))
+        created += 1
+
+    # New-requirement notifications (for managers)
+    managers = [u for u in all_users if u.role.value == "manager"]
+    pending_reqs = [r for r in all_reqs if r.status == RequirementStatus.pending]
+    for req in rng.sample(pending_reqs, min(20, len(pending_reqs))):
+        for mgr in rng.sample(managers, min(2, len(managers))):
+            db.add(Notification(
+                user_id=mgr.id,
+                requirement_id=req.id,
+                message=f"Yeni talep oluşturuldu: {req.item_name[:50]}",
+                read=rng.random() > 0.5,
+            ))
+            created += 1
+
+    print(f"  created {created} notifications")
+
+
+async def seed_audit_logs(db, users: dict, all_reqs: list) -> None:
+    count_result = await db.execute(select(func.count()).select_from(AuditLog))
+    if count_result.scalar_one() > 0:
+        print(f"  skip  audit_logs (already exist)")
+        return
+
+    rng = random.Random(SEED + 3)
+    approvers = [u for u in users.values() if u.role.value in ("manager", "admin")]
+    all_users = list(users.values())
+    created = 0
+
+    for req in all_reqs:
+        # Every requirement has a "created" audit entry
+        db.add(AuditLog(
+            requirement_id=req.id,
+            actor_id=req.user_id,
+            action=AuditAction.created,
+            old_value=None,
+            new_value=req.item_name,
+        ))
+        created += 1
+
+        # Accepted/declined requirements have a status_changed entry
+        if req.status in (RequirementStatus.accepted, RequirementStatus.declined) and approvers:
+            actor = rng.choice(approvers)
+            db.add(AuditLog(
+                requirement_id=req.id,
+                actor_id=actor.id,
+                action=AuditAction.status_changed,
+                old_value="pending",
+                new_value=req.status.value,
+            ))
+            created += 1
+
+        # ~25% of accepted requirements have a paid_toggled entry
+        if req.paid and rng.random() < 0.25 and approvers:
+            actor = rng.choice(approvers)
+            db.add(AuditLog(
+                requirement_id=req.id,
+                actor_id=actor.id,
+                action=AuditAction.paid_toggled,
+                old_value="false",
+                new_value="true",
+            ))
+            created += 1
+
+        # ~10% of requirements have an "edited" entry
+        if rng.random() < 0.10 and all_users:
+            actor_id = req.user_id
+            db.add(AuditLog(
+                requirement_id=req.id,
+                actor_id=actor_id,
+                action=AuditAction.edited,
+                old_value="Eski açıklama",
+                new_value="Güncellenmiş açıklama",
+            ))
+            created += 1
+
+    print(f"  created {created} audit log entries")
+
+
+async def seed_budget_limits(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(BudgetLimit))
+    if count_result.scalar_one() > 0:
+        print(f"  skip  budget_limits (already exist)")
+        return
+
+    admin = users.get("admin")
+    if not admin:
+        print(f"  skip  budget_limits (no admin user)")
+        return
+
+    now = datetime.now(tz=timezone.utc)
+    # Seed last 6 months + next month
+    created = 0
+    for delta in range(-5, 2):
+        target = now + timedelta(days=delta * 30)
+        month = target.month
+        year = target.year
+        # Vary budget between 150k and 300k TL
+        amount = Decimal(str(random.randint(150, 300) * 1000))
+        db.add(BudgetLimit(
+            amount=amount,
+            period_month=month,
+            period_year=year,
+            set_by=admin.id,
+        ))
+        created += 1
+
+    print(f"  created {created} budget limit entries")
 
 
 async def main() -> None:
@@ -252,67 +546,31 @@ async def main() -> None:
         users = {u.username: u for u in result.scalars().all()}
 
         if not users:
-            print("No users found. Run 'make seed' first.")
+            print("No users found. Run 'uv run python scripts/seed.py' first.")
             return
 
-        # Count existing requirements
-        count_result = await db.execute(select(func.count()).select_from(Requirement))
-        existing_count = count_result.scalar_one()
+        # 1. Locations
+        locs = await seed_locations(db, users)
+        await db.flush()
 
-        to_create = TARGET - existing_count
-        if to_create <= 0:
-            print(f"  skip  requirements (already {existing_count} exist, target {TARGET})")
-        else:
-            print(f"  creating {to_create} requirements (existing: {existing_count}, target: {TARGET})...")
-            items = generate_requirements(to_create, offset=existing_count, users=users)
-            for item in items:
-                approver_id = users[item["approved_by"]].id if item["approved_by"] and item["approved_by"] in users else None
-                db.add(Requirement(
-                    user_id=users[item["user"]].id,
-                    item_name=item["item_name"],
-                    price=item["price"],
-                    explanation=item["explanation"],
-                    status=item["status"],
-                    paid=item["paid"],
-                    approved_by=approver_id,
-                ))
-            await db.flush()
-            print(f"  created {to_create} requirements")
+        # 2. Requirements
+        all_reqs = await seed_requirements(db, users, locs)
+        await db.flush()
 
-        # Seed favorites — fetch all requirements and pick random subset
-        result = await db.execute(select(Requirement))
-        all_reqs = result.scalars().all()
+        # 3. Favorites
+        await seed_favorites(db, users, all_reqs)
 
-        fav_users = {u: users[u] for u in ("manager", "admin") if u in users}
-        if fav_users and all_reqs:
-            rng = random.Random(SEED)
-            sample = rng.sample(all_reqs, min(FAVORITE_COUNT, len(all_reqs)))
-            half = len(sample) // 2
-            assignments = (
-                [(users[u], req) for u, reqs in [
-                    (list(fav_users.keys())[0], sample[:half]),
-                    (list(fav_users.keys())[-1], sample[half:]),
-                ] for req in reqs]
-                if len(fav_users) >= 2
-                else [(list(fav_users.values())[0], req) for req in sample]
-            )
+        # 4. Comments
+        await seed_comments(db, users, all_reqs)
 
-            new_favs = 0
-            for fav_user, req in assignments:
-                exists = await db.execute(
-                    select(Favorite).where(
-                        Favorite.user_id == fav_user.id,
-                        Favorite.requirement_id == req.id,
-                    )
-                )
-                if not exists.scalar_one_or_none():
-                    db.add(Favorite(user_id=fav_user.id, requirement_id=req.id))
-                    new_favs += 1
+        # 5. Notifications
+        await seed_notifications(db, users, all_reqs)
 
-            if new_favs:
-                print(f"  created {new_favs} favorites")
-            else:
-                print(f"  skip  favorites (already exist)")
+        # 6. Audit logs
+        await seed_audit_logs(db, users, all_reqs)
+
+        # 7. Budget limits
+        await seed_budget_limits(db, users)
 
         await db.commit()
 

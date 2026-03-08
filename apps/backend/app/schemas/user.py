@@ -36,6 +36,12 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserWithLocationsResponse(UserResponse):
+    """Extended UserResponse that includes assigned location data."""
+    location_ids: list[int] = []
+    location_names: list[str] = []
+
+
 class UserUpdate(BaseModel):
     role: UserRole | None = None
     email: str | None = None

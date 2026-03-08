@@ -10,6 +10,7 @@ export async function createRequirement(data: {
   item_name: string;
   price: string;
   explanation?: string;
+  location_id?: number;
 }): Promise<Requirement> {
   const response = await api.post<Requirement>('/requirements/', data);
   return response.data;

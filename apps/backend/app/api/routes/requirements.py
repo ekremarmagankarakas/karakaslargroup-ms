@@ -13,6 +13,7 @@ from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.comment_repository import CommentRepository
 from app.repositories.favorite_repository import FavoriteRepository
 from app.repositories.image_repository import ImageRepository
+from app.repositories.location_repository import LocationRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.requirement_repository import RequirementRepository
 from app.repositories.user_repository import UserRepository
@@ -46,6 +47,7 @@ def _get_service(db: AsyncSession) -> RequirementService:
         email=EmailService(),
         notif_repo=NotificationRepository(db),
         audit_repo=AuditLogRepository(db),
+        location_repo=LocationRepository(db),
     )
 
 
@@ -61,6 +63,7 @@ async def export_requirements(
     paid: bool | None = None,
     month: int | None = None,
     year: int | None = None,
+    location_id: int | None = None,
 ):
     service = _get_service(db)
     paginated = await service.list_requirements(
@@ -73,6 +76,7 @@ async def export_requirements(
         paid=paid,
         month=month,
         year=year,
+        location_id=location_id,
     )
 
     output = io.StringIO()
@@ -129,6 +133,7 @@ async def list_requirements(
     paid: bool | None = None,
     month: int | None = None,
     year: int | None = None,
+    location_id: int | None = None,
 ):
     service = _get_service(db)
     return await service.list_requirements(
@@ -141,6 +146,7 @@ async def list_requirements(
         paid=paid,
         month=month,
         year=year,
+        location_id=location_id,
     )
 
 
@@ -158,6 +164,7 @@ async def create_requirement(
         price=body.price,
         explanation=body.explanation,
         background_tasks=background_tasks,
+        location_id=body.location_id,
     )
 
 

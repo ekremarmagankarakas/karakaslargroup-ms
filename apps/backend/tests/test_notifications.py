@@ -141,6 +141,7 @@ class TestNotificationGeneration:
         req.user = MagicMock()
         req.user.username = "owner"
         req.approver = None
+        req.location = None
 
         accepted_req = MagicMock(spec=Requirement)
         accepted_req.id = 1
@@ -157,6 +158,7 @@ class TestNotificationGeneration:
         accepted_req.user.username = "owner"
         accepted_req.approver = MagicMock()
         accepted_req.approver.username = "manager"
+        accepted_req.location = None
 
         req_repo.get_by_id.side_effect = [req, accepted_req]
 

@@ -34,9 +34,22 @@ export interface Requirement {
   paid: boolean;
   approved_by: number | null;
   approved_by_username: string | null;
+  location_id: number | null;
+  location_name: string | null;
   images: RequirementImage[];
   is_favorited: boolean;
   created_at: string;
+}
+
+export interface Location {
+  id: number;
+  name: string;
+  address: string | null;
+  created_at: string;
+}
+
+export interface LocationWithUsers extends Location {
+  users: UserDropdownItem[];
 }
 
 export interface PaginatedResponse<T> {
@@ -67,6 +80,7 @@ export interface RequirementFilters {
   paid?: boolean;
   month?: number;
   year?: number;
+  location_id?: number;
 }
 
 export interface StatisticsFilters {
