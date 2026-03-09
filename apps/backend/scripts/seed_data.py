@@ -504,7 +504,7 @@ async def seed_audit_logs(db, users: dict, all_reqs: list) -> None:
     print(f"  created {created} audit log entries")
 
 
-async def seed_budget_limits(db, users: dict) -> None:
+async def seed_budget_limits(db, users: dict, locs: dict) -> None:
     count_result = await db.execute(select(func.count()).select_from(BudgetLimit))
     if count_result.scalar_one() > 0:
         print(f"  skip  budget_limits (already exist)")
@@ -516,21 +516,38 @@ async def seed_budget_limits(db, users: dict) -> None:
         return
 
     now = datetime.now(tz=timezone.utc)
-    # Seed last 6 months + next month
     created = 0
+
+    # Company-wide budget: last 6 months + next month
     for delta in range(-5, 2):
         target = now + timedelta(days=delta * 30)
         month = target.month
         year = target.year
-        # Vary budget between 150k and 300k TL
-        amount = Decimal(str(random.randint(150, 300) * 1000))
+        amount = Decimal(str(random.randint(500, 900) * 1000))
         db.add(BudgetLimit(
             amount=amount,
             period_month=month,
             period_year=year,
             set_by=admin.id,
+            location_id=None,
         ))
         created += 1
+
+    # Per-location budgets: current month + last 3 months for each location
+    for loc in locs.values():
+        for delta in range(-3, 1):
+            target = now + timedelta(days=delta * 30)
+            month = target.month
+            year = target.year
+            amount = Decimal(str(random.randint(150, 350) * 1000))
+            db.add(BudgetLimit(
+                amount=amount,
+                period_month=month,
+                period_year=year,
+                set_by=admin.id,
+                location_id=loc.id,
+            ))
+            created += 1
 
     print(f"  created {created} budget limit entries")
 
@@ -570,7 +587,7 @@ async def main() -> None:
         await seed_audit_logs(db, users, all_reqs)
 
         # 7. Budget limits
-        await seed_budget_limits(db, users)
+        await seed_budget_limits(db, users, locs)
 
         await db.commit()
 

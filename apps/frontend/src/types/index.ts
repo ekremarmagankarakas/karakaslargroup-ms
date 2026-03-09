@@ -170,3 +170,31 @@ export interface BudgetStatus {
   budget_period_month: number | null;
   budget_period_year: number | null;
 }
+
+export interface LocationStatsItem {
+  location_id: number;
+  location_name: string;
+  total_count: number;
+  pending_count: number;
+  accepted_count: number;
+  declined_count: number;
+  total_price: string;
+  accepted_price: string;
+}
+
+export interface LocationStatsResponse {
+  data: LocationStatsItem[];
+}
+
+export interface BudgetHistoryItem {
+  month: number;
+  year: number;
+  month_label: string;
+  budget_amount: string | null;
+  budget_used: string;
+  utilization_pct: number;
+}
+
+export interface BudgetHistoryResponse {
+  data: BudgetHistoryItem[];
+}

@@ -247,6 +247,59 @@ class RequirementRepository:
             for row in rows
         ]
 
+    async def get_stats_by_location(
+        self,
+        *,
+        role: UserRole,
+        month: int | None = None,
+        year: int | None = None,
+        manager_location_ids: list[int] | None = None,
+    ) -> list[dict]:
+        from app.models.location import Location
+
+        stmt = select(
+            Requirement.location_id,
+            Location.name.label("location_name"),
+            func.count().label("total_count"),
+            func.count(case((Requirement.status == RequirementStatus.pending, 1))).label("pending_count"),
+            func.count(case((Requirement.status == RequirementStatus.accepted, 1))).label("accepted_count"),
+            func.count(case((Requirement.status == RequirementStatus.declined, 1))).label("declined_count"),
+            func.coalesce(func.sum(Requirement.price), 0).label("total_price"),
+            func.coalesce(
+                func.sum(case((Requirement.status == RequirementStatus.accepted, Requirement.price))), 0
+            ).label("accepted_price"),
+        ).join(Location, Location.id == Requirement.location_id).where(
+            Requirement.location_id.is_not(None)
+        )
+
+        if role == UserRole.manager and manager_location_ids is not None:
+            stmt = stmt.where(Requirement.location_id.in_(manager_location_ids))
+
+        if month is not None:
+            stmt = stmt.where(func.extract("month", Requirement.created_at) == month)
+
+        if year is not None:
+            stmt = stmt.where(func.extract("year", Requirement.created_at) == year)
+
+        stmt = stmt.group_by(Requirement.location_id, Location.name).order_by(
+            func.sum(Requirement.price).desc()
+        )
+
+        result = await self.db.execute(stmt)
+        return [
+            {
+                "location_id": row.location_id,
+                "location_name": row.location_name,
+                "total_count": row.total_count,
+                "pending_count": row.pending_count,
+                "accepted_count": row.accepted_count,
+                "declined_count": row.declined_count,
+                "total_price": row.total_price,
+                "accepted_price": row.accepted_price,
+            }
+            for row in result.all()
+        ]
+
     async def get_statistics(
         self,
         *,

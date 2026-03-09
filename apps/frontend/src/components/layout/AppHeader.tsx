@@ -34,6 +34,9 @@ export function AppHeader() {
   const navLinks = [
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Analitik', path: '/analytics' },
+    ...(user?.role === 'manager' || user?.role === 'admin' || user?.role === 'accountant'
+      ? [{ label: 'Bütçe', path: '/budget' }]
+      : []),
     ...(user?.role === 'admin' ? [{ label: 'Kullanıcılar', path: '/users' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Lokasyonlar', path: '/locations' }] : []),
   ];

@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { ApprovalRateMetric } from '../components/analytics/ApprovalRateMetric';
+import { LocationStatusChart } from '../components/analytics/LocationStatusChart';
+import { SpendByLocationChart } from '../components/analytics/SpendByLocationChart';
 import { SpendOverTimeChart } from '../components/analytics/SpendOverTimeChart';
 import { StatusDonutChart } from '../components/analytics/StatusDonutChart';
 import { TopRequestersChart } from '../components/analytics/TopRequestersChart';
@@ -41,6 +43,7 @@ export function AnalyticsPage() {
   const [filters, setFilters] = useState<AnalyticsFilters>({});
 
   const canSeeTopRequesters = user?.role === 'manager' || user?.role === 'admin' || user?.role === 'accountant';
+  const canSeeLocationCharts = user?.role === 'manager' || user?.role === 'admin' || user?.role === 'accountant';
   const canFilterByUser = user?.role === 'manager' || user?.role === 'admin';
 
   const statsFilters = { user_id: filters.user_id, paid: filters.paid, month: filters.month, year: filters.year };
@@ -148,9 +151,28 @@ export function AnalyticsPage() {
 
       {/* Top requesters (hidden for employee) */}
       {canSeeTopRequesters && (
-        <Box mb={6}>
+        <Box mb={2.5}>
           <TopRequestersChart filters={filters} />
         </Box>
+      )}
+
+      {/* Location charts (hidden for employee) */}
+      {canSeeLocationCharts && (
+        <>
+          <Box mb={1} mt={1}>
+            <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.7rem' }}>
+              Lokasyon Analizi
+            </Typography>
+          </Box>
+          <Grid container spacing={2.5} mb={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <SpendByLocationChart filters={{ month: filters.month, year: filters.year }} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <LocationStatusChart filters={{ month: filters.month, year: filters.year }} />
+            </Grid>
+          </Grid>
+        </>
       )}
     </DashboardLayout>
   );

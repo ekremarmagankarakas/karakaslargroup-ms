@@ -8,6 +8,8 @@ from app.api.deps import CurrentUser, get_db
 from app.models.user import UserRole
 from app.repositories.requirement_repository import RequirementRepository
 from app.schemas.statistics import (
+    LocationStatsItem,
+    LocationStatsResponse,
     SpendDataPoint,
     SpendOverTimeResponse,
     StatisticsResponse,
@@ -96,6 +98,32 @@ async def get_spend_over_time(
         year=year,
     )
     return SpendOverTimeResponse(data=_fill_and_label_months(rows, year=year, month=month))
+
+
+@router.get("/by-location", response_model=LocationStatsResponse)
+async def get_stats_by_location(
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    month: int | None = None,
+    year: int | None = None,
+):
+    if current_user.role == UserRole.employee:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Erişim reddedildi")
+
+    manager_location_ids = None
+    if current_user.role == UserRole.manager:
+        from app.repositories.location_repository import LocationRepository
+        loc_repo = LocationRepository(db)
+        manager_location_ids = await loc_repo.get_location_ids_for_user(current_user.id)
+
+    repo = RequirementRepository(db)
+    rows = await repo.get_stats_by_location(
+        role=current_user.role,
+        month=month,
+        year=year,
+        manager_location_ids=manager_location_ids,
+    )
+    return LocationStatsResponse(data=[LocationStatsItem(**r) for r in rows])
 
 
 @router.get("/top-requesters", response_model=TopRequestersResponse)

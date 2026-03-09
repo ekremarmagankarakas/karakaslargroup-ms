@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { BudgetPage } from './pages/BudgetPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { LocationsPage } from './pages/LocationsPage';
@@ -43,6 +44,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <LocationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/budget"
+        element={
+          <ProtectedRoute>
+            <BudgetPage />
           </ProtectedRoute>
         }
       />
