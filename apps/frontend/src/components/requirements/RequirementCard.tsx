@@ -56,14 +56,15 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
         position: 'relative',
         bgcolor: 'background.paper',
         borderRadius: 3,
-        border: '1px solid #e2e8f0',
+        border: '1px solid',
+        borderColor: 'divider',
         borderTop: `3px solid ${accent}`,
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         cursor: 'pointer',
         overflow: 'hidden',
         transition: 'box-shadow 0.15s ease, transform 0.15s ease',
         '&:hover': {
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
           transform: 'translateY(-2px)',
         },
         p: 2.5,
@@ -126,9 +127,10 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
             label={requirement.category_name}
             size="small"
             sx={{
-              bgcolor: requirement.category_color ? `${requirement.category_color}18` : '#f1f5f9',
-              color: requirement.category_color ?? '#64748b',
-              border: `1px solid ${requirement.category_color ? `${requirement.category_color}40` : '#e2e8f0'}`,
+              bgcolor: requirement.category_color ? `${requirement.category_color}18` : 'action.hover',
+              color: requirement.category_color ?? 'text.secondary',
+              border: '1px solid',
+              borderColor: requirement.category_color ? `${requirement.category_color}40` : 'divider',
             }}
           />
         )}
@@ -196,9 +198,9 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
             position: 'absolute',
             top: 10,
             right: 10,
-            color: requirement.is_favorited ? 'error.main' : '#cbd5e1',
+            color: requirement.is_favorited ? 'error.main' : 'text.disabled',
             transition: 'color 0.15s ease',
-            '&:hover': { color: 'error.main', bgcolor: '#fef2f2' },
+            '&:hover': { color: 'error.main', bgcolor: 'action.hover' },
           }}
         >
           {requirement.is_favorited ? (

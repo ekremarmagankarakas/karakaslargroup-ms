@@ -19,7 +19,8 @@ export function ApprovalRateMetric({ filters }: Props) {
       sx={{
         bgcolor: 'background.paper',
         borderRadius: 3,
-        border: '1px solid #e2e8f0',
+        border: '1px solid',
+        borderColor: 'divider',
         p: 2.5,
         display: 'flex',
         alignItems: 'center',

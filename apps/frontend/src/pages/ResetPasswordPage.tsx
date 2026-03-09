@@ -44,7 +44,7 @@ export function ResetPasswordPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        bgcolor: '#f1f5f9',
+        bgcolor: 'background.default',
         p: 2,
       }}
     >
@@ -52,7 +52,8 @@ export function ResetPasswordPage() {
         sx={{
           bgcolor: 'background.paper',
           borderRadius: 3,
-          border: '1px solid #e2e8f0',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 4,
           width: '100%',
           maxWidth: 400,

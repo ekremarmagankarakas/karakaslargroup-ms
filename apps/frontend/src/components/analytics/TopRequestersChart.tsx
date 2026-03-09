@@ -51,13 +51,13 @@ export function TopRequestersChart({ filters }: Props) {
   }));
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', p: 2.5 }}>
+    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5 }}>
       <Typography variant="subtitle1" fontWeight={700} mb={2}>
         En Çok Talep Edenler
       </Typography>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart layout="vertical" data={chartData} margin={{ top: 4, right: 24, bottom: 0, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" horizontal={false} />
           <XAxis
             type="number"
             tickFormatter={(v) => `₺${formatPrice(v)}`}

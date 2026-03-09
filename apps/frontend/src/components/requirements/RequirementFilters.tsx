@@ -239,7 +239,7 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
               minWidth: 0,
               border: '1px solid',
               borderRadius: 2,
-              '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
+              '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
             }}
           >
             <TuneIcon sx={{ fontSize: 16, mr: 0.75 }} />
@@ -264,7 +264,7 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
               minWidth: 0,
               border: '1px solid',
               borderRadius: 2,
-              '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
+              '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
             }}
           >
             <DownloadIcon sx={{ fontSize: 16, mr: 0.75 }} />

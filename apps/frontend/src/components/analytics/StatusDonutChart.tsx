@@ -24,7 +24,7 @@ export function StatusDonutChart({ filters }: Props) {
   );
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', p: 2.5, height: '100%' }}>
+    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5, height: '100%' }}>
       <Typography variant="subtitle1" fontWeight={700} mb={2}>
         Durum Dağılımı
       </Typography>

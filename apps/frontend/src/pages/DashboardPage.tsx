@@ -41,9 +41,9 @@ import { RequirementRow } from '../components/requirements/RequirementRow';
 import { StatisticsPanel } from '../components/statistics/StatisticsPanel';
 
 const STATUS_SECTIONS = [
-  { key: 'pending', title: 'Beklemede', color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-  { key: 'accepted', title: 'Onaylandı', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-  { key: 'declined', title: 'Reddedildi', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+  { key: 'pending', title: 'Beklemede', color: '#d97706', bg: 'rgba(217,119,6,0.08)', border: 'rgba(217,119,6,0.2)' },
+  { key: 'accepted', title: 'Onaylandı', color: '#16a34a', bg: 'rgba(22,163,74,0.08)', border: 'rgba(22,163,74,0.2)' },
+  { key: 'declined', title: 'Reddedildi', color: '#dc2626', bg: 'rgba(220,38,38,0.08)', border: 'rgba(220,38,38,0.2)' },
 ] as const;
 
 const currentDate = new Date().toLocaleDateString('tr-TR', {
@@ -205,7 +205,8 @@ export function DashboardPage() {
         sx={{
           bgcolor: 'background.paper',
           borderRadius: 3,
-          border: '1px solid #e2e8f0',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 2.5,
           mb: 3,
         }}
@@ -235,7 +236,7 @@ export function DashboardPage() {
                     borderColor: 'divider',
                     cursor: 'pointer',
                     userSelect: 'none',
-                    '&:hover': { bgcolor: '#f8fafc' },
+                    '&:hover': { bgcolor: 'action.hover' },
                   }}
                 >
                   <Typography variant="caption" fontWeight={600} color="text.secondary">
@@ -252,7 +253,8 @@ export function DashboardPage() {
               size="small"
               sx={{
                 '& .MuiToggleButton-root': {
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   px: 1,
                   py: 0.5,
                   color: 'text.secondary',
@@ -389,7 +391,7 @@ export function DashboardPage() {
                         ))}
                       </Box>
                     ) : (
-                      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, bgcolor: '#fff' }}>
+                      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
                         <Table size="small">
                           <TableBody>{items.map((req) => renderRow(req))}</TableBody>
                         </Table>
@@ -440,7 +442,8 @@ export function DashboardPage() {
         sx={{
           bgcolor: 'background.paper',
           borderRadius: 3,
-          border: '1px solid #e2e8f0',
+          border: '1px solid',
+          borderColor: 'divider',
           p: 2.5,
           mb: 6,
         }}

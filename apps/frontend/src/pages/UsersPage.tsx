@@ -100,7 +100,7 @@ export function UsersPage() {
         </Button>
       </Box>
 
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         {isLoading ? (
           <Box display="flex" justifyContent="center" py={6}>
             <CircularProgress />

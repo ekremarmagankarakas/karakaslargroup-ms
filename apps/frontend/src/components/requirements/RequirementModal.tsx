@@ -226,7 +226,7 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                   {/* Details grid */}
                   <Box
                     sx={{
-                      bgcolor: '#f8fafc',
+                      bgcolor: 'action.hover',
                       borderRadius: 2,
                       border: '1px solid',
                       borderColor: 'divider',
@@ -303,8 +303,8 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                                 borderColor: 'divider',
                                 textDecoration: 'none',
                                 color: 'primary.main',
-                                bgcolor: '#eff6ff',
-                                '&:hover': { bgcolor: '#dbeafe' },
+                                bgcolor: 'action.selected',
+                                '&:hover': { bgcolor: 'action.focus' },
                               }}
                             >
                               <Typography variant="caption" fontWeight={500}>
@@ -402,7 +402,7 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                       <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.75rem', flexShrink: 0 }}>
                         {c.username.slice(0, 2).toUpperCase()}
                       </Avatar>
-                      <Box sx={{ bgcolor: '#f8fafc', borderRadius: 2, px: 1.5, py: 1, flex: 1 }}>
+                      <Box sx={{ bgcolor: 'action.hover', borderRadius: 2, px: 1.5, py: 1, flex: 1 }}>
                         <Box display="flex" gap={1} alignItems="center" mb={0.5}>
                           <Typography variant="caption" fontWeight={600}>{c.username}</Typography>
                           <Typography variant="caption" color="text.disabled">{formatDate(c.created_at)}</Typography>
@@ -474,7 +474,7 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                           {log.actor_username} · {formatDate(log.created_at)}
                         </Typography>
                         {(log.old_value || log.new_value) && (
-                          <Box sx={{ mt: 0.5, p: 1, bgcolor: '#f8fafc', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                          <Box sx={{ mt: 0.5, p: 1, bgcolor: 'action.hover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
                             {log.old_value && (
                               <Typography variant="caption" color="error.main" display="block">
                                 − {log.old_value}

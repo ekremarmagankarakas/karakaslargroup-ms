@@ -129,7 +129,7 @@ export function ChatWidget() {
                       cursor: 'pointer',
                       fontSize: '0.8rem',
                       color: 'text.secondary',
-                      '&:hover': { bgcolor: '#f1f5f9', borderColor: 'primary.main', color: 'primary.main' },
+                      '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main', color: 'primary.main' },
                     }}
                   >
                     {s}
@@ -147,7 +147,7 @@ export function ChatWidget() {
                   px: 1.5,
                   py: 1,
                   borderRadius: m.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
-                  bgcolor: m.role === 'user' ? 'primary.main' : '#f1f5f9',
+                  bgcolor: m.role === 'user' ? 'primary.main' : 'action.hover',
                   color: m.role === 'user' ? 'white' : 'text.primary',
                   fontSize: '0.875rem',
                   lineHeight: 1.5,
@@ -166,14 +166,14 @@ export function ChatWidget() {
                     py: 0.5,
                     textAlign: 'left',
                   },
-                  '& th': { fontWeight: 700, bgcolor: m.role === 'user' ? 'rgba(255,255,255,0.15)' : '#e2e8f0' },
+                  '& th': { fontWeight: 700, bgcolor: m.role === 'user' ? 'rgba(255,255,255,0.15)' : 'action.selected' },
                   '& strong': { fontWeight: 700 },
                   '& ul, & ol': { pl: 2, my: 0.5 },
                   '& li': { mb: 0.25 },
                   '& code': {
                     fontFamily: 'monospace',
                     fontSize: '0.8rem',
-                    bgcolor: m.role === 'user' ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
+                    bgcolor: m.role === 'user' ? 'rgba(255,255,255,0.2)' : 'action.selected',
                     px: 0.5,
                     borderRadius: 0.5,
                   },

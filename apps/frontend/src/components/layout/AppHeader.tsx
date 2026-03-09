@@ -109,7 +109,7 @@ export function AppHeader() {
                     fontSize: '0.8rem',
                     transition: 'background 0.15s',
                     '&:hover': {
-                      bgcolor: active ? 'primary.dark' : '#f1f5f9',
+                      bgcolor: active ? 'primary.dark' : 'action.hover',
                     },
                   }}
                 >
@@ -177,8 +177,9 @@ export function AppHeader() {
                   sx={{
                     whiteSpace: 'normal',
                     alignItems: 'flex-start',
-                    bgcolor: n.read ? 'transparent' : '#eff6ff',
-                    borderLeft: n.read ? 'none' : '3px solid #2563eb',
+                    bgcolor: n.read ? 'transparent' : 'action.selected',
+                    borderLeft: n.read ? 'none' : '3px solid',
+                    borderColor: n.read ? 'transparent' : 'primary.main',
                   }}
                 >
                   <Box>

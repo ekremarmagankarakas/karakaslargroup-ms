@@ -51,7 +51,7 @@ export function FavoritesSection() {
                 onClick={() => handleLayoutChange('grid-layout')}
                 sx={{
                   color: layout === 'grid-layout' ? 'primary.main' : 'text.disabled',
-                  bgcolor: layout === 'grid-layout' ? '#eff6ff' : 'transparent',
+                  bgcolor: layout === 'grid-layout' ? 'action.selected' : 'transparent',
                   borderRadius: 1.5,
                 }}
               >
@@ -64,7 +64,7 @@ export function FavoritesSection() {
                 onClick={() => handleLayoutChange('list-layout')}
                 sx={{
                   color: layout === 'list-layout' ? 'primary.main' : 'text.disabled',
-                  bgcolor: layout === 'list-layout' ? '#eff6ff' : 'transparent',
+                  bgcolor: layout === 'list-layout' ? 'action.selected' : 'transparent',
                   borderRadius: 1.5,
                 }}
               >

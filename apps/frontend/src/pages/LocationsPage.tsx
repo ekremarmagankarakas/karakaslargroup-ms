@@ -114,7 +114,7 @@ export function LocationsPage() {
         </Button>
       </Box>
 
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         {isLoading ? (
           <Box display="flex" justifyContent="center" py={6}>
             <CircularProgress />
@@ -192,7 +192,7 @@ export function LocationsPage() {
                     <TableRow key={`${loc.id}-expand`}>
                       <TableCell colSpan={5} sx={{ p: 0, border: 0 }}>
                         <Collapse in={expandedId === loc.id} unmountOnExit>
-                          <Box sx={{ px: 3, py: 2, bgcolor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                          <Box sx={{ px: 3, py: 2, bgcolor: 'action.hover', borderTop: '1px solid', borderColor: 'divider' }}>
                             <Typography variant="subtitle2" mb={1.5}>
                               Kullanıcı Atamaları — {loc.name}
                             </Typography>

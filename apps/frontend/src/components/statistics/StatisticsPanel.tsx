@@ -22,7 +22,7 @@ const STATS_CONFIG = [
     Icon: AssignmentIcon,
     color: '#2563eb',
     gradient: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%)',
-    light: '#eff6ff',
+    light: 'rgba(37,99,235,0.12)',
     featured: true,
   },
   {
@@ -31,7 +31,7 @@ const STATS_CONFIG = [
     Icon: HourglassEmptyIcon,
     color: '#d97706',
     gradient: null,
-    light: '#fffbeb',
+    light: 'rgba(217,119,6,0.12)',
     featured: false,
   },
   {
@@ -40,7 +40,7 @@ const STATS_CONFIG = [
     Icon: CheckCircleIcon,
     color: '#16a34a',
     gradient: null,
-    light: '#f0fdf4',
+    light: 'rgba(22,163,74,0.12)',
     featured: false,
   },
   {
@@ -49,7 +49,7 @@ const STATS_CONFIG = [
     Icon: BlockIcon,
     color: '#dc2626',
     gradient: null,
-    light: '#fef2f2',
+    light: 'rgba(220,38,38,0.12)',
     featured: false,
   },
 ] as const;
@@ -102,9 +102,10 @@ export function StatisticsPanel({ filters }: Props) {
               borderRadius: 3,
               overflow: 'hidden',
               height: '100%',
-              background: featured ? gradient! : '#ffffff',
+              background: featured ? gradient! : 'transparent',
+              bgcolor: featured ? undefined : 'background.paper',
               border: '1px solid',
-              borderColor: featured ? 'transparent' : '#e2e8f0',
+              borderColor: featured ? 'transparent' : 'divider',
               boxShadow: featured
                 ? '0 4px 20px rgba(37,99,235,0.25)'
                 : '0 1px 3px rgba(0,0,0,0.04)',
@@ -188,7 +189,8 @@ export function StatisticsPanel({ filters }: Props) {
             sx={{
               bgcolor: 'background.paper',
               borderRadius: 3,
-              border: '1px solid #e2e8f0',
+              border: '1px solid',
+              borderColor: 'divider',
               p: 2,
               display: 'flex',
               alignItems: 'center',

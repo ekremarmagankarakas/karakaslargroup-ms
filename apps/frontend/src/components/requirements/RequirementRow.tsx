@@ -55,7 +55,7 @@ export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdat
       selected={selected}
       sx={{
         cursor: 'pointer',
-        '&:hover': { bgcolor: '#f8fafc' },
+        '&:hover': { bgcolor: 'action.hover' },
         borderLeft: `3px solid ${STATUS_DOT[requirement.status] ?? 'transparent'}`,
       }}
     >
@@ -108,9 +108,10 @@ export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdat
               label={requirement.category_name}
               size="small"
               sx={{
-                bgcolor: requirement.category_color ? `${requirement.category_color}18` : '#f1f5f9',
-                color: requirement.category_color ?? '#64748b',
-                border: `1px solid ${requirement.category_color ? `${requirement.category_color}40` : '#e2e8f0'}`,
+                bgcolor: requirement.category_color ? `${requirement.category_color}18` : 'action.hover',
+                color: requirement.category_color ?? 'text.secondary',
+                border: '1px solid',
+                borderColor: requirement.category_color ? `${requirement.category_color}40` : 'divider',
                 fontSize: '0.7rem',
               }}
             />
@@ -124,9 +125,9 @@ export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdat
             px: 1,
             py: 0.25,
             borderRadius: 1,
-            bgcolor: requirement.paid ? '#f0fdf4' : '#fafafa',
+            bgcolor: requirement.paid ? 'rgba(52,211,153,0.1)' : 'action.hover',
             border: '1px solid',
-            borderColor: requirement.paid ? '#bbf7d0' : '#e2e8f0',
+            borderColor: requirement.paid ? 'success.main' : 'divider',
           }}
         >
           <Typography variant="caption" fontWeight={500} color={requirement.paid ? 'success.main' : 'text.secondary'}>

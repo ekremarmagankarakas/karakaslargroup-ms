@@ -71,7 +71,8 @@ function SummaryCard({
     <Box
       sx={{
         bgcolor: 'background.paper',
-        border: '1px solid #e2e8f0',
+        border: '1px solid',
+        borderColor: 'divider',
         borderRadius: 3,
         p: 2.5,
         height: '100%',
@@ -341,7 +342,7 @@ export function BudgetPage() {
 
           {limit !== null && (
             <Grid size={12}>
-              <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', p: 2 }}>
+              <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2 }}>
                 <Box display="flex" justifyContent="space-between" mb={1}>
                   <Typography variant="caption" fontWeight={600} color="text.secondary">
                     Bu Ay Bütçe Kullanımı — {scopeLabel}
@@ -357,7 +358,6 @@ export function BudgetPage() {
                     sx={{
                       height: 10,
                       borderRadius: 5,
-                      bgcolor: '#f1f5f9',
                       '& .MuiLinearProgress-bar': { bgcolor: utilizationColor },
                     }}
                   />
@@ -372,13 +372,13 @@ export function BudgetPage() {
       {historyLoading ? (
         <Skeleton variant="rounded" height={300} sx={{ borderRadius: 3, mb: 2.5 }} />
       ) : (
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', p: 2.5, mb: 2.5 }}>
+        <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5, mb: 2.5 }}>
           <Typography variant="subtitle1" fontWeight={700} mb={2}>
             Bütçe vs Harcama — {scopeLabel} (Son 12 Ay)
           </Typography>
           <ResponsiveContainer width="100%" height={280}>
             <ComposedChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis
                 yAxisId="left"
@@ -422,8 +422,8 @@ export function BudgetPage() {
       )}
 
       {/* History table */}
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', mb: 6, overflow: 'hidden' }}>
-        <Box px={2.5} py={2} borderBottom="1px solid #e2e8f0">
+      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', mb: 6, overflow: 'hidden' }}>
+        <Box px={2.5} py={2} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
           <Typography variant="subtitle1" fontWeight={700}>
             Aylık Bütçe Geçmişi — {scopeLabel}
           </Typography>
@@ -434,7 +434,7 @@ export function BudgetPage() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                <TableRow>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>Dönem</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>Bütçe</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>Harcanan</TableCell>
@@ -455,7 +455,7 @@ export function BudgetPage() {
                   return (
                     <TableRow
                       key={`${item.year}-${item.month}`}
-                      sx={{ bgcolor: isCurrentMonth ? '#eff6ff' : 'transparent' }}
+                      sx={{ bgcolor: isCurrentMonth ? 'action.selected' : 'transparent' }}
                     >
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
@@ -498,7 +498,6 @@ export function BudgetPage() {
                                 sx={{
                                   height: 6,
                                   borderRadius: 3,
-                                  bgcolor: '#f1f5f9',
                                   '& .MuiLinearProgress-bar': { bgcolor: barColor },
                                 }}
                               />

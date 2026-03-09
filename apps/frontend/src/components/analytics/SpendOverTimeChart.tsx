@@ -46,13 +46,13 @@ export function SpendOverTimeChart({ filters }: Props) {
   }));
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid #e2e8f0', p: 2.5 }}>
+    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5 }}>
       <Typography variant="subtitle1" fontWeight={700} mb={2}>
         Zaman İçinde Harcama
       </Typography>
       <ResponsiveContainer width="100%" height={260}>
         <ComposedChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
           <XAxis dataKey="name" tick={{ fontSize: 11 }} />
           <YAxis tickFormatter={(v) => `₺${formatPrice(v)}`} tick={{ fontSize: 11 }} width={80} />
           <Tooltip content={<CustomTooltip />} />
