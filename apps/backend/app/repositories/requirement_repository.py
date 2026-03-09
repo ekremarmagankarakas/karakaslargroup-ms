@@ -19,6 +19,7 @@ class RequirementRepository:
             .options(
                 joinedload(Requirement.user),
                 joinedload(Requirement.approver),
+                joinedload(Requirement.location),
                 selectinload(Requirement.images),
             )
             .where(Requirement.id == requirement_id)
@@ -46,6 +47,7 @@ class RequirementRepository:
             .options(
                 joinedload(Requirement.user),
                 joinedload(Requirement.approver),
+                joinedload(Requirement.location),
                 selectinload(Requirement.images),
             )
         )
