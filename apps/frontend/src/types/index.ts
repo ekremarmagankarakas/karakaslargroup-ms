@@ -1,5 +1,6 @@
 export type UserRole = 'employee' | 'manager' | 'accountant' | 'admin';
 export type RequirementStatus = 'pending' | 'accepted' | 'declined';
+export type RequirementPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 export interface User {
   id: number;
@@ -23,6 +24,13 @@ export interface RequirementImage {
   url: string; // presigned S3 URL
 }
 
+export interface Category {
+  id: number;
+  name: string;
+  color: string | null;
+  created_at: string;
+}
+
 export interface Requirement {
   id: number;
   user_id: number;
@@ -31,11 +39,16 @@ export interface Requirement {
   price: string; // Decimal serialised as string from FastAPI
   explanation: string | null;
   status: RequirementStatus;
+  priority: RequirementPriority;
+  needed_by: string | null;
   paid: boolean;
   approved_by: number | null;
   approved_by_username: string | null;
   location_id: number | null;
   location_name: string | null;
+  category_id: number | null;
+  category_name: string | null;
+  category_color: string | null;
   images: RequirementImage[];
   is_favorited: boolean;
   created_at: string;
@@ -77,10 +90,12 @@ export interface RequirementFilters {
   search?: string;
   user_id?: number;
   status?: RequirementStatus;
+  priority?: RequirementPriority;
   paid?: boolean;
   month?: number;
   year?: number;
   location_id?: number;
+  category_id?: number;
 }
 
 export interface StatisticsFilters {

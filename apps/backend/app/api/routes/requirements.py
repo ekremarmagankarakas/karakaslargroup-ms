@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import AccountantDep, AdminOnly, CurrentUser, EmployeeDep, ManagerOrAdmin, ManagerOrAccountantOrAdmin, get_db
 from app.core.config import get_settings
-from app.models.requirement import RequirementStatus
+from app.models.requirement import RequirementPriority, RequirementStatus
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.comment_repository import CommentRepository
 from app.repositories.favorite_repository import FavoriteRepository
@@ -60,10 +60,12 @@ async def export_requirements(
     search: str | None = None,
     user_id: int | None = None,
     status: RequirementStatus | None = None,
+    priority: RequirementPriority | None = None,
     paid: bool | None = None,
     month: int | None = None,
     year: int | None = None,
     location_id: int | None = None,
+    category_id: int | None = None,
 ):
     service = _get_service(db)
     paginated = await service.list_requirements(
@@ -73,10 +75,12 @@ async def export_requirements(
         search=search,
         filter_user_id=user_id,
         status=status,
+        priority=priority,
         paid=paid,
         month=month,
         year=year,
         location_id=location_id,
+        category_id=category_id,
     )
 
     output = io.StringIO()
@@ -130,10 +134,12 @@ async def list_requirements(
     search: str | None = None,
     user_id: int | None = None,
     status: RequirementStatus | None = None,
+    priority: RequirementPriority | None = None,
     paid: bool | None = None,
     month: int | None = None,
     year: int | None = None,
     location_id: int | None = None,
+    category_id: int | None = None,
 ):
     service = _get_service(db)
     return await service.list_requirements(
@@ -143,10 +149,12 @@ async def list_requirements(
         search=search,
         filter_user_id=user_id,
         status=status,
+        priority=priority,
         paid=paid,
         month=month,
         year=year,
         location_id=location_id,
+        category_id=category_id,
     )
 
 
@@ -165,6 +173,9 @@ async def create_requirement(
         explanation=body.explanation,
         background_tasks=background_tasks,
         location_id=body.location_id,
+        priority=body.priority,
+        needed_by=body.needed_by,
+        category_id=body.category_id,
     )
 
 
@@ -184,6 +195,9 @@ async def update_requirement(
         item_name=body.item_name,
         price=body.price,
         explanation=body.explanation,
+        priority=body.priority,
+        needed_by=body.needed_by,
+        category_id=body.category_id,
     )
 
 

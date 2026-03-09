@@ -1,9 +1,12 @@
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import { AppBar, Avatar, Badge, Box, Chip, Divider, IconButton, Menu, MenuItem, Toolbar, Tooltip, Typography } from '@mui/material';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useThemeMode } from '../../context/ThemeContext';
 import { useMarkAllRead, useNotifications } from '../../hooks/useNotifications';
 import { formatDate } from '../../utils/formatters';
 
@@ -24,6 +27,7 @@ const ROLE_COLORS: Record<string, 'error' | 'warning' | 'info' | 'default'> = {
 export function AppHeader() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { mode, toggleMode } = useThemeMode();
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
   const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
 
@@ -134,6 +138,13 @@ export function AppHeader() {
           <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem', fontWeight: 700 }}>
             {initials}
           </Avatar>
+
+          {/* Dark Mode Toggle */}
+          <Tooltip title={mode === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod'}>
+            <IconButton size="small" onClick={toggleMode} sx={{ color: 'text.secondary' }}>
+              {mode === 'dark' ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
 
           {/* Notification Bell */}
           <Tooltip title="Bildirimler">

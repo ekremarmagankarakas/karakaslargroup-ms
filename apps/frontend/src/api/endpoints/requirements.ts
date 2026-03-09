@@ -11,6 +11,9 @@ export async function createRequirement(data: {
   price: string;
   explanation?: string;
   location_id?: number;
+  priority?: string;
+  needed_by?: string;
+  category_id?: number;
 }): Promise<Requirement> {
   const response = await api.post<Requirement>('/requirements/', data);
   return response.data;
@@ -18,7 +21,7 @@ export async function createRequirement(data: {
 
 export async function editRequirement(
   requirementId: number,
-  data: { item_name?: string; price?: string; explanation?: string }
+  data: { item_name?: string; price?: string; explanation?: string; priority?: string; needed_by?: string | null; category_id?: number | null }
 ): Promise<Requirement> {
   const response = await api.patch<Requirement>(`/requirements/${requirementId}`, data);
   return response.data;

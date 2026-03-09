@@ -1,9 +1,10 @@
+from datetime import datetime
 from decimal import Decimal
 
 from fastapi import BackgroundTasks, HTTPException, UploadFile, status
 
 from app.models.audit_log import AuditAction
-from app.models.requirement import Requirement, RequirementStatus
+from app.models.requirement import Requirement, RequirementPriority, RequirementStatus
 from app.models.user import User, UserRole
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.favorite_repository import FavoriteRepository
@@ -60,11 +61,16 @@ class RequirementService:
             price=req.price,
             explanation=req.explanation,
             status=req.status,
+            priority=req.priority,
+            needed_by=req.needed_by,
             paid=req.paid,
             approved_by=req.approved_by,
             approved_by_username=req.approver.username if req.approver else None,
             location_id=req.location_id,
             location_name=req.location.name if req.location else None,
+            category_id=req.category_id,
+            category_name=req.category.name if req.category else None,
+            category_color=req.category.color if req.category else None,
             images=images,
             is_favorited=req.id in favorited_ids,
             created_at=req.created_at,
@@ -82,6 +88,8 @@ class RequirementService:
         month: int | None,
         year: int | None,
         location_id: int | None = None,
+        priority: RequirementPriority | None = None,
+        category_id: int | None = None,
     ) -> PaginatedRequirementsResponse:
         # Resolve manager's location scope
         manager_location_ids: list[int] | None = None
@@ -96,10 +104,12 @@ class RequirementService:
             search=search,
             filter_user_id=filter_user_id,
             status=status,
+            priority=priority,
             paid=paid,
             month=month,
             year=year,
             location_id=location_id,
+            category_id=category_id,
             manager_location_ids=manager_location_ids,
         )
 
@@ -125,6 +135,9 @@ class RequirementService:
         explanation: str | None,
         background_tasks: BackgroundTasks,
         location_id: int | None = None,
+        priority: RequirementPriority = RequirementPriority.normal,
+        needed_by: "datetime | None" = None,
+        category_id: int | None = None,
     ) -> RequirementResponse:
         # Auto-fill location from user's first assignment if not specified
         if location_id is None and self.location_repo:
@@ -138,6 +151,9 @@ class RequirementService:
             price=price,
             explanation=explanation,
             location_id=location_id,
+            priority=priority,
+            needed_by=needed_by,
+            category_id=category_id,
         )
         # Re-fetch with relationships
         req = await self.req_repo.get_by_id(req.id)
@@ -178,6 +194,11 @@ class RequirementService:
         item_name: str | None,
         price: Decimal | None,
         explanation: str | None,
+        priority: RequirementPriority | None = None,
+        needed_by: "datetime | None" = None,
+        clear_needed_by: bool = False,
+        category_id: int | None = None,
+        clear_category: bool = False,
     ) -> RequirementResponse:
         req = await self.req_repo.get_by_id(requirement_id)
         if not req:
@@ -190,7 +211,14 @@ class RequirementService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending requirements can be edited")
 
         old_values = f"item_name={req.item_name}, price={req.price}"
-        await self.req_repo.update_fields(req, item_name, price, explanation)
+        await self.req_repo.update_fields(
+            req, item_name, price, explanation,
+            priority=priority,
+            needed_by=needed_by,
+            category_id=category_id,
+            clear_needed_by=clear_needed_by,
+            clear_category=clear_category,
+        )
         req = await self.req_repo.get_by_id(req.id)
 
         if self.audit_repo:

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.api.routes import auth, budget, chat, favorites, locations, notifications, requirements, statistics, users
+from app.api.routes import auth, budget, categories, chat, favorites, locations, notifications, requirements, statistics, users
 
 
 @asynccontextmanager
@@ -33,6 +33,7 @@ def create_app() -> FastAPI:
     app.include_router(notifications.router, prefix="/api/notifications", tags=["notifications"])
     app.include_router(budget.router, prefix="/api/budget", tags=["budget"])
     app.include_router(locations.router, prefix="/api/locations", tags=["locations"])
+    app.include_router(categories.router, prefix="/api/categories", tags=["categories"])
 
     return app
 

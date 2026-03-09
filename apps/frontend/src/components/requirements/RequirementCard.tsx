@@ -13,6 +13,20 @@ const STATUS_LABELS: Record<string, string> = {
   declined: 'Reddedildi',
 };
 
+const PRIORITY_LABELS: Record<string, string> = {
+  low: 'Düşük',
+  normal: 'Normal',
+  high: 'Yüksek',
+  urgent: 'Acil',
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  low: '#64748b',
+  normal: '#2563eb',
+  high: '#d97706',
+  urgent: '#dc2626',
+};
+
 const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success' | 'error'> = {
   pending: 'warning',
   accepted: 'success',
@@ -88,13 +102,36 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
         ₺{formatPrice(requirement.price)}
       </Typography>
 
-      {/* Status + paid */}
+      {/* Status + paid + priority */}
       <Box display="flex" gap={0.75} flexWrap="wrap" alignItems="center">
         <Chip
           label={STATUS_LABELS[requirement.status] ?? requirement.status}
           color={STATUS_COLORS[requirement.status] ?? 'default'}
           size="small"
         />
+        {requirement.priority && requirement.priority !== 'normal' && (
+          <Chip
+            label={PRIORITY_LABELS[requirement.priority] ?? requirement.priority}
+            size="small"
+            sx={{
+              bgcolor: `${PRIORITY_COLORS[requirement.priority]}18`,
+              color: PRIORITY_COLORS[requirement.priority],
+              fontWeight: 600,
+              border: `1px solid ${PRIORITY_COLORS[requirement.priority]}40`,
+            }}
+          />
+        )}
+        {requirement.category_name && (
+          <Chip
+            label={requirement.category_name}
+            size="small"
+            sx={{
+              bgcolor: requirement.category_color ? `${requirement.category_color}18` : '#f1f5f9',
+              color: requirement.category_color ?? '#64748b',
+              border: `1px solid ${requirement.category_color ? `${requirement.category_color}40` : '#e2e8f0'}`,
+            }}
+          />
+        )}
         {requirement.paid && (
           <Chip label="Ödendi" color="info" size="small" variant="outlined" />
         )}

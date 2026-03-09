@@ -13,10 +13,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { RequirementFilters, RequirementStatus, UserDropdownItem } from '../../types';
+import type { RequirementFilters, RequirementPriority, RequirementStatus, UserDropdownItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { exportRequirements } from '../../api/endpoints/requirements';
 import { useLocations } from '../../hooks/useLocations';
+import { useCategories } from '../../hooks/useCategories';
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: currentYear - 2020 + 1 }, (_, i) => 2020 + i);
@@ -39,15 +40,18 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
   const canExport = user?.role === 'manager' || user?.role === 'accountant' || user?.role === 'admin';
   const showLocationFilter = !isEmployee;
   const { data: locations = [] } = useLocations();
+  const { data: categories = [] } = useCategories();
 
   const activeCount = [
     filters.search,
     filters.user_id,
     filters.status,
+    filters.priority,
     filters.paid !== undefined ? true : undefined,
     filters.month,
     filters.year,
     filters.location_id,
+    filters.category_id,
   ].filter(Boolean).length;
 
   const clearFilters = () => onChange({ page: 1, limit: filters.limit });
@@ -113,6 +117,41 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
             <MenuItem value="pending">Beklemede</MenuItem>
             <MenuItem value="accepted">Onaylandı</MenuItem>
             <MenuItem value="declined">Reddedildi</MenuItem>
+          </Select>
+        </FormControl>
+      )}
+
+      <FormControl size="small" sx={{ minWidth: 120 }}>
+        <InputLabel>Öncelik</InputLabel>
+        <Select
+          value={filters.priority ?? ''}
+          label="Öncelik"
+          onChange={(e) =>
+            onChange({ ...filters, priority: (e.target.value as RequirementPriority) || undefined, page: 1 })
+          }
+        >
+          <MenuItem value="">Tümü</MenuItem>
+          <MenuItem value="low">Düşük</MenuItem>
+          <MenuItem value="normal">Normal</MenuItem>
+          <MenuItem value="high">Yüksek</MenuItem>
+          <MenuItem value="urgent">Acil</MenuItem>
+        </Select>
+      </FormControl>
+
+      {categories.length > 0 && (
+        <FormControl size="small" sx={{ minWidth: 130 }}>
+          <InputLabel>Kategori</InputLabel>
+          <Select
+            value={filters.category_id ?? ''}
+            label="Kategori"
+            onChange={(e) =>
+              onChange({ ...filters, category_id: e.target.value ? Number(e.target.value) : undefined, page: 1 })
+            }
+          >
+            <MenuItem value="">Tümü</MenuItem>
+            {categories.map((cat) => (
+              <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+            ))}
           </Select>
         </FormControl>
       )}

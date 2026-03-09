@@ -17,10 +17,11 @@ import app.db.all_models  # noqa: F401 — registers all models
 from app.core.config import get_settings
 from app.models.audit_log import AuditAction, AuditLog
 from app.models.budget_limit import BudgetLimit
+from app.models.category import Category
 from app.models.favorite import Favorite
 from app.models.location import Location, user_locations
 from app.models.notification import Notification
-from app.models.requirement import Requirement, RequirementStatus
+from app.models.requirement import Requirement, RequirementPriority, RequirementStatus
 from app.models.requirement_comment import RequirementComment
 from app.models.user import User
 
@@ -199,6 +200,81 @@ ALL_ITEMS = (
     + TRAINING + ACCESSORIES
 )
 
+# ── Category definitions ───────────────────────────────────────────────────────
+
+CATEGORIES_DATA = [
+    {"name": "IT Ekipmanları", "color": "#2563eb"},
+    {"name": "Yazılım Lisansları", "color": "#7c3aed"},
+    {"name": "Mobilya & Ofis", "color": "#16a34a"},
+    {"name": "Eğitim", "color": "#d97706"},
+    {"name": "Ses & Görüntü", "color": "#dc2626"},
+]
+
+# Map item name prefix to category name for auto-assignment
+def item_category(item_name: str) -> str:
+    for keyword, cat in [
+        ("Microsoft 365", "Yazılım Lisansları"),
+        ("Adobe", "Yazılım Lisansları"),
+        ("JetBrains", "Yazılım Lisansları"),
+        ("Slack", "Yazılım Lisansları"),
+        ("Zoom", "Yazılım Lisansları"),
+        ("GitHub", "Yazılım Lisansları"),
+        ("Figma", "Yazılım Lisansları"),
+        ("1Password", "Yazılım Lisansları"),
+        ("Jira", "Yazılım Lisansları"),
+        ("AWS Reserved", "Yazılım Lisansları"),
+        ("Google Workspace", "Yazılım Lisansları"),
+        ("Antivirus", "Yazılım Lisansları"),
+        ("Herman Miller", "Mobilya & Ofis"),
+        ("Secretlab", "Mobilya & Ofis"),
+        ("FlexiSpot", "Mobilya & Ofis"),
+        ("IKEA", "Mobilya & Ofis"),
+        ("Toplantı Masası", "Mobilya & Ofis"),
+        ("Misafir Sandalyesi", "Mobilya & Ofis"),
+        ("Ofis Kitaplığı", "Mobilya & Ofis"),
+        ("Metal Dosya", "Mobilya & Ofis"),
+        ("Beyaz Tahta", "Mobilya & Ofis"),
+        ("Akustik Panel", "Mobilya & Ofis"),
+        ("Locker", "Mobilya & Ofis"),
+        ("Telefon Kabini", "Mobilya & Ofis"),
+        ("A4 Fotokopi", "Mobilya & Ofis"),
+        ("Lazer Yazıcı", "Mobilya & Ofis"),
+        ("Kağıt İmha", "Mobilya & Ofis"),
+        ("Projeksiyon Perdesi", "Mobilya & Ofis"),
+        ("Ofis Telefonu", "Mobilya & Ofis"),
+        ("Masa Düzenleyici", "Mobilya & Ofis"),
+        ("AWS Solutions", "Eğitim"),
+        ("Kubernetes", "Eğitim"),
+        ("Agile", "Eğitim"),
+        ("Python İleri", "Eğitim"),
+        ("UI/UX", "Eğitim"),
+        ("Liderlik", "Eğitim"),
+        ("CompTIA", "Eğitim"),
+        ("İngilizce", "Eğitim"),
+        ("Microsoft Azure", "Eğitim"),
+        ("Google Cloud Professional", "Eğitim"),
+        ("Logitech Brio", "Ses & Görüntü"),
+        ("Rode", "Ses & Görüntü"),
+        ("Blue Yeti", "Ses & Görüntü"),
+        ("Jabra Evolve", "Ses & Görüntü"),
+        ("Sony WH", "Ses & Görüntü"),
+        ("Elgato", "Ses & Görüntü"),
+        ("Epson", "Ses & Görüntü"),
+        ("Samsung Flip", "Ses & Görüntü"),
+        ("Jabra PanaCast", "Ses & Görüntü"),
+    ]:
+        if item_name.startswith(keyword):
+            return cat
+    return "IT Ekipmanları"
+
+# Priority weights: urgent items rarer, normal most common
+PRIORITY_WEIGHTS = [
+    (RequirementPriority.low, 15),
+    (RequirementPriority.normal, 55),
+    (RequirementPriority.high, 22),
+    (RequirementPriority.urgent, 8),
+]
+
 EXPLANATIONS = [
     "Ekip verimliliğini artırmak için gerekli.",
     "Mevcut ekipmanın güncellenmesi gerekmektedir.",
@@ -323,7 +399,27 @@ async def seed_locations(db, users: dict) -> dict:
     return locs
 
 
-async def seed_requirements(db, users: dict, locs: dict) -> list:
+async def seed_categories(db) -> dict[str, Category]:
+    result = await db.execute(select(Category))
+    existing = {cat.name: cat for cat in result.scalars().all()}
+
+    cats: dict[str, Category] = {}
+    for data in CATEGORIES_DATA:
+        if data["name"] in existing:
+            cats[data["name"]] = existing[data["name"]]
+        else:
+            cat = Category(name=data["name"], color=data["color"])
+            db.add(cat)
+            await db.flush()
+            cats[data["name"]] = cat
+            print(f"  create category '{data['name']}'")
+
+    if len(existing) == len(CATEGORIES_DATA):
+        print(f"  skip  categories (already exist)")
+    return cats
+
+
+async def seed_requirements(db, users: dict, locs: dict, cats: dict) -> list:
     count_result = await db.execute(select(func.count()).select_from(Requirement))
     existing_count = count_result.scalar_one()
 
@@ -380,6 +476,10 @@ async def seed_requirements(db, users: dict, locs: dict) -> list:
             explanation = rng.choice(EXPLANATIONS + [None, None, None])  # type: ignore[list-item]
             loc = username_to_location.get(username)
 
+            priority = weighted_choice(rng, PRIORITY_WEIGHTS)
+            cat_name = item_category(name)
+            cat = cats.get(cat_name)
+
             db.add(Requirement(
                 user_id=users[username].id,
                 item_name=name,
@@ -389,6 +489,8 @@ async def seed_requirements(db, users: dict, locs: dict) -> list:
                 paid=paid,
                 approved_by=users[approved_by].id if approved_by else None,
                 location_id=loc.id if loc else None,
+                category_id=cat.id if cat else None,
+                priority=priority,
                 created_at=created_at,
             ))
 
@@ -397,6 +499,28 @@ async def seed_requirements(db, users: dict, locs: dict) -> list:
 
     result = await db.execute(select(Requirement))
     return result.scalars().all()
+
+
+async def backfill_requirement_fields(db, cats: dict) -> None:
+    """Assign category and priority to existing requirements that have none."""
+    result = await db.execute(
+        select(Requirement).where(Requirement.category_id.is_(None))
+    )
+    reqs = result.scalars().all()
+    if not reqs:
+        print(f"  skip  backfill (all requirements already have categories)")
+        return
+
+    rng = random.Random(SEED + 99)
+    updated = 0
+    for req in reqs:
+        cat_name = item_category(req.item_name)
+        cat = cats.get(cat_name)
+        req.category_id = cat.id if cat else None
+        req.priority = weighted_choice(rng, PRIORITY_WEIGHTS)
+        updated += 1
+
+    print(f"  backfilled category+priority for {updated} existing requirements")
 
 
 async def seed_favorites(db, users: dict, all_reqs: list) -> None:
@@ -622,7 +746,13 @@ async def main() -> None:
         locs = await seed_locations(db, users)
         await db.flush()
 
-        all_reqs = await seed_requirements(db, users, locs)
+        cats = await seed_categories(db)
+        await db.flush()
+
+        all_reqs = await seed_requirements(db, users, locs, cats)
+        await db.flush()
+
+        await backfill_requirement_fields(db, cats)
         await db.flush()
 
         await seed_favorites(db, users, all_reqs)

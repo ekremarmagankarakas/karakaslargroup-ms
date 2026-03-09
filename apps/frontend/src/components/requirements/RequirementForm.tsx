@@ -19,7 +19,16 @@ import {
 import { useState } from 'react';
 import { useCreateRequirement } from '../../hooks/useRequirements';
 import { useLocations } from '../../hooks/useLocations';
+import { useCategories } from '../../hooks/useCategories';
 import { parsePriceInput } from '../../utils/formatters';
+import type { RequirementPriority } from '../../types';
+
+const PRIORITY_OPTIONS: { value: RequirementPriority; label: string; color: string }[] = [
+  { value: 'low', label: 'Düşük', color: '#64748b' },
+  { value: 'normal', label: 'Normal', color: '#2563eb' },
+  { value: 'high', label: 'Yüksek', color: '#d97706' },
+  { value: 'urgent', label: 'Acil', color: '#dc2626' },
+];
 
 interface Props {
   open: boolean;
@@ -31,9 +40,12 @@ export function RequirementForm({ open, onClose }: Props) {
   const [price, setPrice] = useState('');
   const [explanation, setExplanation] = useState('');
   const [locationId, setLocationId] = useState<number | ''>('');
+  const [priority, setPriority] = useState<RequirementPriority>('normal');
+  const [categoryId, setCategoryId] = useState<number | ''>('');
   const [files, setFiles] = useState<File[]>([]);
   const createReq = useCreateRequirement();
   const { data: locations = [] } = useLocations();
+  const { data: categories = [] } = useCategories();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,12 +55,16 @@ export function RequirementForm({ open, onClose }: Props) {
       price: parsedPrice,
       explanation: explanation || undefined,
       location_id: locationId !== '' ? locationId : undefined,
+      priority,
+      category_id: categoryId !== '' ? categoryId : undefined,
       files,
     });
     setItemName('');
     setPrice('');
     setExplanation('');
     setLocationId('');
+    setPriority('normal');
+    setCategoryId('');
     setFiles([]);
     onClose();
   };
@@ -62,6 +78,8 @@ export function RequirementForm({ open, onClose }: Props) {
     setPrice('');
     setExplanation('');
     setLocationId('');
+    setPriority('normal');
+    setCategoryId('');
     setFiles([]);
     onClose();
   };
@@ -135,6 +153,49 @@ export function RequirementForm({ open, onClose }: Props) {
               </Select>
             </FormControl>
           )}
+
+          <Box display="flex" gap={2}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Öncelik</InputLabel>
+              <Select
+                value={priority}
+                label="Öncelik"
+                onChange={(e) => setPriority(e.target.value as RequirementPriority)}
+              >
+                {PRIORITY_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: opt.color, flexShrink: 0 }} />
+                      {opt.label}
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {categories.length > 0 && (
+              <FormControl fullWidth size="small">
+                <InputLabel>Kategori</InputLabel>
+                <Select
+                  value={categoryId}
+                  label="Kategori"
+                  onChange={(e) => setCategoryId(e.target.value as number | '')}
+                >
+                  <MenuItem value=""><em>Belirtilmemiş</em></MenuItem>
+                  {categories.map((cat) => (
+                    <MenuItem key={cat.id} value={cat.id}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        {cat.color && (
+                          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: cat.color, flexShrink: 0 }} />
+                        )}
+                        {cat.name}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </Box>
 
           {/* File attachment */}
           <Box>

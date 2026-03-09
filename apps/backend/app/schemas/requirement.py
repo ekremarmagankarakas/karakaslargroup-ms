@@ -14,17 +14,30 @@ class RequirementStatus(str, Enum):
     declined = "declined"
 
 
+class RequirementPriority(str, Enum):
+    low = "low"
+    normal = "normal"
+    high = "high"
+    urgent = "urgent"
+
+
 class RequirementCreate(BaseModel):
     item_name: str
     price: Decimal
     explanation: str | None = None
     location_id: int | None = None
+    priority: RequirementPriority = RequirementPriority.normal
+    needed_by: datetime | None = None
+    category_id: int | None = None
 
 
 class RequirementUpdate(BaseModel):
     item_name: str | None = None
     price: Decimal | None = None
     explanation: str | None = None
+    priority: RequirementPriority | None = None
+    needed_by: datetime | None = None
+    category_id: int | None = None
 
 
 class RequirementStatusUpdate(BaseModel):
@@ -70,11 +83,16 @@ class RequirementResponse(BaseModel):
     price: Decimal
     explanation: str | None
     status: RequirementStatus
+    priority: RequirementPriority = RequirementPriority.normal
+    needed_by: datetime | None = None
     paid: bool
     approved_by: int | None
     approved_by_username: str | None
     location_id: int | None = None
     location_name: str | None = None
+    category_id: int | None = None
+    category_name: str | None = None
+    category_color: str | None = None
     images: list[ImageResponse]
     is_favorited: bool
     created_at: datetime

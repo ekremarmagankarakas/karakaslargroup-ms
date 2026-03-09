@@ -5,7 +5,7 @@ from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.models.requirement import Requirement, RequirementStatus
+from app.models.requirement import Requirement, RequirementPriority, RequirementStatus
 from app.models.user import User, UserRole
 
 
@@ -20,6 +20,7 @@ class RequirementRepository:
                 joinedload(Requirement.user),
                 joinedload(Requirement.approver),
                 joinedload(Requirement.location),
+                joinedload(Requirement.category),
                 selectinload(Requirement.images),
             )
             .where(Requirement.id == requirement_id)
@@ -36,10 +37,12 @@ class RequirementRepository:
         search: str | None = None,
         filter_user_id: int | None = None,
         status: RequirementStatus | None = None,
+        priority: RequirementPriority | None = None,
         paid: bool | None = None,
         month: int | None = None,
         year: int | None = None,
         location_id: int | None = None,
+        category_id: int | None = None,
         manager_location_ids: list[int] | None = None,
     ) -> tuple[list[Requirement], int]:
         stmt = (
@@ -48,6 +51,7 @@ class RequirementRepository:
                 joinedload(Requirement.user),
                 joinedload(Requirement.approver),
                 joinedload(Requirement.location),
+                joinedload(Requirement.category),
                 selectinload(Requirement.images),
             )
         )
@@ -84,6 +88,12 @@ class RequirementRepository:
         if status is not None and role != UserRole.accountant:
             stmt = stmt.where(Requirement.status == status)
 
+        if priority is not None:
+            stmt = stmt.where(Requirement.priority == priority)
+
+        if category_id is not None:
+            stmt = stmt.where(Requirement.category_id == category_id)
+
         if paid is not None:
             stmt = stmt.where(Requirement.paid == paid)
 
@@ -111,9 +121,26 @@ class RequirementRepository:
         return items, total
 
     async def create(
-        self, user_id: int, item_name: str, price: Decimal, explanation: str | None, location_id: int | None = None
+        self,
+        user_id: int,
+        item_name: str,
+        price: Decimal,
+        explanation: str | None,
+        location_id: int | None = None,
+        priority: RequirementPriority = RequirementPriority.normal,
+        needed_by: "datetime | None" = None,
+        category_id: int | None = None,
     ) -> Requirement:
-        req = Requirement(user_id=user_id, item_name=item_name, price=price, explanation=explanation, location_id=location_id)
+        req = Requirement(
+            user_id=user_id,
+            item_name=item_name,
+            price=price,
+            explanation=explanation,
+            location_id=location_id,
+            priority=priority,
+            needed_by=needed_by,
+            category_id=category_id,
+        )
         self.db.add(req)
         await self.db.commit()
         await self.db.refresh(req)
@@ -131,7 +158,16 @@ class RequirementRepository:
         await self.db.commit()
 
     async def update_fields(
-        self, req: Requirement, item_name: str | None, price: "Decimal | None", explanation: str | None
+        self,
+        req: Requirement,
+        item_name: str | None,
+        price: "Decimal | None",
+        explanation: str | None,
+        priority: "RequirementPriority | None" = None,
+        needed_by: "datetime | None" = None,
+        category_id: "int | None" = None,
+        clear_needed_by: bool = False,
+        clear_category: bool = False,
     ) -> None:
         if item_name is not None:
             req.item_name = item_name
@@ -139,6 +175,16 @@ class RequirementRepository:
             req.price = price
         if explanation is not None:
             req.explanation = explanation
+        if priority is not None:
+            req.priority = priority
+        if needed_by is not None:
+            req.needed_by = needed_by
+        elif clear_needed_by:
+            req.needed_by = None
+        if category_id is not None:
+            req.category_id = category_id
+        elif clear_category:
+            req.category_id = None
         await self.db.commit()
 
     async def delete(self, req: Requirement) -> None:

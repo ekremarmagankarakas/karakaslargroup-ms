@@ -36,6 +36,9 @@ export function useCreateRequirement() {
       price: string;
       explanation?: string;
       location_id?: number;
+      priority?: string;
+      needed_by?: string;
+      category_id?: number;
       files?: File[];
     }) => {
       const req = await createRequirement({
@@ -43,6 +46,9 @@ export function useCreateRequirement() {
         price: data.price,
         explanation: data.explanation,
         location_id: data.location_id,
+        priority: data.priority,
+        needed_by: data.needed_by,
+        category_id: data.category_id,
       });
       if (data.files && data.files.length > 0) {
         await uploadImages(req.id, data.files);

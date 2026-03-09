@@ -16,6 +16,13 @@ class RequirementStatus(str, enum.Enum):
     declined = "declined"
 
 
+class RequirementPriority(str, enum.Enum):
+    low = "low"
+    normal = "normal"
+    high = "high"
+    urgent = "urgent"
+
+
 class Requirement(Base):
     __tablename__ = "requirements"
 
@@ -28,10 +35,19 @@ class Requirement(Base):
         SAEnum(RequirementStatus, name="requirement_status"),
         default=RequirementStatus.pending,
     )
+    priority: Mapped[RequirementPriority] = mapped_column(
+        SAEnum(RequirementPriority, name="requirement_priority"),
+        default=RequirementPriority.normal,
+        nullable=False,
+    )
+    needed_by: Mapped[datetime | None] = mapped_column(TIMESTAMPTZ(timezone=True), nullable=True)
     paid: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     approved_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     location_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("locations.id", ondelete="SET NULL"), nullable=True
+    )
+    category_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("categories.id", ondelete="SET NULL"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(TIMESTAMPTZ(timezone=True), server_default=func.now())
 
@@ -52,4 +68,7 @@ class Requirement(Base):
     )
     location: Mapped["Location | None"] = relationship(  # type: ignore[name-defined]  # noqa: F821
         foreign_keys=[location_id], back_populates="requirements"
+    )
+    category: Mapped["Category | None"] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        foreign_keys=[category_id], back_populates="requirements"
     )
