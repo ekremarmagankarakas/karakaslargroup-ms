@@ -672,6 +672,60 @@ export interface ConstructionMeetingUpdate {
   decisions?: string | null;
 }
 
+export type EquipmentStatus = 'available' | 'in_use' | 'under_maintenance' | 'out_of_service' | 'returned';
+export type EquipmentCategory = 'heavy_machinery' | 'lifting' | 'earthmoving' | 'compaction' | 'concrete' | 'electrical' | 'scaffolding' | 'safety' | 'survey' | 'other';
+
+export interface ConstructionEquipment {
+  id: number;
+  project_id: number;
+  name: string;
+  category: EquipmentCategory;
+  status: EquipmentStatus;
+  model_number: string | null;
+  serial_number: string | null;
+  supplier: string | null;
+  rental_rate_daily: string | null;
+  mobilization_date: string | null;
+  demobilization_date: string | null;
+  last_maintenance_date: string | null;
+  next_maintenance_date: string | null;
+  notes: string | null;
+  created_by: number | null;
+  creator_username: string | null;
+  maintenance_overdue: boolean;
+  created_at: string;
+}
+
+export interface EquipmentCreate {
+  name: string;
+  category?: EquipmentCategory;
+  status?: EquipmentStatus;
+  model_number?: string | null;
+  serial_number?: string | null;
+  supplier?: string | null;
+  rental_rate_daily?: string | null;
+  mobilization_date?: string | null;
+  demobilization_date?: string | null;
+  last_maintenance_date?: string | null;
+  next_maintenance_date?: string | null;
+  notes?: string | null;
+}
+
+export interface EquipmentUpdate {
+  name?: string;
+  category?: EquipmentCategory;
+  status?: EquipmentStatus;
+  model_number?: string | null;
+  serial_number?: string | null;
+  supplier?: string | null;
+  rental_rate_daily?: string | null;
+  mobilization_date?: string | null;
+  demobilization_date?: string | null;
+  last_maintenance_date?: string | null;
+  next_maintenance_date?: string | null;
+  notes?: string | null;
+}
+
 export interface ConstructionMeeting {
   id: number;
   project_id: number;

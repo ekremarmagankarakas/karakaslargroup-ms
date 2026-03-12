@@ -38,6 +38,7 @@ import { InvoiceList } from '../../components/construction/InvoiceList';
 import { PunchList } from '../../components/construction/PunchList';
 import { RFIList } from '../../components/construction/RFIList';
 import MeetingMinutes from '../../components/construction/MeetingMinutes';
+import EquipmentRegister from '../../components/construction/EquipmentRegister';
 import { SafetyLog } from '../../components/construction/SafetyLog';
 import { SubcontractorList } from '../../components/construction/SubcontractorList';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
@@ -222,6 +223,7 @@ export function ConstructionProjectPage() {
             <Tab label="Teslim Listesi" />
             <Tab label="Bilgi Talepleri" />
             <Tab label="Toplantılar" />
+            <Tab label="Ekipman" />
             {canEdit && <Tab label="Geçmiş" />}
           </Tabs>
         </Box>
@@ -322,7 +324,10 @@ export function ConstructionProjectPage() {
         {tab === 18 && (
           <MeetingMinutes projectId={project.id} canEdit={canEdit} />
         )}
-        {tab === 19 && canEdit && (
+        {tab === 19 && (
+          <EquipmentRegister projectId={project.id} canEdit={canEdit} />
+        )}
+        {tab === 20 && canEdit && (
           <ProjectAuditLog projectId={project.id} />
         )}
 

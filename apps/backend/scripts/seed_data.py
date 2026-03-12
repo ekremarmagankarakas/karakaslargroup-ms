@@ -37,6 +37,7 @@ from app.models.construction.subcontractor import ConstructionSubcontractor
 from app.models.construction.punch_list_item import ConstructionPunchListItem, PunchListStatus
 from app.models.construction.rfi import ConstructionRFI, RFIStatus, RFIPriority
 from app.models.construction.meeting import ConstructionMeeting, ConstructionMeetingAction
+from app.models.construction.equipment import ConstructionEquipment, EquipmentStatus, EquipmentCategory
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1689,6 +1690,76 @@ async def seed_meetings(db, users: dict) -> None:
     print(f"  created {created} construction meetings")
 
 
+async def seed_equipment(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionEquipment))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction equipment (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction equipment (no projects)")
+        return
+
+    creator = users.get("manager") or users.get("admin")
+    if not creator:
+        print("  skip  construction equipment (no user)")
+        return
+
+    today = date.today()
+    created = 0
+    for project in projects:
+        db.add(ConstructionEquipment(
+            project_id=project.id,
+            name="Teleskopik Forklift",
+            category=EquipmentCategory.lifting,
+            status=EquipmentStatus.in_use,
+            model_number="JLG 4017RS",
+            serial_number="TF-20240315-001",
+            supplier="Kiralık Makine A.Ş.",
+            rental_rate_daily=2500,
+            mobilization_date=today - timedelta(days=60),
+            last_maintenance_date=today - timedelta(days=15),
+            next_maintenance_date=today + timedelta(days=15),
+            notes="Maksimum yükseklik: 17m, taşıma kapasitesi: 4 ton",
+            created_by=creator.id,
+        ))
+        db.add(ConstructionEquipment(
+            project_id=project.id,
+            name="Beton Mikseri",
+            category=EquipmentCategory.concrete,
+            status=EquipmentStatus.available,
+            model_number="SERMAC 3Z24",
+            serial_number="BM-2023-007",
+            supplier="Çukurova Ekipman Ltd.",
+            rental_rate_daily=1800,
+            mobilization_date=today - timedelta(days=45),
+            last_maintenance_date=today - timedelta(days=30),
+            next_maintenance_date=today + timedelta(days=30),
+            created_by=creator.id,
+        ))
+        db.add(ConstructionEquipment(
+            project_id=project.id,
+            name="Kule Vinci",
+            category=EquipmentCategory.lifting,
+            status=EquipmentStatus.under_maintenance,
+            model_number="Liebherr 280 EC-H",
+            serial_number="KV-2024-001",
+            supplier="Asansör & Vinç Sistemleri A.Ş.",
+            rental_rate_daily=8500,
+            mobilization_date=today - timedelta(days=90),
+            last_maintenance_date=today - timedelta(days=2),
+            next_maintenance_date=today + timedelta(days=28),
+            notes="Periyodik bakım devam ediyor. Tahmini teslim: 3 gün.",
+            created_by=creator.id,
+        ))
+        created += 3
+
+    await db.flush()
+    print(f"  created {created} construction equipment items")
+
+
 async def main() -> None:
     settings = get_settings()
     engine = create_async_engine(settings.DATABASE_URL)
@@ -1736,6 +1807,8 @@ async def main() -> None:
         await seed_rfis(db, users)
         await db.flush()
         await seed_meetings(db, users)
+        await db.flush()
+        await seed_equipment(db, users)
 
         await db.commit()
 

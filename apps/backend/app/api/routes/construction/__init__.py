@@ -4,6 +4,7 @@ from app.api.routes.construction import (
     analytics,
     budget,
     change_orders,
+    equipment,
     invoices,
     meetings,
     punch_list,
@@ -50,3 +51,4 @@ router.include_router(invoices.router)  # /invoices/overdue must be before /{pro
 router.include_router(punch_list.router)
 router.include_router(rfis.router)
 router.include_router(meetings.router)
+router.include_router(equipment.router)
