@@ -1,0 +1,16 @@
+{
+  "name": "karakaslargroup-ms dev sandbox",
+  "build": { "dockerfile": "Dockerfile" },
+
+  // Mount only the project workspace — Claude cannot reach the rest of your Mac
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+
+  // Mount Docker socket so Claude can run migrations via `docker exec`
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+
+  // Run as non-root so --dangerously-skip-permissions is allowed
+  "remoteUser": "node"
+}
