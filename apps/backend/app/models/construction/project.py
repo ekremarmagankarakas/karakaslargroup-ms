@@ -18,6 +18,16 @@ class ConstructionProjectStatus(str, enum.Enum):
     cancelled = "cancelled"
 
 
+class ConstructionProjectType(str, enum.Enum):
+    shopping_mall = "shopping_mall"
+    residential = "residential"
+    office = "office"
+    mixed_use = "mixed_use"
+    hotel = "hotel"
+    industrial = "industrial"
+    other = "other"
+
+
 class ConstructionProject(Base):
     __tablename__ = "construction_projects"
 
@@ -36,6 +46,11 @@ class ConstructionProject(Base):
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     budget: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    project_type: Mapped[ConstructionProjectType | None] = mapped_column(
+        SAEnum(ConstructionProjectType, name="construction_project_type"),
+        nullable=True,
+        default=ConstructionProjectType.other,
+    )
     progress_pct: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMPTZ(timezone=True), server_default=func.now())
 

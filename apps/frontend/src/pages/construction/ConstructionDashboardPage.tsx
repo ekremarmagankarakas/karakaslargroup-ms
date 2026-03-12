@@ -25,7 +25,7 @@ import {
   useProjects,
   useUpdateProject,
 } from '../../hooks/construction/useConstruction';
-import type { ConstructionProject, ConstructionProjectStatus } from '../../types';
+import type { ConstructionProject, ConstructionProjectStatus, ConstructionProjectType } from '../../types';
 
 const STATUS_FILTER_OPTIONS: { value: ConstructionProjectStatus | ''; label: string }[] = [
   { value: '', label: 'Tümü' },
@@ -36,12 +36,24 @@ const STATUS_FILTER_OPTIONS: { value: ConstructionProjectStatus | ''; label: str
   { value: 'cancelled', label: 'İptal' },
 ];
 
+const TYPE_FILTER_OPTIONS: { value: ConstructionProjectType | ''; label: string }[] = [
+  { value: '', label: 'Tüm Tipler' },
+  { value: 'shopping_mall', label: 'AVM' },
+  { value: 'residential', label: 'Konut' },
+  { value: 'office', label: 'Ofis' },
+  { value: 'mixed_use', label: 'Karma' },
+  { value: 'hotel', label: 'Otel' },
+  { value: 'industrial', label: 'Endüstriyel' },
+  { value: 'other', label: 'Diğer' },
+];
+
 export function ConstructionDashboardPage() {
   const { user } = useAuth();
   const canCreate = user?.role === 'admin' || user?.role === 'manager';
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ConstructionProjectStatus | ''>('');
+  const [typeFilter, setTypeFilter] = useState<ConstructionProjectType | ''>('');
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
 
@@ -52,6 +64,7 @@ export function ConstructionDashboardPage() {
   const filters = {
     search: search || undefined,
     status: statusFilter || undefined,
+    project_type: typeFilter || undefined,
     page,
     limit,
   };
@@ -127,6 +140,22 @@ export function ConstructionDashboardPage() {
                 }}
                 variant={statusFilter === opt.value ? 'filled' : 'outlined'}
                 color={statusFilter === opt.value ? 'primary' : 'default'}
+                size="small"
+                sx={{ cursor: 'pointer' }}
+              />
+            ))}
+          </Box>
+          <Box display="flex" gap={0.75} flexWrap="wrap">
+            {TYPE_FILTER_OPTIONS.map((opt) => (
+              <Chip
+                key={opt.value}
+                label={opt.label}
+                onClick={() => {
+                  setTypeFilter(opt.value as ConstructionProjectType | '');
+                  setPage(1);
+                }}
+                variant={typeFilter === opt.value ? 'filled' : 'outlined'}
+                color={typeFilter === opt.value ? 'secondary' : 'default'}
                 size="small"
                 sx={{ cursor: 'pointer' }}
               />

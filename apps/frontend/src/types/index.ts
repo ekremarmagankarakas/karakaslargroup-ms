@@ -217,6 +217,7 @@ export interface BudgetHistoryResponse {
 // ── Construction Management ──────────────────────────────────────────────────
 
 export type ConstructionProjectStatus = 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled';
+export type ConstructionProjectType = 'shopping_mall' | 'residential' | 'office' | 'mixed_use' | 'hotel' | 'industrial' | 'other';
 export type ConstructionMaterialUnit = 'm3' | 'kg' | 'ton' | 'adet' | 'm2' | 'm' | 'litre';
 export type ConstructionTaskStatus = 'not_started' | 'in_progress' | 'completed' | 'blocked';
 
@@ -229,6 +230,7 @@ export interface ConstructionProject {
   created_by: number;
   created_by_username: string;
   status: ConstructionProjectStatus;
+  project_type: ConstructionProjectType | null;
   start_date: string | null;
   end_date: string | null;
   budget: string | null;
@@ -265,5 +267,6 @@ export interface ConstructionProjectFilters {
   limit?: number;
   search?: string;
   status?: ConstructionProjectStatus;
+  project_type?: ConstructionProjectType;
   location_id?: number;
 }

@@ -26,6 +26,7 @@ class ConstructionProjectRepository:
         self,
         *,
         status: str | None = None,
+        project_type: str | None = None,
         location_id: int | None = None,
         search: str | None = None,
         page: int = 1,
@@ -37,6 +38,8 @@ class ConstructionProjectRepository:
         )
         if status:
             query = query.where(ConstructionProject.status == status)
+        if project_type:
+            query = query.where(ConstructionProject.project_type == project_type)
         if location_id:
             query = query.where(ConstructionProject.location_id == location_id)
         if search:

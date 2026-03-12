@@ -23,6 +23,7 @@ def _build_project_response(project: ConstructionProject) -> ProjectResponse:
         created_by=project.created_by,
         created_by_username=project.creator.username,
         status=project.status,
+        project_type=project.project_type,
         start_date=project.start_date,
         end_date=project.end_date,
         budget=project.budget,
@@ -39,6 +40,7 @@ class ConstructionProjectService:
         self,
         *,
         status: str | None = None,
+        project_type: str | None = None,
         location_id: int | None = None,
         search: str | None = None,
         page: int = 1,
@@ -46,6 +48,7 @@ class ConstructionProjectService:
     ) -> PaginatedProjectsResponse:
         projects, total = await self.project_repo.get_paginated(
             status=status,
+            project_type=project_type,
             location_id=location_id,
             search=search,
             page=page,

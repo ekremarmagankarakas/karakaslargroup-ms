@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import AdminOnly, CurrentUser, ManagerOrAdmin, get_db
-from app.models.construction.project import ConstructionProjectStatus
+from app.models.construction.project import ConstructionProjectStatus, ConstructionProjectType
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.project import (
     PaginatedProjectsResponse,
@@ -26,6 +26,7 @@ async def list_projects(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
     status: ConstructionProjectStatus | None = None,
+    project_type: ConstructionProjectType | None = None,
     location_id: int | None = None,
     search: str | None = None,
     page: int = 1,
@@ -34,6 +35,7 @@ async def list_projects(
     service = _get_service(db)
     return await service.list_projects(
         status=status,
+        project_type=project_type,
         location_id=location_id,
         search=search,
         page=page,
