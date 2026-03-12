@@ -208,8 +208,8 @@ export function ConstructionProjectPage() {
             <Tab label="Taşeronlar" />
             <Tab label="İzinler" />
             <Tab label="Revizyonlar" />
-            <Tab label="Ekip" />
             <Tab label="Belgeler" />
+            <Tab label="Ekip" />
             {canEdit && <Tab label="Geçmiş" />}
           </Tabs>
         </Box>
