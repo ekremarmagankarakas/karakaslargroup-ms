@@ -1,6 +1,11 @@
+import csv
+import io
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import AdminOnly, CurrentUser, ManagerOrAdmin, get_db
@@ -79,6 +84,58 @@ async def create_project(
     return await service.create_project(current_user, body)
 
 
+@router.get("/export/projects")
+async def export_projects_csv(
+    current_user: ManagerOrAdmin,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    from sqlalchemy import func as sa_func
+    from app.models.construction.project import ConstructionProject
+    from app.models.construction.material import ConstructionMaterial
+
+    result = await db.execute(
+        select(ConstructionProject)
+        .options(joinedload(ConstructionProject.location), joinedload(ConstructionProject.creator))
+        .order_by(ConstructionProject.created_at.desc())
+    )
+    projects = list(result.scalars().unique().all())
+
+    cost_result = await db.execute(
+        select(
+            ConstructionMaterial.project_id,
+            sa_func.sum(ConstructionMaterial.quantity_used * ConstructionMaterial.unit_cost),
+        ).group_by(ConstructionMaterial.project_id)
+    )
+    actual_costs = {row[0]: float(row[1] or 0) for row in cost_result}
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        "ID", "Ad", "Durum", "Tip", "Konum", "Oluşturan",
+        "Başlangıç", "Bitiş", "Bütçe (₺)", "Gerçekleşen Maliyet (₺)", "İlerleme (%)", "Oluşturulma",
+    ])
+    for p in projects:
+        writer.writerow([
+            p.id, p.name, p.status.value,
+            p.project_type.value if p.project_type else "",
+            p.location.name if p.location else "",
+            p.creator.username if p.creator else "",
+            str(p.start_date) if p.start_date else "",
+            str(p.end_date) if p.end_date else "",
+            str(p.budget) if p.budget else "",
+            round(actual_costs.get(p.id, 0), 2),
+            p.progress_pct,
+            p.created_at.strftime("%Y-%m-%d"),
+        ])
+
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=projeler.csv"},
+    )
+
+
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
     project_id: int,
@@ -129,3 +186,77 @@ async def get_audit_log(
     audit_repo = ConstructionAuditLogRepository(db)
     logs = await audit_repo.get_by_project(project_id)
     return [_build_audit_response(log) for log in logs]
+
+
+@router.get("/{project_id}/export/materials")
+async def export_materials_csv(
+    project_id: int,
+    current_user: ManagerOrAdmin,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    from app.models.construction.material import ConstructionMaterial
+
+    result = await db.execute(
+        select(ConstructionMaterial)
+        .where(ConstructionMaterial.project_id == project_id)
+        .order_by(ConstructionMaterial.name)
+    )
+    materials = result.scalars().all()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        "ID", "Ad", "Tip", "Birim", "Planlanan Miktar", "Kullanılan Miktar",
+        "Birim Fiyat (₺)", "Planlanan Maliyet (₺)", "Gerçekleşen Maliyet (₺)", "Notlar",
+    ])
+    for m in materials:
+        planned = float(m.quantity_planned or 0)
+        used = float(m.quantity_used or 0)
+        cost = float(m.unit_cost or 0)
+        writer.writerow([
+            m.id, m.name, m.material_type, m.unit.value,
+            planned, used, cost,
+            round(planned * cost, 2),
+            round(used * cost, 2),
+            m.notes or "",
+        ])
+
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=malzemeler_{project_id}.csv"},
+    )
+
+
+@router.get("/{project_id}/export/milestones")
+async def export_milestones_csv(
+    project_id: int,
+    current_user: ManagerOrAdmin,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    from app.models.construction.milestone import ConstructionMilestone
+
+    result = await db.execute(
+        select(ConstructionMilestone)
+        .where(ConstructionMilestone.project_id == project_id)
+        .order_by(ConstructionMilestone.due_date)
+    )
+    milestones = result.scalars().all()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["ID", "Başlık", "Durum", "Tamamlanma (%)", "Son Tarih", "Açıklama"])
+    for m in milestones:
+        writer.writerow([
+            m.id, m.title, m.status.value, m.completion_pct,
+            str(m.due_date) if m.due_date else "",
+            m.description or "",
+        ])
+
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=asamalar_{project_id}.csv"},
+    )

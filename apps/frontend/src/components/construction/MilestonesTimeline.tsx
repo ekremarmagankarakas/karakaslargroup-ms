@@ -1,5 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
 import BlockIcon from '@mui/icons-material/Block';
+import DownloadIcon from '@mui/icons-material/Download';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -33,6 +34,7 @@ import {
   useUpdateMilestone,
 } from '../../hooks/construction/useConstruction';
 import type { ConstructionMilestone, ConstructionTaskStatus, UserRole } from '../../types';
+import { downloadCsv } from '../../utils/exportCsv';
 
 const STATUS_CONFIG: Record<
   ConstructionTaskStatus,
@@ -128,11 +130,24 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
         <Typography variant="subtitle1" fontWeight={700}>
           Aşamalar
         </Typography>
-        {canEdit && (
-          <Button startIcon={<AddIcon />} variant="outlined" size="small" onClick={openCreate}>
-            Aşama Ekle
-          </Button>
-        )}
+        <Box display="flex" gap={1}>
+          {canEdit && (
+            <Tooltip title="CSV İndir">
+              <IconButton
+                size="small"
+                onClick={() => downloadCsv(`/construction/${projectId}/export/milestones`, `asamalar_${projectId}.csv`)}
+                sx={{ color: 'text.secondary' }}
+              >
+                <DownloadIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          {canEdit && (
+            <Button startIcon={<AddIcon />} variant="outlined" size="small" onClick={openCreate}>
+              Aşama Ekle
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {isLoading ? (

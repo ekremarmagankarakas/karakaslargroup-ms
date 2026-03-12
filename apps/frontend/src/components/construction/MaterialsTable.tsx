@@ -1,5 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
 import {
   Box,
@@ -33,6 +34,7 @@ import {
   useUpdateMaterial,
 } from '../../hooks/construction/useConstruction';
 import type { ConstructionMaterial, ConstructionMaterialUnit, UserRole } from '../../types';
+import { downloadCsv } from '../../utils/exportCsv';
 
 const UNIT_OPTIONS: ConstructionMaterialUnit[] = ['m3', 'kg', 'ton', 'adet', 'm2', 'm', 'litre'];
 
@@ -141,11 +143,24 @@ export function MaterialsTable({ projectId, userRole }: Props) {
         <Typography variant="subtitle1" fontWeight={700}>
           Malzemeler
         </Typography>
-        {canEdit && (
-          <Button startIcon={<AddIcon />} variant="outlined" size="small" onClick={openCreate}>
-            Malzeme Ekle
-          </Button>
-        )}
+        <Box display="flex" gap={1}>
+          {canEdit && (
+            <Tooltip title="CSV İndir">
+              <IconButton
+                size="small"
+                onClick={() => downloadCsv(`/construction/${projectId}/export/materials`, `malzemeler_${projectId}.csv`)}
+                sx={{ color: 'text.secondary' }}
+              >
+                <DownloadIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          {canEdit && (
+            <Button startIcon={<AddIcon />} variant="outlined" size="small" onClick={openCreate}>
+              Malzeme Ekle
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {isLoading ? (

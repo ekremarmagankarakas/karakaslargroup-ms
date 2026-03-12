@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import DownloadIcon from '@mui/icons-material/Download';
 import GridViewIcon from '@mui/icons-material/GridView';
 import SearchIcon from '@mui/icons-material/Search';
 import TableRowsIcon from '@mui/icons-material/TableRows';
@@ -26,6 +27,7 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { PaginationControls } from '../../components/common/PaginationControls';
 import { useAuth } from '../../context/AuthContext';
+import { downloadCsv } from '../../utils/exportCsv';
 import {
   useCreateProject,
   useDeleteProject,
@@ -127,6 +129,17 @@ export function ConstructionDashboardPage() {
             </Typography>
           </Box>
           <Box display="flex" gap={0.5}>
+            {canCreate && (
+              <Tooltip title="CSV İndir">
+                <IconButton
+                  size="small"
+                  onClick={() => downloadCsv('/construction/export/projects', 'projeler.csv')}
+                  sx={{ color: 'text.secondary' }}
+                >
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title="Kart Görünümü">
               <IconButton
                 size="small"
