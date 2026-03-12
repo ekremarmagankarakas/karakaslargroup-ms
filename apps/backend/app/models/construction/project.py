@@ -73,3 +73,7 @@ class ConstructionProject(Base):
     comments: Mapped[list["ConstructionComment"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
     daily_logs: Mapped[list["ConstructionDailyLog"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
     subcontractors: Mapped[list["ConstructionSubcontractor"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    permits: Mapped[list["ConstructionPermit"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    change_orders: Mapped[list["ConstructionChangeOrder"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    audit_logs: Mapped[list["ConstructionAuditLog"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    documents: Mapped[list["ConstructionDocument"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821

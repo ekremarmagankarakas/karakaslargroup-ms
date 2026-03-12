@@ -2,8 +2,10 @@ import math
 
 from fastapi import HTTPException, status
 
+from app.models.construction.audit_log import ConstructionAuditAction
 from app.models.construction.project import ConstructionProject
 from app.models.user import User, UserRole
+from app.repositories.construction.audit_log_repository import ConstructionAuditLogRepository
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.project import (
     PaginatedProjectsResponse,
@@ -33,8 +35,13 @@ def _build_project_response(project: ConstructionProject) -> ProjectResponse:
 
 
 class ConstructionProjectService:
-    def __init__(self, project_repo: ConstructionProjectRepository) -> None:
+    def __init__(
+        self,
+        project_repo: ConstructionProjectRepository,
+        audit_repo: ConstructionAuditLogRepository | None = None,
+    ) -> None:
         self.project_repo = project_repo
+        self.audit_repo = audit_repo
 
     async def list_projects(
         self,
@@ -73,6 +80,17 @@ class ConstructionProjectService:
         data = body.model_dump()
         data["created_by"] = current_user.id
         project = await self.project_repo.create(data)
+        if self.audit_repo:
+            await self.audit_repo.create(
+                {
+                    "project_id": project.id,
+                    "user_id": current_user.id,
+                    "action": ConstructionAuditAction.created,
+                    "field_name": None,
+                    "old_value": None,
+                    "new_value": body.name,
+                }
+            )
         project = await self.project_repo.get_by_id(project.id)
         return _build_project_response(project)
 
@@ -86,6 +104,29 @@ class ConstructionProjectService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Yetersiz yetki")
 
         updates = body.model_dump(exclude_unset=True)
+        if self.audit_repo:
+            for field, new_val in updates.items():
+                old_val = getattr(project, field, None)
+                if old_val == new_val:
+                    continue
+                if field == "status":
+                    action = ConstructionAuditAction.status_changed
+                elif field == "budget":
+                    action = ConstructionAuditAction.budget_changed
+                elif field == "progress_pct":
+                    action = ConstructionAuditAction.progress_updated
+                else:
+                    action = ConstructionAuditAction.edited
+                await self.audit_repo.create(
+                    {
+                        "project_id": project_id,
+                        "user_id": current_user.id,
+                        "action": action,
+                        "field_name": field,
+                        "old_value": str(old_val) if old_val is not None else None,
+                        "new_value": str(new_val) if new_val is not None else None,
+                    }
+                )
         await self.project_repo.update(project, updates)
         project = await self.project_repo.get_by_id(project_id)
         return _build_project_response(project)

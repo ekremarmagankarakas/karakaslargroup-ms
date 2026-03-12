@@ -17,11 +17,15 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ChangeOrderList } from '../../components/construction/ChangeOrderList';
 import { DailyLogList } from '../../components/construction/DailyLogList';
+import { DocumentList } from '../../components/construction/DocumentList';
 import { IssuesLog } from '../../components/construction/IssuesLog';
 import { MaterialsTable } from '../../components/construction/MaterialsTable';
 import { MilestonesTimeline } from '../../components/construction/MilestonesTimeline';
+import { PermitTracker } from '../../components/construction/PermitTracker';
 import { PhotoGallery } from '../../components/construction/PhotoGallery';
+import { ProjectAuditLog } from '../../components/construction/ProjectAuditLog';
 import { ProjectComments } from '../../components/construction/ProjectComments';
 import { ProjectForm } from '../../components/construction/ProjectForm';
 import { SubcontractorList } from '../../components/construction/SubcontractorList';
@@ -187,6 +191,10 @@ export function ConstructionProjectPage() {
             <Tab label="Yorumlar" />
             <Tab label="Günlük" />
             <Tab label="Taşeronlar" />
+            <Tab label="İzinler" />
+            <Tab label="Revizyonlar" />
+            <Tab label="Belgeler" />
+            {canEdit && <Tab label="Geçmiş" />}
           </Tabs>
         </Box>
 
@@ -251,6 +259,18 @@ export function ConstructionProjectPage() {
         )}
         {tab === 7 && (
           <SubcontractorList projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 8 && (
+          <PermitTracker projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 9 && (
+          <ChangeOrderList projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 10 && (
+          <DocumentList projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 11 && canEdit && (
+          <ProjectAuditLog projectId={project.id} />
         )}
 
         {/* Edit Form */}

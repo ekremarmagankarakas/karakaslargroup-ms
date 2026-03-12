@@ -2,11 +2,14 @@ from fastapi import APIRouter
 
 from app.api.routes.construction import (
     analytics,
+    change_orders,
     comments,
     daily_logs,
+    documents,
     issues,
     materials,
     milestones,
+    permits,
     photos,
     projects,
     subcontractors,
@@ -22,3 +25,6 @@ router.include_router(photos.router)
 router.include_router(comments.router)
 router.include_router(daily_logs.router)
 router.include_router(subcontractors.router)
+router.include_router(permits.router)
+router.include_router(change_orders.router)
+router.include_router(documents.router)

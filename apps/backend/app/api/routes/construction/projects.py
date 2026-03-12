@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import AdminOnly, CurrentUser, ManagerOrAdmin, get_db
 from app.models.construction.project import ConstructionProjectStatus, ConstructionProjectType
+from app.repositories.construction.audit_log_repository import ConstructionAuditLogRepository
 from app.repositories.construction.project_repository import ConstructionProjectRepository
+from app.schemas.construction.audit_log import AuditLogResponse
 from app.schemas.construction.project import (
     PaginatedProjectsResponse,
     ProjectCreate,
@@ -18,7 +20,24 @@ router = APIRouter()
 
 
 def _get_service(db: AsyncSession) -> ConstructionProjectService:
-    return ConstructionProjectService(project_repo=ConstructionProjectRepository(db))
+    return ConstructionProjectService(
+        project_repo=ConstructionProjectRepository(db),
+        audit_repo=ConstructionAuditLogRepository(db),
+    )
+
+
+def _build_audit_response(log) -> AuditLogResponse:
+    return AuditLogResponse(
+        id=log.id,
+        project_id=log.project_id,
+        user_id=log.user_id,
+        username=log.user.username if log.user else None,
+        action=log.action,
+        field_name=log.field_name,
+        old_value=log.old_value,
+        new_value=log.new_value,
+        created_at=log.created_at,
+    )
 
 
 @router.get("/", response_model=PaginatedProjectsResponse)
@@ -82,3 +101,14 @@ async def delete_project(
 ):
     service = _get_service(db)
     await service.delete_project(current_user, project_id)
+
+
+@router.get("/{project_id}/audit-log", response_model=list[AuditLogResponse])
+async def get_audit_log(
+    project_id: int,
+    current_user: ManagerOrAdmin,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    audit_repo = ConstructionAuditLogRepository(db)
+    logs = await audit_repo.get_by_project(project_id)
+    return [_build_audit_response(log) for log in logs]

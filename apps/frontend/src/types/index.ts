@@ -375,3 +375,66 @@ export interface ConstructionSubcontractor {
   notes: string | null;
   created_at: string;
 }
+
+export type PermitType = 'construction' | 'demolition' | 'electrical' | 'plumbing' | 'fire_safety' | 'environmental' | 'occupancy' | 'other';
+export type PermitStatus = 'not_applied' | 'applied' | 'under_review' | 'approved' | 'rejected' | 'expired';
+
+export interface ConstructionPermit {
+  id: number;
+  project_id: number;
+  permit_type: PermitType;
+  permit_number: string | null;
+  issuing_authority: string;
+  status: PermitStatus;
+  applied_date: string | null;
+  approved_date: string | null;
+  expiry_date: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export type ChangeOrderStatus = 'draft' | 'submitted' | 'approved' | 'rejected';
+
+export interface ConstructionChangeOrder {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string;
+  cost_delta: string;
+  schedule_delta_days: number | null;
+  status: ChangeOrderStatus;
+  requested_by: number | null;
+  requester_username: string | null;
+  reviewed_by: number | null;
+  reviewer_username: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export type ConstructionAuditAction = 'created' | 'status_changed' | 'budget_changed' | 'progress_updated' | 'edited';
+
+export interface ConstructionAuditLog {
+  id: number;
+  project_id: number;
+  user_id: number | null;
+  username: string | null;
+  action: ConstructionAuditAction;
+  field_name: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+}
+
+export interface ConstructionDocument {
+  id: number;
+  project_id: number;
+  uploaded_by: number | null;
+  uploader_username: string | null;
+  file_key: string;
+  url: string;
+  original_filename: string;
+  file_size_bytes: number | null;
+  document_type: string | null;
+  caption: string | null;
+  created_at: string;
+}

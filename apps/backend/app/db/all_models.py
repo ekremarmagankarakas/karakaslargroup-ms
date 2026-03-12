@@ -17,3 +17,7 @@ from app.models.construction.photo import ConstructionPhoto  # noqa: F401
 from app.models.construction.comment import ConstructionComment  # noqa: F401
 from app.models.construction.daily_log import ConstructionDailyLog, WeatherCondition  # noqa: F401
 from app.models.construction.subcontractor import ConstructionSubcontractor  # noqa: F401
+from app.models.construction.permit import ConstructionPermit  # noqa: F401
+from app.models.construction.change_order import ConstructionChangeOrder  # noqa: F401
+from app.models.construction.audit_log import ConstructionAuditLog  # noqa: F401
+from app.models.construction.document import ConstructionDocument  # noqa: F401
