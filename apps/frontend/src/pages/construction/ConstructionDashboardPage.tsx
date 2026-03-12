@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
 import { ConstructionStatsPanel } from '../../components/construction/ConstructionStatsPanel';
 import { FavoriteProjectsSection } from '../../components/construction/FavoriteProjectsSection';
 import { GanttTimeline } from '../../components/construction/GanttTimeline';
@@ -280,6 +281,9 @@ export function ConstructionDashboardPage() {
           loading={createProject.isPending || updateProject.isPending}
           project={editTarget}
         />
+
+        {/* Construction AI Chat */}
+        <ConstructionChatWidget />
 
         {/* Delete Confirm */}
         <ConfirmDialog

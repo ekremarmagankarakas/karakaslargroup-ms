@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes.construction import (
     analytics,
     change_orders,
+    chat,
     comments,
     daily_logs,
     documents,
@@ -18,6 +19,7 @@ from app.api.routes.construction import (
 
 router = APIRouter()
 router.include_router(analytics.router)
+router.include_router(chat.router)
 router.include_router(favorites.router)
 router.include_router(projects.router)
 router.include_router(materials.router)

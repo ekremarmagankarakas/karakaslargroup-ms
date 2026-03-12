@@ -25,6 +25,7 @@ import { MaterialsTable } from '../../components/construction/MaterialsTable';
 import { MilestonesTimeline } from '../../components/construction/MilestonesTimeline';
 import { PermitTracker } from '../../components/construction/PermitTracker';
 import { PhotoGallery } from '../../components/construction/PhotoGallery';
+import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
 import { ProjectAuditLog } from '../../components/construction/ProjectAuditLog';
 import { ProjectComments } from '../../components/construction/ProjectComments';
 import { ProjectForm } from '../../components/construction/ProjectForm';
@@ -272,6 +273,9 @@ export function ConstructionProjectPage() {
         {tab === 11 && canEdit && (
           <ProjectAuditLog projectId={project.id} />
         )}
+
+        {/* Construction AI Chat */}
+        <ConstructionChatWidget />
 
         {/* Edit Form */}
         <ProjectForm
