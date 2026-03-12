@@ -25,6 +25,7 @@ import { MaterialsTable } from '../../components/construction/MaterialsTable';
 import { MilestonesTimeline } from '../../components/construction/MilestonesTimeline';
 import { PermitTracker } from '../../components/construction/PermitTracker';
 import { PhotoGallery } from '../../components/construction/PhotoGallery';
+import { ShipmentList } from '../../components/construction/ShipmentList';
 import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
 import { ProjectAuditLog } from '../../components/construction/ProjectAuditLog';
 import { ProjectHealthCard } from '../../components/construction/ProjectHealthCard';
@@ -187,6 +188,7 @@ export function ConstructionProjectPage() {
           <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
             <Tab label="Genel Bakış" />
             <Tab label="Malzemeler" />
+            <Tab label="Sevkiyatlar" />
             <Tab label="Aşamalar" />
             <Tab label="Sorunlar" />
             <Tab label="Fotoğraflar" />
@@ -246,33 +248,36 @@ export function ConstructionProjectPage() {
           <MaterialsTable projectId={project.id} userRole={user!.role} />
         )}
         {tab === 2 && (
-          <MilestonesTimeline projectId={project.id} userRole={user!.role} />
+          <ShipmentList projectId={project.id} userRole={user!.role} materials={materials} />
         )}
         {tab === 3 && (
-          <IssuesLog projectId={project.id} userRole={user!.role} />
+          <MilestonesTimeline projectId={project.id} userRole={user!.role} />
         )}
         {tab === 4 && (
-          <PhotoGallery projectId={project.id} userRole={user!.role} />
+          <IssuesLog projectId={project.id} userRole={user!.role} />
         )}
         {tab === 5 && (
-          <ProjectComments projectId={project.id} currentUserId={user!.id} userRole={user!.role} />
+          <PhotoGallery projectId={project.id} userRole={user!.role} />
         )}
         {tab === 6 && (
-          <DailyLogList projectId={project.id} userRole={user!.role} />
+          <ProjectComments projectId={project.id} currentUserId={user!.id} userRole={user!.role} />
         )}
         {tab === 7 && (
-          <SubcontractorList projectId={project.id} userRole={user!.role} />
+          <DailyLogList projectId={project.id} userRole={user!.role} />
         )}
         {tab === 8 && (
-          <PermitTracker projectId={project.id} userRole={user!.role} />
+          <SubcontractorList projectId={project.id} userRole={user!.role} />
         )}
         {tab === 9 && (
-          <ChangeOrderList projectId={project.id} userRole={user!.role} />
+          <PermitTracker projectId={project.id} userRole={user!.role} />
         )}
         {tab === 10 && (
+          <ChangeOrderList projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 11 && (
           <DocumentList projectId={project.id} userRole={user!.role} />
         )}
-        {tab === 11 && canEdit && (
+        {tab === 12 && canEdit && (
           <ProjectAuditLog projectId={project.id} />
         )}
 

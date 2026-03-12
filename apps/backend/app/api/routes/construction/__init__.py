@@ -15,6 +15,7 @@ from app.api.routes.construction import (
     permits,
     photos,
     projects,
+    shipments,
     subcontractors,
 )
 
@@ -23,6 +24,7 @@ router.include_router(analytics.router)
 router.include_router(chat.router)
 router.include_router(construction_notifications.router)
 router.include_router(favorites.router)
+router.include_router(shipments.router)  # must be before projects (has /shipments/pending static path)
 router.include_router(projects.router)
 router.include_router(materials.router)
 router.include_router(milestones.router)

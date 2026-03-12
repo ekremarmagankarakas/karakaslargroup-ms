@@ -1,10 +1,12 @@
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Box, Card, CardContent, CircularProgress, Grid, Typography } from '@mui/material';
 import { useProjects } from '../../hooks/construction/useConstruction';
+import { usePendingShipmentsCount } from '../../hooks/construction/useConstructionShipments';
 
 interface StatCardProps {
   label: string;
@@ -48,6 +50,7 @@ function StatCard({ label, value, icon, color }: StatCardProps) {
 
 export function ConstructionStatsPanel() {
   const { data, isLoading } = useProjects({ limit: 1000, page: 1 });
+  const { data: pendingShipments = 0 } = usePendingShipmentsCount();
 
   if (isLoading) {
     return (
@@ -97,6 +100,12 @@ export function ConstructionStatsPanel() {
       value: `%${avgProgress}`,
       icon: <TrendingUpIcon fontSize="small" />,
       color: '#7c3aed',
+    },
+    {
+      label: 'Bekleyen Sevkiyat',
+      value: pendingShipments,
+      icon: <LocalShippingIcon fontSize="small" />,
+      color: '#0891b2',
     },
   ];
 

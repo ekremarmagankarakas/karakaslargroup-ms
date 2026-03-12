@@ -77,3 +77,4 @@ class ConstructionProject(Base):
     change_orders: Mapped[list["ConstructionChangeOrder"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
     audit_logs: Mapped[list["ConstructionAuditLog"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
     documents: Mapped[list["ConstructionDocument"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    shipments: Mapped[list["ConstructionShipment"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821

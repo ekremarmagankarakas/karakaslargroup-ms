@@ -28,6 +28,7 @@ from app.models.construction.project import ConstructionProject, ConstructionPro
 from app.models.construction.material import ConstructionMaterial, ConstructionMaterialUnit
 from app.models.construction.milestone import ConstructionMilestone, ConstructionTaskStatus
 from app.models.construction.issue import ConstructionIssue, ConstructionIssueSeverity, ConstructionIssueStatus
+from app.models.construction.shipment import ConstructionShipment, ShipmentStatus
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1015,6 +1016,64 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
     print(f"  created {created_projects} construction projects, {created_materials} materials, {created_milestones} milestones, {created_issues} issues")
 
 
+async def seed_construction_shipments(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionShipment))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction shipments (already exist)")
+        return
+
+    # Fetch all projects and their materials
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction shipments (no projects)")
+        return
+
+    materials_result = await db.execute(select(ConstructionMaterial))
+    materials = list(materials_result.scalars().all())
+    materials_by_project: dict[int, list[ConstructionMaterial]] = {}
+    for m in materials:
+        materials_by_project.setdefault(m.project_id, []).append(m)
+
+    receiver = users.get("manager") or users.get("admin")
+    today = date.today()
+    created = 0
+
+    shipment_templates = [
+        {"supplier_name": "Çelik Yapı A.Ş.", "status": ShipmentStatus.delivered, "days_ago_order": 30, "days_ago_delivery": 10},
+        {"supplier_name": "İnşaat Malzemeleri Ltd.", "status": ShipmentStatus.in_transit, "days_ago_order": 7, "days_ago_delivery": None},
+        {"supplier_name": "Güven Tedarik", "status": ShipmentStatus.ordered, "days_ago_order": 2, "days_ago_delivery": None},
+    ]
+
+    for project in projects:
+        mats = materials_by_project.get(project.id, [])
+        for idx, tmpl in enumerate(shipment_templates):
+            mat = mats[idx % len(mats)] if mats else None
+            order_date = today - timedelta(days=tmpl["days_ago_order"])
+            actual_delivery = (today - timedelta(days=tmpl["days_ago_delivery"])) if tmpl["days_ago_delivery"] else None
+            qty_ordered = Decimal("50") if mat is None else Decimal(str(round(float(mat.quantity_planned) * 0.4, 2)))
+            qty_delivered = qty_ordered if tmpl["status"] == ShipmentStatus.delivered else None
+            db.add(ConstructionShipment(
+                project_id=project.id,
+                material_id=mat.id if mat else None,
+                material_name=mat.name if mat else f"Malzeme {idx+1}",
+                supplier_name=tmpl["supplier_name"],
+                quantity_ordered=qty_ordered,
+                quantity_delivered=qty_delivered,
+                unit=mat.unit if mat else ConstructionMaterialUnit.adet,
+                unit_cost=mat.unit_cost if mat else Decimal("100"),
+                status=tmpl["status"],
+                order_date=order_date,
+                expected_delivery_date=order_date + timedelta(days=14),
+                actual_delivery_date=actual_delivery,
+                received_by=receiver.id if receiver and tmpl["status"] == ShipmentStatus.delivered else None,
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction shipments")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 async def main() -> None:
@@ -1048,6 +1107,8 @@ async def main() -> None:
         await seed_audit_logs(db, users, all_reqs)
         await seed_budget_limits(db, users, locs)
         await seed_construction_projects(db, users, locs)
+        await db.flush()
+        await seed_construction_shipments(db, users)
 
         await db.commit()
 

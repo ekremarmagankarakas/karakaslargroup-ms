@@ -439,3 +439,27 @@ export interface ConstructionDocument {
   caption: string | null;
   created_at: string;
 }
+
+export type ShipmentStatus = 'ordered' | 'in_transit' | 'delivered' | 'partial' | 'rejected' | 'returned';
+
+export interface ConstructionShipment {
+  id: number;
+  project_id: number;
+  material_id: number | null;
+  material_name: string;
+  supplier_name: string;
+  quantity_ordered: string;
+  quantity_delivered: string | null;
+  unit: ConstructionMaterialUnit;
+  unit_cost: string | null;
+  total_cost: string | null;
+  status: ShipmentStatus;
+  order_date: string;
+  expected_delivery_date: string | null;
+  actual_delivery_date: string | null;
+  delivery_note_number: string | null;
+  notes: string | null;
+  received_by: number | null;
+  receiver_username: string | null;
+  created_at: string;
+}
