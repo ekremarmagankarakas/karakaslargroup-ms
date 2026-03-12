@@ -511,6 +511,32 @@ export interface BudgetSummaryResponse {
   utilization_pct: number;
 }
 
+// ── RFI ───────────────────────────────────────────────────────────────────────
+
+export type RFIStatus = 'draft' | 'submitted' | 'under_review' | 'answered' | 'closed';
+export type RFIPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+export interface ConstructionRFI {
+  id: number;
+  project_id: number;
+  rfi_number: string;
+  subject: string;
+  question: string;
+  response: string | null;
+  status: RFIStatus;
+  priority: RFIPriority;
+  submitted_to: string;
+  submitted_date: string | null;
+  response_date: string | null;
+  due_date: string | null;
+  submitted_by: number | null;
+  submitter_username: string | null;
+  answered_by_name: string | null;
+  days_open: number | null;
+  is_overdue: boolean;
+  created_at: string;
+}
+
 // ── Punch List ────────────────────────────────────────────────────────────────
 
 export type PunchListStatus = 'open' | 'in_progress' | 'completed' | 'verified' | 'rejected';

@@ -83,3 +83,4 @@ class ConstructionProject(Base):
     safety_incidents: Mapped[list["ConstructionSafetyIncident"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
     invoices: Mapped[list["ConstructionInvoice"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
     punch_list_items: Mapped[list["ConstructionPunchListItem"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    rfis: Mapped[list["ConstructionRFI"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821

@@ -35,6 +35,7 @@ from app.models.construction.safety_incident import ConstructionSafetyIncident, 
 from app.models.construction.invoice import ConstructionInvoice, InvoiceStatus
 from app.models.construction.subcontractor import ConstructionSubcontractor
 from app.models.construction.punch_list_item import ConstructionPunchListItem, PunchListStatus
+from app.models.construction.rfi import ConstructionRFI, RFIStatus, RFIPriority
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1371,6 +1372,61 @@ async def seed_construction_shipments(db, users: dict) -> None:
     print(f"  created {created} construction shipments")
 
 
+async def seed_rfis(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionRFI))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction RFIs (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction RFIs (no projects)")
+        return
+
+    submitter = users.get("manager") or users.get("admin")
+    if not submitter:
+        print("  skip  construction RFIs (no user)")
+        return
+
+    today = date.today()
+    created = 0
+    for idx, project in enumerate(projects):
+        # RFI-001: answered
+        db.add(ConstructionRFI(
+            project_id=project.id,
+            rfi_number="RFI-001",
+            subject="Zemin betonu katkı maddesi spesifikasyonu",
+            question="Teknik şartname S3.2'de belirtilen beton katkı maddesi XYZ-450'in yerini hangi eşdeğer ürün alabilir?",
+            response="XYZ-450 yerine ABC-500 veya DEF-480 kullanılabilir. Her iki ürün de TS EN 934-2 standardını karşılamaktadır.",
+            status=RFIStatus.answered,
+            priority=RFIPriority.high,
+            submitted_to="Proje Tasarım Ofisi — İstanbul",
+            submitted_date=today - timedelta(days=30),
+            response_date=today - timedelta(days=22),
+            submitted_by=submitter.id,
+            answered_by_name="Mimar Ahmet Yılmaz",
+        ))
+        # RFI-002: open
+        db.add(ConstructionRFI(
+            project_id=project.id,
+            rfi_number="RFI-002",
+            subject="Çatı detayı — ısı köprüsü çözümü",
+            question="A/3.1 çatı detayında belirtilen ısı köprüsü çözümü sahada uygulanamıyor. Alternatif detay talep edilmektedir.",
+            response=None,
+            status=RFIStatus.submitted,
+            priority=RFIPriority.normal,
+            submitted_to="Statik Mühendislik Bürosu",
+            submitted_date=today - timedelta(days=7),
+            due_date=today + timedelta(days=7),
+            submitted_by=submitter.id,
+        ))
+        created += 2
+
+    await db.flush()
+    print(f"  created {created} construction RFIs")
+
+
 async def seed_punch_list(db, users: dict) -> None:
     count_result = await db.execute(select(func.count()).select_from(ConstructionPunchListItem))
     if count_result.scalar_one() > 0:
@@ -1593,6 +1649,8 @@ async def main() -> None:
         await seed_invoices(db)
         await db.flush()
         await seed_punch_list(db, users)
+        await db.flush()
+        await seed_rfis(db, users)
 
         await db.commit()
 
