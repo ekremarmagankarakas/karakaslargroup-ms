@@ -20,7 +20,7 @@ class ConstructionProjectRepository:
             )
             .where(ConstructionProject.id == project_id)
         )
-        return result.scalar_one_or_none()
+        return result.unique().scalar_one_or_none()
 
     async def get_paginated(
         self,
