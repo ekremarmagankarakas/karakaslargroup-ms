@@ -511,6 +511,31 @@ export interface BudgetSummaryResponse {
   utilization_pct: number;
 }
 
+// ── Punch List ────────────────────────────────────────────────────────────────
+
+export type PunchListStatus = 'open' | 'in_progress' | 'completed' | 'verified' | 'rejected';
+
+export interface ConstructionPunchListItem {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string | null;
+  location_on_site: string | null;
+  subcontractor_id: number | null;
+  subcontractor_name: string | null;
+  assigned_to: number | null;
+  assignee_username: string | null;
+  status: PunchListStatus;
+  due_date: string | null;
+  completed_date: string | null;
+  verified_by: number | null;
+  verifier_username: string | null;
+  created_by: number;
+  creator_username: string | null;
+  is_overdue: boolean;
+  created_at: string;
+}
+
 // ── Invoices ──────────────────────────────────────────────────────────────────
 
 export type InvoiceStatus = 'received' | 'under_review' | 'approved' | 'paid' | 'disputed' | 'cancelled';

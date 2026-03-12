@@ -34,6 +34,7 @@ from app.models.construction.budget_line import ConstructionBudgetLine, BudgetCa
 from app.models.construction.safety_incident import ConstructionSafetyIncident, IncidentType, IncidentStatus
 from app.models.construction.invoice import ConstructionInvoice, InvoiceStatus
 from app.models.construction.subcontractor import ConstructionSubcontractor
+from app.models.construction.punch_list_item import ConstructionPunchListItem, PunchListStatus
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1370,6 +1371,48 @@ async def seed_construction_shipments(db, users: dict) -> None:
     print(f"  created {created} construction shipments")
 
 
+async def seed_punch_list(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionPunchListItem))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction punch list (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = [p for p in (await db.execute(select(ConstructionProject))).scalars().all()
+                if p.status in (ConstructionProjectStatus.active, ConstructionProjectStatus.completed)]
+    if not projects:
+        print("  skip  construction punch list (no active/completed projects)")
+        return
+
+    creator = users.get("manager") or users.get("admin")
+    if not creator:
+        print("  skip  construction punch list (no manager/admin user)")
+        return
+
+    today = date.today()
+    templates = [
+        {"title": "Tavan sıva eksiklikleri — B kat koridor", "location_on_site": "B Kat", "status": PunchListStatus.open, "due_days": 14},
+        {"title": "Elektrik pano kapağı takılmadı", "location_on_site": "Elektrik Odası", "status": PunchListStatus.in_progress, "due_days": 7},
+        {"title": "Zemin kaplama çatlakları tamir edildi", "location_on_site": "Zemin Kat", "status": PunchListStatus.completed, "due_days": -3},
+        {"title": "İnce sıva boya uygulaması", "location_on_site": "A Kat", "status": PunchListStatus.verified, "due_days": -10},
+    ]
+    created = 0
+    for idx, project in enumerate(projects):
+        for t_idx, tmpl in enumerate(templates[:3]):
+            db.add(ConstructionPunchListItem(
+                project_id=project.id,
+                title=tmpl["title"],
+                location_on_site=tmpl["location_on_site"],
+                status=tmpl["status"],
+                due_date=today + timedelta(days=tmpl["due_days"]),
+                created_by=creator.id,
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction punch list items")
+
+
 async def seed_invoices(db) -> None:
     count_result = await db.execute(select(func.count()).select_from(ConstructionInvoice))
     if count_result.scalar_one() > 0:
@@ -1548,6 +1591,8 @@ async def main() -> None:
         await seed_safety_incidents(db, users)
         await db.flush()
         await seed_invoices(db)
+        await db.flush()
+        await seed_punch_list(db, users)
 
         await db.commit()
 
