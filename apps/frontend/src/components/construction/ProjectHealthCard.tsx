@@ -1,5 +1,6 @@
 import { Box, Chip, CircularProgress, Paper, Tooltip, Typography } from '@mui/material';
 import { useProjectHealth } from '../../hooks/construction/useConstruction';
+import { useSafetyStats } from '../../hooks/construction/useConstructionSafety';
 
 type RAG = 'red' | 'amber' | 'green';
 
@@ -19,6 +20,7 @@ const DIMENSION_LABELS: Record<string, string> = {
   budget_status: 'Bütçe',
   schedule_status: 'Zamanlama',
   issue_status: 'Sorunlar',
+  safety_status: 'Güvenlik',
 };
 
 interface Props {
@@ -27,6 +29,7 @@ interface Props {
 
 export function ProjectHealthCard({ projectId }: Props) {
   const { data: health, isLoading } = useProjectHealth(projectId);
+  const { data: safetyStats } = useSafetyStats(projectId);
 
   if (isLoading) {
     return (
@@ -78,6 +81,23 @@ export function ProjectHealthCard({ projectId }: Props) {
                 }}
               />
             ))}
+            {safetyStats !== undefined && (() => {
+              const safetyRag: RAG = safetyStats.major_injury_open > 0 ? 'red' : safetyStats.open_count > 0 ? 'amber' : 'green';
+              return (
+                <Chip
+                  key="safety_status"
+                  label="Güvenlik"
+                  size="small"
+                  sx={{
+                    bgcolor: `${RAG_COLORS[safetyRag]}20`,
+                    color: RAG_COLORS[safetyRag],
+                    border: `1px solid ${RAG_COLORS[safetyRag]}40`,
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                  }}
+                />
+              );
+            })()}
           </Box>
 
           {/* Detail list */}

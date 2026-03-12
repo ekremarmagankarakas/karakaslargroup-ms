@@ -31,6 +31,7 @@ from app.models.construction.issue import ConstructionIssue, ConstructionIssueSe
 from app.models.construction.shipment import ConstructionShipment, ShipmentStatus
 from app.models.construction.project_member import ConstructionProjectMember, ConstructionProjectRole
 from app.models.construction.budget_line import ConstructionBudgetLine, BudgetCategory
+from app.models.construction.safety_incident import ConstructionSafetyIncident, IncidentType, IncidentStatus
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1367,6 +1368,60 @@ async def seed_construction_shipments(db, users: dict) -> None:
     print(f"  created {created} construction shipments")
 
 
+async def seed_safety_incidents(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionSafetyIncident))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction safety incidents (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction safety incidents (no projects)")
+        return
+
+    reporter = users.get("manager") or users.get("admin")
+    today = date.today()
+    templates = [
+        {
+            "incident_type": IncidentType.near_miss,
+            "title": "Yüksekten Düşme Ramak Kalası",
+            "description": "İşçi çatı çalışması sırasında emniyet kemeri takmadı, kaymak üzereyken tutunarak kurtuldu.",
+            "location_on_site": "Çatı Katı",
+            "days_ago": 45,
+            "status": IncidentStatus.closed,
+        },
+        {
+            "incident_type": IncidentType.minor_injury,
+            "title": "El Kesisi — Demir Kesme İşlemi",
+            "description": "İşçi demir kesme işlemi sırasında eldiven takmadan çalışırken elini kesti. Yara pansumanla kapatıldı.",
+            "location_on_site": "Demir Deposu",
+            "days_ago": 12,
+            "status": IncidentStatus.corrective_action_pending,
+        },
+    ]
+    created = 0
+    for idx, project in enumerate(projects):
+        tmpl = templates[idx % len(templates)]
+        if not reporter:
+            continue
+        db.add(ConstructionSafetyIncident(
+            project_id=project.id,
+            incident_type=tmpl["incident_type"],
+            title=tmpl["title"],
+            description=tmpl["description"],
+            location_on_site=tmpl["location_on_site"],
+            incident_date=today - timedelta(days=tmpl["days_ago"]),
+            corrective_actions="Güvenlik eğitimi zorunlu hale getirildi, kontrol listeleri güncellendi.",
+            status=tmpl["status"],
+            reported_by=reporter.id,
+        ))
+        created += 1
+
+    await db.flush()
+    print(f"  created {created} construction safety incidents")
+
+
 async def seed_budget_lines(db) -> None:
     count_result = await db.execute(select(func.count()).select_from(ConstructionBudgetLine))
     if count_result.scalar_one() > 0:
@@ -1445,6 +1500,8 @@ async def main() -> None:
         await seed_construction_shipments(db, users)
         await db.flush()
         await seed_budget_lines(db)
+        await db.flush()
+        await seed_safety_incidents(db, users)
 
         await db.commit()
 

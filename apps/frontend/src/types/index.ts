@@ -511,6 +511,37 @@ export interface BudgetSummaryResponse {
   utilization_pct: number;
 }
 
+// ── Safety Incidents ──────────────────────────────────────────────────────────
+
+export type IncidentType = 'near_miss' | 'minor_injury' | 'major_injury' | 'property_damage' | 'environmental' | 'fire' | 'other';
+export type IncidentStatus = 'reported' | 'under_investigation' | 'corrective_action_pending' | 'closed';
+
+export interface ConstructionSafetyIncident {
+  id: number;
+  project_id: number;
+  incident_type: IncidentType;
+  title: string;
+  description: string;
+  location_on_site: string | null;
+  incident_date: string;
+  injured_person_name: string | null;
+  time_lost_days: number | null;
+  root_cause: string | null;
+  corrective_actions: string | null;
+  status: IncidentStatus;
+  reported_by: number | null;
+  reporter_username: string | null;
+  closed_at: string | null;
+  created_at: string;
+}
+
+export interface SafetyStatsResponse {
+  days_since_last_incident: number | null;
+  open_count: number;
+  major_injury_open: number;
+  by_type: Record<string, number>;
+}
+
 export interface BudgetLineCreate {
   category: BudgetCategory;
   description?: string;

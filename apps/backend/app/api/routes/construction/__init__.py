@@ -4,6 +4,7 @@ from app.api.routes.construction import (
     analytics,
     budget,
     change_orders,
+    safety,
     chat,
     comments,
     daily_logs,
@@ -40,3 +41,4 @@ router.include_router(permits.router)
 router.include_router(change_orders.router)
 router.include_router(documents.router)
 router.include_router(budget.router)
+router.include_router(safety.router)
