@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.routes.construction import (
     analytics,
+    budget,
     change_orders,
     chat,
     comments,
@@ -38,3 +39,4 @@ router.include_router(subcontractors.router)
 router.include_router(permits.router)
 router.include_router(change_orders.router)
 router.include_router(documents.router)
+router.include_router(budget.router)

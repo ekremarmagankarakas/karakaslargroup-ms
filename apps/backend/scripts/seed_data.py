@@ -30,6 +30,7 @@ from app.models.construction.milestone import ConstructionMilestone, Constructio
 from app.models.construction.issue import ConstructionIssue, ConstructionIssueSeverity, ConstructionIssueStatus
 from app.models.construction.shipment import ConstructionShipment, ShipmentStatus
 from app.models.construction.project_member import ConstructionProjectMember, ConstructionProjectRole
+from app.models.construction.budget_line import ConstructionBudgetLine, BudgetCategory
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1366,6 +1367,45 @@ async def seed_construction_shipments(db, users: dict) -> None:
     print(f"  created {created} construction shipments")
 
 
+async def seed_budget_lines(db) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionBudgetLine))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction budget lines (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction budget lines (no projects)")
+        return
+
+    templates = [
+        {"category": BudgetCategory.labor, "pct_planned": 0.25, "pct_actual": 0.22},
+        {"category": BudgetCategory.materials, "pct_planned": 0.35, "pct_actual": 0.30},
+        {"category": BudgetCategory.equipment, "pct_planned": 0.15, "pct_actual": 0.12},
+        {"category": BudgetCategory.subcontractors, "pct_planned": 0.12, "pct_actual": 0.10},
+        {"category": BudgetCategory.overhead, "pct_planned": 0.08, "pct_actual": 0.07},
+        {"category": BudgetCategory.contingency, "pct_planned": 0.05, "pct_actual": 0.00},
+    ]
+    created = 0
+    for project in projects:
+        budget = float(project.budget) if project.budget else 5_000_000
+        progress = project.progress_pct / 100
+        for tmpl in templates:
+            planned = round(budget * tmpl["pct_planned"], 2)
+            actual = round(planned * progress * (tmpl["pct_actual"] / tmpl["pct_planned"]) * 0.95, 2)
+            db.add(ConstructionBudgetLine(
+                project_id=project.id,
+                category=tmpl["category"],
+                planned_amount=Decimal(str(planned)),
+                actual_amount=Decimal(str(actual)),
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction budget lines")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 async def main() -> None:
@@ -1403,6 +1443,8 @@ async def main() -> None:
         await seed_construction_team(db, users)
         await db.flush()
         await seed_construction_shipments(db, users)
+        await db.flush()
+        await seed_budget_lines(db)
 
         await db.commit()
 

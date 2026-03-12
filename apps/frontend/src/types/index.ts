@@ -487,3 +487,42 @@ export interface ConstructionShipment {
   receiver_username: string | null;
   created_at: string;
 }
+
+// ── Budget Lines ──────────────────────────────────────────────────────────────
+
+export type BudgetCategory = 'labor' | 'materials' | 'equipment' | 'subcontractors' | 'overhead' | 'contingency' | 'other';
+
+export interface ConstructionBudgetLine {
+  id: number;
+  project_id: number;
+  category: BudgetCategory;
+  description: string | null;
+  planned_amount: string;
+  actual_amount: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface BudgetSummaryResponse {
+  lines: ConstructionBudgetLine[];
+  total_planned: string;
+  total_actual: string;
+  variance: string;
+  utilization_pct: number;
+}
+
+export interface BudgetLineCreate {
+  category: BudgetCategory;
+  description?: string;
+  planned_amount: string;
+  actual_amount?: string;
+  notes?: string;
+}
+
+export interface BudgetLineUpdate {
+  category?: BudgetCategory;
+  description?: string;
+  planned_amount?: string;
+  actual_amount?: string;
+  notes?: string;
+}

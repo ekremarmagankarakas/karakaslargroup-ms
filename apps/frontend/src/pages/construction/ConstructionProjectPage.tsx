@@ -33,6 +33,7 @@ import { ProjectAuditLog } from '../../components/construction/ProjectAuditLog';
 import { ProjectHealthCard } from '../../components/construction/ProjectHealthCard';
 import { ProjectComments } from '../../components/construction/ProjectComments';
 import { ProjectForm } from '../../components/construction/ProjectForm';
+import { BudgetBreakdown } from '../../components/construction/BudgetBreakdown';
 import { SubcontractorList } from '../../components/construction/SubcontractorList';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
@@ -210,6 +211,7 @@ export function ConstructionProjectPage() {
             <Tab label="Revizyonlar" />
             <Tab label="Belgeler" />
             <Tab label="Ekip" />
+            <Tab label="Bütçe Kalemleri" />
             {canEdit && <Tab label="Geçmiş" />}
           </Tabs>
         </Box>
@@ -292,7 +294,10 @@ export function ConstructionProjectPage() {
         {tab === 12 && (
           <ProjectTeam projectId={project.id} userRole={user!.role} />
         )}
-        {tab === 13 && canEdit && (
+        {tab === 13 && (
+          <BudgetBreakdown projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 14 && canEdit && (
           <ProjectAuditLog projectId={project.id} />
         )}
 
