@@ -1,18 +1,23 @@
 import AddIcon from '@mui/icons-material/Add';
+import GridViewIcon from '@mui/icons-material/GridView';
 import SearchIcon from '@mui/icons-material/Search';
+import TableRowsIcon from '@mui/icons-material/TableRows';
 import {
   Box,
   Chip,
   CircularProgress,
   Fab,
   Grid,
+  IconButton,
   InputAdornment,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { ConstructionStatsPanel } from '../../components/construction/ConstructionStatsPanel';
+import { GanttTimeline } from '../../components/construction/GanttTimeline';
 import { ProjectCard } from '../../components/construction/ProjectCard';
 import { ProjectForm } from '../../components/construction/ProjectForm';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
@@ -56,6 +61,10 @@ export function ConstructionDashboardPage() {
   const [typeFilter, setTypeFilter] = useState<ConstructionProjectType | ''>('');
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
+
+  const [viewMode, setViewMode] = useState<'grid' | 'gantt'>(() => {
+    return (localStorage.getItem('construction_view_preference') as 'grid' | 'gantt') ?? 'grid';
+  });
 
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ConstructionProject | null>(null);
@@ -107,6 +116,26 @@ export function ConstructionDashboardPage() {
             <Typography variant="body2" color="text.secondary">
               Projeleri görüntüle, malzemeleri ve ilerlemeyi takip et
             </Typography>
+          </Box>
+          <Box display="flex" gap={0.5}>
+            <Tooltip title="Kart Görünümü">
+              <IconButton
+                size="small"
+                onClick={() => { setViewMode('grid'); localStorage.setItem('construction_view_preference', 'grid'); }}
+                color={viewMode === 'grid' ? 'primary' : 'default'}
+              >
+                <GridViewIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Gantt Görünümü">
+              <IconButton
+                size="small"
+                onClick={() => { setViewMode('gantt'); localStorage.setItem('construction_view_preference', 'gantt'); }}
+                color={viewMode === 'gantt' ? 'primary' : 'default'}
+              >
+                <TableRowsIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
 
@@ -186,6 +215,8 @@ export function ConstructionDashboardPage() {
               </Typography>
             )}
           </Box>
+        ) : viewMode === 'gantt' ? (
+          <GanttTimeline projects={data.items} />
         ) : (
           <>
             <Grid container spacing={2}>
