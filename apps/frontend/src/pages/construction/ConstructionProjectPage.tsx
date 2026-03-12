@@ -27,6 +27,7 @@ import { PermitTracker } from '../../components/construction/PermitTracker';
 import { PhotoGallery } from '../../components/construction/PhotoGallery';
 import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
 import { ProjectAuditLog } from '../../components/construction/ProjectAuditLog';
+import { ProjectHealthCard } from '../../components/construction/ProjectHealthCard';
 import { ProjectComments } from '../../components/construction/ProjectComments';
 import { ProjectForm } from '../../components/construction/ProjectForm';
 import { SubcontractorList } from '../../components/construction/SubcontractorList';
@@ -216,6 +217,7 @@ export function ConstructionProjectPage() {
 
           return (
             <Box>
+              <ProjectHealthCard projectId={project.id} />
               {budget !== null && (
                 <Paper variant="outlined" sx={{ p: 2, mb: 2, borderColor: 'divider', bgcolor: 'background.paper' }}>
                   <Typography variant="subtitle2" fontWeight={700} mb={1.5}>Bütçe Durumu</Typography>

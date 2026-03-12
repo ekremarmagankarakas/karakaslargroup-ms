@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useProjectHealth } from '../../hooks/construction/useConstruction';
 import { useToggleProjectFavorite } from '../../hooks/construction/useConstructionFavorites';
 import type { ConstructionProject, ConstructionProjectStatus, ConstructionProjectType, UserRole } from '../../types';
 
@@ -62,6 +63,15 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const canEdit = userRole === 'admin' || userRole === 'manager';
   const toggleFavorite = useToggleProjectFavorite();
+  const { data: health } = useProjectHealth(project.id);
+
+  const ragColor = health
+    ? health.overall === 'red'
+      ? '#ef4444'
+      : health.overall === 'amber'
+        ? '#f59e0b'
+        : '#22c55e'
+    : null;
 
   const handleMenuClick = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -84,7 +94,20 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
       <CardActionArea onClick={() => navigate(`/construction/${project.id}`)} sx={{ flexGrow: 1 }}>
         <CardContent sx={{ pb: 1 }}>
           <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={1}>
-            <Box display="flex" gap={0.5} flexWrap="wrap">
+            <Box display="flex" gap={0.5} flexWrap="wrap" alignItems="center">
+              {ragColor && (
+                <Tooltip title={`Proje sağlığı: ${health!.overall === 'red' ? 'Kritik' : health!.overall === 'amber' ? 'Uyarı' : 'Normal'}`}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: ragColor,
+                      flexShrink: 0,
+                    }}
+                  />
+                </Tooltip>
+              )}
               <Chip
                 label={STATUS_LABELS[project.status]}
                 color={STATUS_COLORS[project.status]}
