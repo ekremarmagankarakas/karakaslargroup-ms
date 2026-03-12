@@ -6,9 +6,9 @@ import pytest
 from fastapi import HTTPException
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models.requirement import Requirement, RequirementStatus
+from app.models.procurement.requirement import Requirement, RequirementStatus
 from app.models.user import User, UserRole
-from app.services.requirement_service import RequirementService
+from app.services.procurement.requirement_service import RequirementService
 
 
 def _make_requirement(req_id: int = 1, status: RequirementStatus = RequirementStatus.pending, user_id: int = 10) -> MagicMock:

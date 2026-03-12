@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from app.api.routes.statistics import TURKISH_MONTHS, _fill_and_label_months
+from app.api.routes.procurement.statistics import TURKISH_MONTHS, _fill_and_label_months
 
 
 def _row(year: int, month: int, total: int = 100, accepted: int = 50, count: int = 2) -> dict:

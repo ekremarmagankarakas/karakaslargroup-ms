@@ -3,7 +3,7 @@ import pytest
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 
-from app.repositories.budget_repository import BudgetRepository
+from app.repositories.procurement.budget_repository import BudgetRepository
 
 
 def _make_budget(budget_id=1, amount=Decimal("5000"), month=1, year=2026):

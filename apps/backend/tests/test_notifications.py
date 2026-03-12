@@ -108,9 +108,9 @@ class TestNotificationGeneration:
     async def test_update_status_creates_notification_for_owner(self):
         from datetime import datetime, timezone
         from decimal import Decimal
-        from app.models.requirement import Requirement, RequirementStatus
+        from app.models.procurement.requirement import Requirement, RequirementStatus
         from app.models.user import User, UserRole
-        from app.services.requirement_service import RequirementService
+        from app.services.procurement.requirement_service import RequirementService
 
         notif_repo = AsyncMock()
         req_repo = AsyncMock()

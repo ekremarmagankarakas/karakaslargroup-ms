@@ -40,7 +40,7 @@ DC_DEV := docker compose -f docker-compose.dev.yml
         exec-backend exec-frontend sh-backend sh-frontend dev-exec-backend \
         psql db-backup db-restore \
         alembic-init alembic-rev alembic-up alembic-down seed seed-data \
-        dev-alembic-up dev-alembic-down dev-seed dev-seed-data \
+        dev-alembic-rev dev-alembic-up dev-alembic-down dev-seed dev-seed-data \
         check check-backend check-frontend \
         build-frontend clean-images clean-volumes \
         test
@@ -61,10 +61,13 @@ help:
 	@echo "  make logs-backend        Tail backend logs (prod)"
 	@echo "  make dev-logs-backend    Tail backend logs (dev)"
 	@echo "  make exec-backend        Bash into backend container"
-	@echo "  make alembic-init        Initialize Alembic (once)"
-	@echo "  make alembic-rev m=MSG   Autogenerate migration with message"
-	@echo "  make alembic-up          Apply migrations to head"
-	@echo "  make alembic-down        Downgrade one revision"
+	@echo "  make alembic-init            Initialize Alembic (once)"
+	@echo "  make alembic-rev m=MSG       Autogenerate migration with message (prod)"
+	@echo "  make alembic-up              Apply migrations to head (prod)"
+	@echo "  make alembic-down            Downgrade one revision (prod)"
+	@echo "  make dev-alembic-rev m=MSG   Autogenerate migration with message (dev)"
+	@echo "  make dev-alembic-up          Apply migrations to head (dev)"
+	@echo "  make dev-alembic-down        Downgrade one revision (dev)"
 	@echo "  make seed                Seed DB with users (add COMPOSE=docker-compose.dev.yml for dev)"
 	@echo "  make seed-data           Seed DB with sample data"
 	@echo
@@ -174,6 +177,10 @@ seed-data:
 	$(DC) exec -e PYTHONPATH=/app $(BACKEND_SVC) uv run python scripts/seed_data.py
 
 # ---------- Dev DB helpers ----------
+dev-alembic-rev:
+	@if [ -z "$(m)" ]; then echo "Missing message. Usage: make dev-alembic-rev m=\"your message\""; exit 1; fi
+	$(DC_DEV) exec $(BACKEND_SVC) uv run alembic revision --autogenerate -m "$(m)"
+
 dev-alembic-up:
 	$(DC_DEV) exec $(BACKEND_SVC) uv run alembic upgrade head
 

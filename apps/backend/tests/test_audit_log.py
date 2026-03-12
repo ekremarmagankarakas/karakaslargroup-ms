@@ -103,9 +103,9 @@ class TestAuditLogGeneration:
     """Test that audit logs are written during requirement lifecycle."""
 
     async def test_create_requirement_writes_audit_log(self):
-        from app.models.requirement import Requirement, RequirementStatus
+        from app.models.procurement.requirement import Requirement, RequirementStatus
         from app.models.user import User, UserRole
-        from app.services.requirement_service import RequirementService
+        from app.services.procurement.requirement_service import RequirementService
 
         req_repo = AsyncMock()
         img_repo = AsyncMock()
@@ -165,9 +165,9 @@ class TestAuditLogGeneration:
         assert action == AuditAction.created
 
     async def test_update_status_writes_audit_log(self):
-        from app.models.requirement import Requirement, RequirementStatus
+        from app.models.procurement.requirement import Requirement, RequirementStatus
         from app.models.user import User, UserRole
-        from app.services.requirement_service import RequirementService
+        from app.services.procurement.requirement_service import RequirementService
 
         req_repo = AsyncMock()
         fav_repo = AsyncMock()

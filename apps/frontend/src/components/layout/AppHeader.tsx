@@ -1,10 +1,14 @@
+import CheckIcon from '@mui/icons-material/Check';
+import ConstructionIcon from '@mui/icons-material/Construction';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import { AppBar, Avatar, Badge, Box, Chip, Divider, IconButton, Menu, MenuItem, Toolbar, Tooltip, Typography } from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { AppBar, Avatar, Badge, Box, Button, Chip, Divider, IconButton, Menu, MenuItem, Toolbar, Tooltip, Typography } from '@mui/material';
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useThemeMode } from '../../context/ThemeContext';
 import { useMarkAllRead, useNotifications } from '../../hooks/useNotifications';
@@ -24,18 +28,28 @@ const ROLE_COLORS: Record<string, 'error' | 'warning' | 'info' | 'default'> = {
   employee: 'default',
 };
 
+const SITES = [
+  { key: 'tedarik', label: 'Tedarik Yönetimi', path: '/dashboard', icon: <ShoppingCartIcon fontSize="small" /> },
+  { key: 'insaat', label: 'İnşaat Yönetimi', path: '/construction', icon: <ConstructionIcon fontSize="small" /> },
+];
+
 export function AppHeader() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { mode, toggleMode } = useThemeMode();
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
   const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
+  const [siteAnchor, setSiteAnchor] = useState<null | HTMLElement>(null);
 
   const { data: notifications } = useNotifications();
   const markAllRead = useMarkAllRead();
   const unreadCount = notifications?.filter((n) => !n.read).length ?? 0;
 
-  const navLinks = [
+  const activeSite = location.pathname.startsWith('/construction') ? 'insaat' : 'tedarik';
+  const activeSiteLabel = SITES.find((s) => s.key === activeSite)?.label ?? '';
+
+  const tedarikNavLinks = [
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Analitik', path: '/analytics' },
     ...(user?.role === 'manager' || user?.role === 'admin' || user?.role === 'accountant'
@@ -44,6 +58,12 @@ export function AppHeader() {
     ...(user?.role === 'admin' ? [{ label: 'Kullanıcılar', path: '/users' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Lokasyonlar', path: '/locations' }] : []),
   ];
+
+  const insaatNavLinks = [
+    { label: 'Projeler', path: '/construction' },
+  ];
+
+  const navLinks = activeSite === 'insaat' ? insaatNavLinks : tedarikNavLinks;
 
   const handleOpenNotifs = (e: React.MouseEvent<HTMLElement>) => {
     setNotifAnchor(e.currentTarget);
@@ -83,12 +103,57 @@ export function AppHeader() {
           <Typography variant="subtitle1" fontWeight={700} color="primary.main" sx={{ letterSpacing: '-0.02em' }}>
             KarakaslarGroup
           </Typography>
-          <Typography variant="subtitle1" color="text.disabled" sx={{ fontWeight: 300, ml: -0.5 }}>
-            /
-          </Typography>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 400 }}>
-            Yönetim Paneli
-          </Typography>
+          <Button
+            onClick={(e) => setSiteAnchor(e.currentTarget)}
+            endIcon={<KeyboardArrowDownIcon sx={{ fontSize: '1rem' }} />}
+            size="small"
+            sx={{
+              ml: 0.5,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              px: 1.5,
+              py: 0.4,
+              color: 'text.secondary',
+              fontWeight: 500,
+              fontSize: '0.8rem',
+              textTransform: 'none',
+              bgcolor: 'action.hover',
+              '&:hover': { bgcolor: 'action.selected' },
+            }}
+          >
+            {activeSiteLabel}
+          </Button>
+          <Menu
+            anchorEl={siteAnchor}
+            open={Boolean(siteAnchor)}
+            onClose={() => setSiteAnchor(null)}
+            transformOrigin={{ horizontal: 'left', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+            PaperProps={{ sx: { minWidth: 220, mt: 0.5 } }}
+          >
+            {SITES.map((site) => (
+              <MenuItem
+                key={site.key}
+                selected={site.key === activeSite}
+                onClick={() => {
+                  navigate(site.path);
+                  setSiteAnchor(null);
+                }}
+                sx={{ gap: 1.5, py: 1 }}
+              >
+                <Box sx={{ color: site.key === activeSite ? 'primary.main' : 'text.secondary' }}>
+                  {site.icon}
+                </Box>
+                <Typography variant="body2" flexGrow={1}>
+                  {site.label}
+                </Typography>
+                {site.key === activeSite && (
+                  <CheckIcon fontSize="small" sx={{ color: 'primary.main', ml: 'auto' }} />
+                )}
+              </MenuItem>
+            ))}
+          </Menu>
 
           <Box display="flex" alignItems="center" gap={0.5} ml={2}>
             {navLinks.map(({ label, path }) => {

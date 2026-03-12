@@ -1,5 +1,5 @@
 import api from '../axios';
-import type { LocationWithUsers, UserDropdownItem } from '../../types';
+import type { LocationWithUsers } from '../../types';
 
 export async function fetchLocations(): Promise<LocationWithUsers[]> {
   const { data } = await api.get('/locations/');

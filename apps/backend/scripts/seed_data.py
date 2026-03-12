@@ -6,7 +6,7 @@ Run inside the backend container:
 """
 import asyncio
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -16,14 +16,17 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 import app.db.all_models  # noqa: F401 — registers all models
 from app.core.config import get_settings
 from app.models.audit_log import AuditAction, AuditLog
-from app.models.budget_limit import BudgetLimit
-from app.models.category import Category
-from app.models.favorite import Favorite
+from app.models.procurement.budget_limit import BudgetLimit
+from app.models.procurement.category import Category
+from app.models.procurement.favorite import Favorite
 from app.models.location import Location, user_locations
 from app.models.notification import Notification
-from app.models.requirement import Requirement, RequirementPriority, RequirementStatus
-from app.models.requirement_comment import RequirementComment
+from app.models.procurement.requirement import Requirement, RequirementPriority, RequirementStatus
+from app.models.procurement.requirement_comment import RequirementComment
 from app.models.user import User
+from app.models.construction.project import ConstructionProject, ConstructionProjectStatus
+from app.models.construction.material import ConstructionMaterial, ConstructionMaterialUnit
+from app.models.construction.milestone import ConstructionMilestone, ConstructionTaskStatus
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -728,6 +731,233 @@ async def seed_budget_limits(db, users: dict, locs: dict) -> None:
     print(f"  created {created} budget limit entries")
 
 
+# ── Construction seed data ────────────────────────────────────────────────────
+
+CONSTRUCTION_PROJECTS = [
+    {
+        "name": "Güneşli Park AVM",
+        "description": "Bağcılar/Güneşli bölgesinde sıfırdan inşa edilecek 85.000 m² kapalı alanlı bölgesel alışveriş merkezi. 3 bodrum kat otopark, zemin + 3 normal kat mağaza alanı, sinema kompleksi ve açık hava food court içermektedir.",
+        "location": None,
+        "creator": "admin",
+        "status": ConstructionProjectStatus.active,
+        "start_date": date(2024, 4, 1),
+        "end_date": date(2026, 10, 31),
+        "budget": Decimal("1_850_000_000"),
+        "progress_pct": 38,
+        "materials": [
+            {"name": "C40 Hazır Beton (Yapısal)", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("52000"), "quantity_used": Decimal("28500"), "unit_cost": Decimal("4200")},
+            {"name": "S500 Nervürlü İnşaat Demiri", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("8400"), "quantity_used": Decimal("4100"), "unit_cost": Decimal("32000")},
+            {"name": "Strüktürel Çelik Profil (HEA/HEB)", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("2200"), "quantity_used": Decimal("850"), "unit_cost": Decimal("58000")},
+            {"name": "Cam Cephe Sistemi (Unitize)", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("18000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("4800")},
+            {"name": "Kompozit Alüminyum Cephe Paneli", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("12000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("1850")},
+            {"name": "Ytong Gazbeton Duvar Bloku (20cm)", "material_type": "Duvar", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("35000"), "quantity_used": Decimal("8500"), "unit_cost": Decimal("320")},
+            {"name": "Su Yalıtım Membranı (Bodrum)", "material_type": "Yalıtım", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("28000"), "quantity_used": Decimal("22000"), "unit_cost": Decimal("185")},
+        ],
+        "milestones": [
+            {"title": "Arsa Hazırlık ve Hafriyat", "description": "İksa sistemleri, hafriyat (yaklaşık 180.000 m³) ve zemin iyileştirme çalışmaları.", "due_date": date(2024, 8, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Bodrum Kat Betonarme ve Su Yalıtımı", "description": "B1-B3 kat betonarme taşıyıcı sistem ve toprak altı su yalıtımı.", "due_date": date(2025, 2, 28), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Üst Yapı Kaba İnşaat (Z+3)", "description": "Zemin ve normal katların kolon, kiriş, döşeme betonarme işleri ile çelik çatı konstrüksiyonu.", "due_date": date(2025, 9, 30), "status": ConstructionTaskStatus.in_progress, "completion_pct": 55},
+            {"title": "Cephe ve Çatı Kapatma", "description": "Cam cephe, kompozit panel, çatı örtüsü ve ışıklık sistemleri.", "due_date": date(2026, 3, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "İç Mekân İnce Yapı ve Tesisat", "description": "MEP tesisatları, zemin-duvar-tavan kaplamaları, ortak alan imalatları.", "due_date": date(2026, 7, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Kiracı Teslimi ve Açılış", "description": "Mağaza kabuk teslimi, açılış denetimleri ve resmi açılış.", "due_date": date(2026, 10, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+    },
+    {
+        "name": "Maslak Rezidans Kulesi",
+        "description": "Sarıyer/Maslak iş merkezinde 42 katlı lüks rezidans kulesi. 380 konut birimi, sosyal donatılar, fitness merkezi ve bodrum katlarda kapalı otopark.",
+        "location": None,
+        "creator": "admin",
+        "status": ConstructionProjectStatus.active,
+        "start_date": date(2023, 11, 1),
+        "end_date": date(2026, 6, 30),
+        "budget": Decimal("2_400_000_000"),
+        "progress_pct": 62,
+        "materials": [
+            {"name": "C50 Yüksek Dayanımlı Hazır Beton", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("38000"), "quantity_used": Decimal("26800"), "unit_cost": Decimal("5200")},
+            {"name": "S500 İnşaat Demiri (Dıştan Kaplamalı)", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("5800"), "quantity_used": Decimal("4200"), "unit_cost": Decimal("34000")},
+            {"name": "Perdeli Duvar Kalıp Sistemi (Tuniform)", "material_type": "Kalıp", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("6500"), "quantity_used": Decimal("6500"), "unit_cost": Decimal("2800")},
+            {"name": "Low-E Isıcamlı Alüminyum Doğrama", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("22000"), "quantity_used": Decimal("9500"), "unit_cost": Decimal("3600")},
+            {"name": "Granit Zemin Kaplama (60x60)", "material_type": "Kaplama", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("18000"), "quantity_used": Decimal("4200"), "unit_cost": Decimal("580")},
+            {"name": "EPS Isı Yalıtım Levhası (12cm)", "material_type": "Yalıtım", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("28000"), "quantity_used": Decimal("16000"), "unit_cost": Decimal("145")},
+            {"name": "Prefabrik Merdiven ve Sahanlık", "material_type": "Prefabrik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("168"), "quantity_used": Decimal("110"), "unit_cost": Decimal("18500")},
+        ],
+        "milestones": [
+            {"title": "Temel Kazısı ve Fore Kazık", "description": "Derin temel kazısı, 320 adet fore kazık imalatı ve temel betonajı.", "due_date": date(2024, 3, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Bodrum Katlar ve Perde Duvarlar (B1-B4)", "description": "4 bodrum kattaki betonarme perde ve döşeme sistemi.", "due_date": date(2024, 8, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Normal Kat Taşıyıcı Sistem (1-25. Kat)", "description": "Alt 25 kattaki kolon, perde ve döşeme betonarme imalatları.", "due_date": date(2025, 4, 30), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Normal Kat Taşıyıcı Sistem (26-42. Kat)", "description": "Üst 17 kattaki taşıyıcı sistem tamamlama ve teknik kat.", "due_date": date(2025, 10, 31), "status": ConstructionTaskStatus.in_progress, "completion_pct": 70},
+            {"title": "Cephe ve Doğrama Montajı", "description": "Low-E cam cephe sistemi, alüminyum doğrama ve dış kaplama.", "due_date": date(2026, 2, 28), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "İç Mimari ve Anahtar Teslim", "description": "Daire iç imalatları, ortak alan bitişleri ve teslim.", "due_date": date(2026, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+    },
+    {
+        "name": "Ataşehir Karma Kullanım Kompleksi",
+        "description": "Ataşehir finans bölgesinde 120.000 m² inşaat alanlı karma yapı kompleksi. A ve B olmak üzere iki ofis kulesi (28'er kat), aralarında bağlantılı alışveriş sokağı ve 5 yıldızlı butik otel bloğu.",
+        "location": None,
+        "creator": "manager",
+        "status": ConstructionProjectStatus.planning,
+        "start_date": date(2025, 10, 1),
+        "end_date": date(2029, 3, 31),
+        "budget": Decimal("4_200_000_000"),
+        "progress_pct": 0,
+        "materials": [
+            {"name": "C45 Hazır Beton", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("85000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("4600")},
+            {"name": "S500 İnşaat Demiri", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("14000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("33000")},
+            {"name": "Strüktürel Çelik (Çatı ve Bağlantı Köprüsü)", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("3800"), "quantity_used": Decimal("0"), "unit_cost": Decimal("62000")},
+            {"name": "Yüksek Performanslı Cam Cephe (DGU)", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("48000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("5400")},
+            {"name": "Doğal Taş Cephe Kaplama (Travertin)", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("8500"), "quantity_used": Decimal("0"), "unit_cost": Decimal("2200")},
+        ],
+        "milestones": [
+            {"title": "Mimari ve Mühendislik Projeleri", "description": "Konsept onayı, uygulama projeleri, zemin etüdü ve mühendislik hesapları.", "due_date": date(2026, 1, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "İnşaat Ruhsatı ve Yüklenici İhale", "description": "Tüm ruhsatların alınması, ana yüklenici ve alt yüklenici ihaleleri.", "due_date": date(2026, 4, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Hafriyat ve Temel Sistemi", "description": "Derin hafriyat (~350.000 m³), iksa, fore kazık ve temel plak.", "due_date": date(2026, 12, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Bodrum ve Zemin Katlar", "description": "B1-B3 bodrum katlar ile zemin kat kaba yapı.", "due_date": date(2027, 8, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Kule Kabuğu Tamamlama", "description": "A ve B kulesi taşıyıcı sistem ve cephe kapatma.", "due_date": date(2028, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "İç Mekân ve Açılış", "description": "Ofis, otel ve perakende alanları ince yapı ve açılış.", "due_date": date(2029, 3, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+    },
+    {
+        "name": "Bursa Nilüfer Yaşam Vadisi",
+        "description": "Bursa Nilüfer ilçesinde 9 blok, 1.250 daireli konut projesi. 2+1, 3+1 ve 4+1 daire tipleri, kapalı otopark, sosyal tesis, yüzme havuzu ve spor alanları.",
+        "location": None,
+        "creator": "manager",
+        "status": ConstructionProjectStatus.completed,
+        "start_date": date(2021, 6, 1),
+        "end_date": date(2024, 12, 31),
+        "budget": Decimal("1_650_000_000"),
+        "progress_pct": 100,
+        "materials": [
+            {"name": "C35 Hazır Beton", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("148000"), "quantity_used": Decimal("148000"), "unit_cost": Decimal("3800")},
+            {"name": "S420 Nervürlü İnşaat Demiri", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("18500"), "quantity_used": Decimal("18500"), "unit_cost": Decimal("28000")},
+            {"name": "Tuğla (Bims Blok 19cm)", "material_type": "Duvar", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("4200000"), "quantity_used": Decimal("4200000"), "unit_cost": Decimal("8")},
+            {"name": "ETICS Dış Cephe Mantolama (8cm)", "material_type": "Yalıtım", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("185000"), "quantity_used": Decimal("185000"), "unit_cost": Decimal("320")},
+            {"name": "PVC Pencere ve Balkon Kapısı", "material_type": "Doğrama", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("42000"), "quantity_used": Decimal("42000"), "unit_cost": Decimal("1850")},
+            {"name": "Laminat Parke (AC4)", "material_type": "Zemin", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("120000"), "quantity_used": Decimal("120000"), "unit_cost": Decimal("185")},
+            {"name": "Seramik Banyo/Mutfak Kaplama", "material_type": "Kaplama", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("95000"), "quantity_used": Decimal("95000"), "unit_cost": Decimal("220")},
+        ],
+        "milestones": [
+            {"title": "Altyapı ve Hafriyat (Tüm Bloklar)", "description": "Site geneli altyapı, iksa ve 9 bloğun hafriyatı.", "due_date": date(2021, 12, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "1. Etap Kaba Yapı (Blok 1-4)", "description": "İlk 4 bloğun temel, bodrum ve normal kat kaba yapısı.", "due_date": date(2022, 10, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "2. Etap Kaba Yapı (Blok 5-9)", "description": "Son 5 bloğun kaba yapısı.", "due_date": date(2023, 6, 30), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Cephe, Doğrama ve Dış Mantolama", "description": "Tüm bloklar PVC doğrama, ETICS mantolama ve dış boya.", "due_date": date(2023, 12, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "İç Mekân Tamamlama ve Teslimler", "description": "Daire iç imalatları, ortak alan bitişleri ve hak sahiplerine teslim.", "due_date": date(2024, 12, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+        ],
+    },
+    {
+        "name": "İzmir Bayraklı Ofis Kampüsü",
+        "description": "İzmir Bayraklı'da Körfez manzaralı 3 adet 18 katlı A sınıfı ofis kulesi. Toplam 75.000 m² kiralanabilir ofis alanı, konferans merkezi, restoran katı ve bağlantılı kapalı otopark.",
+        "location": None,
+        "creator": "admin",
+        "status": ConstructionProjectStatus.on_hold,
+        "start_date": date(2025, 5, 1),
+        "end_date": date(2028, 5, 31),
+        "budget": Decimal("2_100_000_000"),
+        "progress_pct": 8,
+        "materials": [
+            {"name": "C45 Yüksek Dayanımlı Beton", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("62000"), "quantity_used": Decimal("4800"), "unit_cost": Decimal("4800")},
+            {"name": "S500 Deprem Çeliği", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("9200"), "quantity_used": Decimal("320"), "unit_cost": Decimal("35000")},
+            {"name": "Spider Cam Cephe Sistemi", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("32000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("6200")},
+            {"name": "Akıllı Bina Otomasyon Sistemi", "material_type": "Elektrik/Otomasyon", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("3"), "quantity_used": Decimal("0"), "unit_cost": Decimal("8500000")},
+            {"name": "Zemin Sondaj ve İyileştirme", "material_type": "Zemin", "unit": ConstructionMaterialUnit.m, "quantity_planned": Decimal("4800"), "quantity_used": Decimal("4200"), "unit_cost": Decimal("1850")},
+        ],
+        "milestones": [
+            {"title": "Zemin Etüdü ve Temel Projesi", "description": "Sismik zemin etüdü, fore kazık hesabı ve temel uygulama projesi.", "due_date": date(2025, 7, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Zemin İyileştirme ve Fore Kazıklar", "description": "Zayıf zemin güçlendirme, 480 adet fore kazık imalatı.", "due_date": date(2025, 11, 30), "status": ConstructionTaskStatus.in_progress, "completion_pct": 45},
+            {"title": "Temel ve Bodrum Katlar", "description": "Temel plak, B1-B3 bodrum katlar ve otopark betonarme.", "due_date": date(2026, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Kule Taşıyıcı Sistemler", "description": "3 kulenin 1-18. kat kolon, perde ve döşeme sistemi.", "due_date": date(2027, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Cephe ve İç Yapı Tamamlama", "description": "Spider cam cephe, iç mekân imalatları ve MEP tesisatları.", "due_date": date(2028, 5, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+    },
+    {
+        "name": "Ankara Çukurambar Premium Konut",
+        "description": "Ankara Çankaya/Çukurambar'da 2 blok, 320 daireli üst segment konut projesi. 1+1 den 5+1'e daire seçenekleri, yarı olimpik kapalı havuz, sauna, özel sinema salonu.",
+        "location": None,
+        "creator": "manager",
+        "status": ConstructionProjectStatus.active,
+        "start_date": date(2024, 9, 1),
+        "end_date": date(2027, 3, 31),
+        "budget": Decimal("980_000_000"),
+        "progress_pct": 22,
+        "materials": [
+            {"name": "C40 Hazır Beton", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("28500"), "quantity_used": Decimal("8200"), "unit_cost": Decimal("4400")},
+            {"name": "S500 Nervürlü Çelik", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("3800"), "quantity_used": Decimal("920"), "unit_cost": Decimal("33500")},
+            {"name": "Asansör (10 Kişilik Panoramik)", "material_type": "Mekanik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("8"), "quantity_used": Decimal("0"), "unit_cost": Decimal("1200000")},
+            {"name": "Alüminyum Cephe Giydirme Sistemi", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("14500"), "quantity_used": Decimal("0"), "unit_cost": Decimal("2800")},
+            {"name": "Yerden Isıtma Sistemi Borusu", "material_type": "Tesisat", "unit": ConstructionMaterialUnit.m, "quantity_planned": Decimal("85000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("42")},
+            {"name": "Akustik Katlararası Ses Yalıtımı", "material_type": "Yalıtım", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("16000"), "quantity_used": Decimal("3200"), "unit_cost": Decimal("280")},
+        ],
+        "milestones": [
+            {"title": "Hafriyat ve İksa Sistemi", "description": "Derine inme, iksa kazıkları ve hafriyat (yaklaşık 45.000 m³).", "due_date": date(2024, 12, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Temel ve Bodrum Betonarme", "description": "Radye temel, B1-B2 bodrum ve zemin kat taşıyıcı sistemi.", "due_date": date(2025, 5, 31), "status": ConstructionTaskStatus.in_progress, "completion_pct": 60},
+            {"title": "Normal Kat Kaba Yapı (1-15. Kat)", "description": "İki blokta 1-15. katlar arası betonarme yapı iskeleti.", "due_date": date(2025, 12, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Normal Kat Kaba Yapı (16-24. Kat)", "description": "Üst katlar taşıyıcı sistem tamamlama ve çatı.", "due_date": date(2026, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Dış Cephe ve Doğrama", "description": "Alüminyum giydirme cephe, pencere ve balkon sistemleri.", "due_date": date(2026, 11, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Anahtar Teslim ve Tapular", "description": "Daire iç bitişleri, iskan belgesi ve alıcılara teslim.", "due_date": date(2027, 3, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+    },
+]
+
+
+async def seed_construction_projects(db, users: dict, locs: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionProject))
+    if count_result.scalar_one() > 0:
+        print(f"  skip  construction projects (already exist)")
+        return
+
+    created_projects = 0
+    created_materials = 0
+    created_milestones = 0
+
+    for pdata in CONSTRUCTION_PROJECTS:
+        creator = users.get(pdata["creator"])
+        if not creator:
+            print(f"  skip  project '{pdata['name']}' (creator '{pdata['creator']}' not found)")
+            continue
+
+        loc = locs.get(pdata["location"]) if pdata["location"] else None
+
+        project = ConstructionProject(
+            name=pdata["name"],
+            description=pdata["description"],
+            location_id=loc.id if loc else None,
+            created_by=creator.id,
+            status=pdata["status"],
+            start_date=pdata["start_date"],
+            end_date=pdata["end_date"],
+            budget=pdata["budget"],
+            progress_pct=pdata["progress_pct"],
+        )
+        db.add(project)
+        await db.flush()
+        created_projects += 1
+
+        for mdata in pdata["materials"]:
+            db.add(ConstructionMaterial(
+                project_id=project.id,
+                name=mdata["name"],
+                material_type=mdata["material_type"],
+                unit=mdata["unit"],
+                quantity_planned=mdata["quantity_planned"],
+                quantity_used=mdata["quantity_used"],
+                unit_cost=mdata.get("unit_cost"),
+            ))
+            created_materials += 1
+
+        for msdata in pdata["milestones"]:
+            db.add(ConstructionMilestone(
+                project_id=project.id,
+                title=msdata["title"],
+                description=msdata.get("description"),
+                due_date=msdata.get("due_date"),
+                status=msdata["status"],
+                completion_pct=msdata["completion_pct"],
+            ))
+            created_milestones += 1
+
+    await db.flush()
+    print(f"  created {created_projects} construction projects, {created_materials} materials, {created_milestones} milestones")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 async def main() -> None:
@@ -760,6 +990,7 @@ async def main() -> None:
         await seed_notifications(db, users, all_reqs)
         await seed_audit_logs(db, users, all_reqs)
         await seed_budget_limits(db, users, locs)
+        await seed_construction_projects(db, users, locs)
 
         await db.commit()
 

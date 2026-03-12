@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import { BudgetPage } from './pages/BudgetPage';
-import { DashboardPage } from './pages/DashboardPage';
+import { AnalyticsPage } from './pages/procurement/AnalyticsPage';
+import { BudgetPage } from './pages/procurement/BudgetPage';
+import { ConstructionDashboardPage } from './pages/construction/ConstructionDashboardPage';
+import { ConstructionProjectPage } from './pages/construction/ConstructionProjectPage';
+import { DashboardPage } from './pages/procurement/DashboardPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { LocationsPage } from './pages/LocationsPage';
 import { LoginPage } from './pages/LoginPage';
@@ -52,6 +54,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <BudgetPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/construction"
+        element={
+          <ProtectedRoute>
+            <ConstructionDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/construction/:projectId"
+        element={
+          <ProtectedRoute>
+            <ConstructionProjectPage />
           </ProtectedRoute>
         }
       />

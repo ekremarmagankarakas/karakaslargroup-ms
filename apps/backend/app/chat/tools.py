@@ -12,7 +12,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User, UserRole
-from app.repositories.requirement_repository import RequirementRepository
+from app.repositories.procurement.requirement_repository import RequirementRepository
 
 TOOL_DEFINITIONS: list[dict] = [
     {
@@ -125,7 +125,7 @@ async def run_tool(
         return json.dumps({k: str(v) for k, v in data.items()})
 
     if name == "get_requirements":
-        from app.models.requirement import RequirementStatus
+        from app.models.procurement.requirement import RequirementStatus
 
         status_val = inputs.get("status")
         status = RequirementStatus(status_val) if status_val in ("pending", "accepted", "declined") else None
@@ -182,7 +182,7 @@ async def run_tool(
         )
 
     if name == "get_spend_over_time":
-        from app.api.routes.statistics import TURKISH_MONTHS, _fill_and_label_months
+        from app.api.routes.procurement.statistics import TURKISH_MONTHS, _fill_and_label_months
 
         month = _safe_int_opt(inputs, "month", 1, 12)
         year = _safe_int_opt(inputs, "year", 2020, 2100)

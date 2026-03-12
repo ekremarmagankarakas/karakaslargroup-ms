@@ -213,3 +213,57 @@ export interface BudgetHistoryItem {
 export interface BudgetHistoryResponse {
   data: BudgetHistoryItem[];
 }
+
+// ── Construction Management ──────────────────────────────────────────────────
+
+export type ConstructionProjectStatus = 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled';
+export type ConstructionMaterialUnit = 'm3' | 'kg' | 'ton' | 'adet' | 'm2' | 'm' | 'litre';
+export type ConstructionTaskStatus = 'not_started' | 'in_progress' | 'completed' | 'blocked';
+
+export interface ConstructionProject {
+  id: number;
+  name: string;
+  description: string | null;
+  location_id: number | null;
+  location_name: string | null;
+  created_by: number;
+  created_by_username: string;
+  status: ConstructionProjectStatus;
+  start_date: string | null;
+  end_date: string | null;
+  budget: string | null;
+  progress_pct: number;
+  created_at: string;
+}
+
+export interface ConstructionMaterial {
+  id: number;
+  project_id: number;
+  name: string;
+  material_type: string;
+  unit: ConstructionMaterialUnit;
+  quantity_planned: string;
+  quantity_used: string;
+  unit_cost: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ConstructionMilestone {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  status: ConstructionTaskStatus;
+  completion_pct: number;
+  created_at: string;
+}
+
+export interface ConstructionProjectFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: ConstructionProjectStatus;
+  location_id?: number;
+}

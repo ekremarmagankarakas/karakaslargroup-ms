@@ -2,7 +2,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from app.repositories.comment_repository import CommentRepository
+from app.repositories.procurement.comment_repository import CommentRepository
 
 
 def _make_comment(comment_id=1, requirement_id=1, user_id=10, body="Test comment"):

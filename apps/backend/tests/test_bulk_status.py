@@ -5,9 +5,9 @@ from decimal import Decimal
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from app.models.requirement import Requirement, RequirementStatus
+from app.models.procurement.requirement import Requirement, RequirementStatus
 from app.models.user import User, UserRole
-from app.services.requirement_service import RequirementService
+from app.services.procurement.requirement_service import RequirementService
 
 
 def _make_requirement(req_id=1, status=RequirementStatus.pending, user_id=10):
