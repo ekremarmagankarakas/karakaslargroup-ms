@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { IssuesLog } from '../../components/construction/IssuesLog';
 import { MaterialsTable } from '../../components/construction/MaterialsTable';
 import { MilestonesTimeline } from '../../components/construction/MilestonesTimeline';
 import { ProjectForm } from '../../components/construction/ProjectForm';
@@ -177,6 +178,7 @@ export function ConstructionProjectPage() {
             <Tab label="Genel Bakış" />
             <Tab label="Malzemeler" />
             <Tab label="Aşamalar" />
+            <Tab label="Sorunlar" />
           </Tabs>
         </Box>
 
@@ -226,6 +228,9 @@ export function ConstructionProjectPage() {
         )}
         {tab === 2 && (
           <MilestonesTimeline projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 3 && (
+          <IssuesLog projectId={project.id} userRole={user!.role} />
         )}
 
         {/* Edit Form */}

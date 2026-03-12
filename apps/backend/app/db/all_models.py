@@ -12,3 +12,4 @@ from app.models.procurement.requirement_comment import RequirementComment  # noq
 from app.models.procurement.requirement_image import RequirementImage  # noqa: F401
 from app.models.user import User  # noqa: F401
 from app.models.construction import ConstructionProject, ConstructionMaterial, ConstructionMilestone  # noqa: F401
+from app.models.construction.issue import ConstructionIssue  # noqa: F401

@@ -66,3 +66,6 @@ class ConstructionProject(Base):
     milestones: Mapped[list["ConstructionMilestone"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
+    issues: Mapped[list["ConstructionIssue"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        back_populates="project", cascade="all, delete-orphan"
+    )

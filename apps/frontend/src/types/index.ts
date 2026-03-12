@@ -307,3 +307,18 @@ export interface ConstructionAnalyticsResponse {
   total_actual_cost: number;
   avg_progress: number;
 }
+
+export type ConstructionIssueSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type ConstructionIssueStatus = 'open' | 'in_progress' | 'resolved';
+
+export interface ConstructionIssue {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string | null;
+  severity: ConstructionIssueSeverity;
+  status: ConstructionIssueStatus;
+  reported_by: number | null;
+  reporter_username: string | null;
+  created_at: string;
+}

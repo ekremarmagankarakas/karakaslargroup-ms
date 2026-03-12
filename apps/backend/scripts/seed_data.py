@@ -24,9 +24,10 @@ from app.models.notification import Notification
 from app.models.procurement.requirement import Requirement, RequirementPriority, RequirementStatus
 from app.models.procurement.requirement_comment import RequirementComment
 from app.models.user import User
-from app.models.construction.project import ConstructionProject, ConstructionProjectStatus
+from app.models.construction.project import ConstructionProject, ConstructionProjectStatus, ConstructionProjectType
 from app.models.construction.material import ConstructionMaterial, ConstructionMaterialUnit
 from app.models.construction.milestone import ConstructionMilestone, ConstructionTaskStatus
+from app.models.construction.issue import ConstructionIssue, ConstructionIssueSeverity, ConstructionIssueStatus
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -898,6 +899,47 @@ CONSTRUCTION_PROJECTS = [
 ]
 
 
+CONSTRUCTION_PROJECT_TYPES = [
+    ConstructionProjectType.shopping_mall,
+    ConstructionProjectType.residential,
+    ConstructionProjectType.mixed_use,
+    ConstructionProjectType.residential,
+    ConstructionProjectType.office,
+    ConstructionProjectType.residential,
+]
+
+CONSTRUCTION_ISSUE_TEMPLATES = [
+    [
+        {"title": "Temel Beton Kalitesi Sorunu", "description": "B4 aks kesişiminde C30 beton numunelerinde 28 günlük dayanım değerleri hedefin %15 altında çıktı.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        {"title": "Vinç Bakım Gecikmesi", "description": "8 numaralı tower crane bakımı 3 gün gecikti, üst kat kalıp çalışmaları aksıyor.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.open},
+        {"title": "Elektrik Trafo Bağlantısı Bekleniyor", "description": "Kalıcı elektrik aboneliği için gerekli trafo bağlantısı BEDAŞ tarafından 6 hafta geciktirildi.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.open},
+    ],
+    [
+        {"title": "Su Sızıntısı — B2 Kat Perdesi", "description": "Kuzey cephe bodrum perdelerinde nem ve su sızıntısı tespit edildi; zemin etüt raporu ile uyumsuz.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        {"title": "Demir Tedarik Gecikmesi", "description": "S500 nervürlü inşaat demiri teslimatı limandekilerin grevinden dolayı 2 hafta gecikecek.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.open},
+        {"title": "Kalıp Düşmesi — Kaza Raporu", "description": "5. kat döşeme kalıbında kısmi düşme yaşandı; hasar minimal, yaralanma yok. İSG raporu hazırlandı.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.resolved},
+    ],
+    [
+        {"title": "Zemin Etüt Revizyonu Gerekiyor", "description": "İhale aşamasında zemin etüt raporundaki zemin sınıfı revizyonu yapılması gerekiyor, proje başlangıcını etkileyebilir.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.open},
+        {"title": "Ruhsat Ek Süresi Talebi", "description": "Mimari projedeki kat alanı değişikliği nedeniyle belediyeye ek süre talebi yapıldı.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.in_progress},
+    ],
+    [
+        {"title": "Cephe Cam Montaj Kusuru", "description": "D blok 8-12. katlarda cam cephe silikon derzlerinde ayrılma görüldü; alt yüklenici değişimi gündemde.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.resolved},
+        {"title": "Mesleki İzin Süresi Doldu", "description": "Baş iş güvenliği uzmanının mesleki yeterlilik belgesi yenilenmedi.", "severity": ConstructionIssueSeverity.low, "status": ConstructionIssueStatus.resolved},
+        {"title": "Teslim Sonrası Su Tesisatı Sızıntısı", "description": "Bazı dairelerde teslimden sonra pişirme alanı altında sızıntı bildirimi alındı.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.resolved},
+    ],
+    [
+        {"title": "Altyapı Bağlantı Noktası Sorunu", "description": "Yapı ruhsatında gösterilen altyapı (atık su) bağlantı noktası ile sahada mevcut konum arasında 8 m sapma var.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.open},
+        {"title": "İSG: Yüksekte Çalışma Belgesi Eksik", "description": "Çatı ve cephe ekibinde iki işçinin yüksekte çalışma belgesi yok; iş durdurma riski.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.in_progress},
+    ],
+    [
+        {"title": "Geç Teslim Riski — Zemin Kat Kaba Yapı", "description": "Mevcut ilerlemeye göre zemin kat kaba yapısının 3 hafta gecikmesi bekleniyor.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.open},
+        {"title": "Prefabrik Merdiven Ölçü Hatası", "description": "C bloğu için sipariş edilen prefabrik merdiven ve sahanlıkların plandaki ölçüden 5 cm fazla geldiği anlaşıldı.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        {"title": "Doğalgaz Bağlantı Gecikme", "description": "Doğalgaz aboneliği GASDAŞ/İGDAŞ onayı bekleniyor, sıcak test yapılamıyor.", "severity": ConstructionIssueSeverity.low, "status": ConstructionIssueStatus.open},
+    ],
+]
+
+
 async def seed_construction_projects(db, users: dict, locs: dict) -> None:
     count_result = await db.execute(select(func.count()).select_from(ConstructionProject))
     if count_result.scalar_one() > 0:
@@ -907,8 +949,11 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
     created_projects = 0
     created_materials = 0
     created_milestones = 0
+    created_issues = 0
 
-    for pdata in CONSTRUCTION_PROJECTS:
+    reporter = users.get("manager") or users.get("admin")
+
+    for idx, pdata in enumerate(CONSTRUCTION_PROJECTS):
         creator = users.get(pdata["creator"])
         if not creator:
             print(f"  skip  project '{pdata['name']}' (creator '{pdata['creator']}' not found)")
@@ -922,6 +967,7 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
             location_id=loc.id if loc else None,
             created_by=creator.id,
             status=pdata["status"],
+            project_type=CONSTRUCTION_PROJECT_TYPES[idx % len(CONSTRUCTION_PROJECT_TYPES)],
             start_date=pdata["start_date"],
             end_date=pdata["end_date"],
             budget=pdata["budget"],
@@ -954,8 +1000,19 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
             ))
             created_milestones += 1
 
+        for idata in CONSTRUCTION_ISSUE_TEMPLATES[idx % len(CONSTRUCTION_ISSUE_TEMPLATES)]:
+            db.add(ConstructionIssue(
+                project_id=project.id,
+                title=idata["title"],
+                description=idata["description"],
+                severity=idata["severity"],
+                status=idata["status"],
+                reported_by=reporter.id if reporter else None,
+            ))
+            created_issues += 1
+
     await db.flush()
-    print(f"  created {created_projects} construction projects, {created_materials} materials, {created_milestones} milestones")
+    print(f"  created {created_projects} construction projects, {created_materials} materials, {created_milestones} milestones, {created_issues} issues")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
