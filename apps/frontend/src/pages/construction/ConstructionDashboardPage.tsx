@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { ConstructionStatsPanel } from '../../components/construction/ConstructionStatsPanel';
+import { FavoriteProjectsSection } from '../../components/construction/FavoriteProjectsSection';
 import { GanttTimeline } from '../../components/construction/GanttTimeline';
 import { ProjectCard } from '../../components/construction/ProjectCard';
 import { ProjectForm } from '../../components/construction/ProjectForm';
@@ -106,6 +107,13 @@ export function ConstructionDashboardPage() {
       <Box sx={{ p: 3 }}>
         {/* Stats Panel */}
         <ConstructionStatsPanel />
+
+        {/* Favorites Section */}
+        <FavoriteProjectsSection
+          userRole={user!.role}
+          onEdit={(p) => { setEditTarget(p); setFormOpen(true); }}
+          onDelete={(p) => setDeleteTarget(p)}
+        />
 
         {/* Header */}
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>

@@ -236,6 +236,7 @@ export interface ConstructionProject {
   budget: string | null;
   progress_pct: number;
   created_at: string;
+  is_favorite: boolean;
 }
 
 export interface ConstructionMaterial {

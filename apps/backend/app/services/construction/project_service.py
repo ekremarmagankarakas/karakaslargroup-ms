@@ -6,6 +6,9 @@ from app.models.construction.audit_log import ConstructionAuditAction
 from app.models.construction.project import ConstructionProject
 from app.models.user import User, UserRole
 from app.repositories.construction.audit_log_repository import ConstructionAuditLogRepository
+from app.repositories.construction.project_favorite_repository import (
+    ConstructionProjectFavoriteRepository,
+)
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.project import (
     PaginatedProjectsResponse,
@@ -15,7 +18,9 @@ from app.schemas.construction.project import (
 )
 
 
-def _build_project_response(project: ConstructionProject) -> ProjectResponse:
+def _build_project_response(
+    project: ConstructionProject, favorite_ids: set[int] | None = None
+) -> ProjectResponse:
     return ProjectResponse(
         id=project.id,
         name=project.name,
@@ -31,6 +36,7 @@ def _build_project_response(project: ConstructionProject) -> ProjectResponse:
         budget=project.budget,
         progress_pct=project.progress_pct,
         created_at=project.created_at,
+        is_favorite=project.id in favorite_ids if favorite_ids is not None else False,
     )
 
 
@@ -39,13 +45,16 @@ class ConstructionProjectService:
         self,
         project_repo: ConstructionProjectRepository,
         audit_repo: ConstructionAuditLogRepository | None = None,
+        favorite_repo: ConstructionProjectFavoriteRepository | None = None,
     ) -> None:
         self.project_repo = project_repo
         self.audit_repo = audit_repo
+        self.favorite_repo = favorite_repo
 
     async def list_projects(
         self,
         *,
+        current_user_id: int | None = None,
         status: str | None = None,
         project_type: str | None = None,
         location_id: int | None = None,
@@ -61,20 +70,26 @@ class ConstructionProjectService:
             page=page,
             limit=limit,
         )
+        favorite_ids: set[int] = set()
+        if self.favorite_repo and current_user_id is not None:
+            favorite_ids = await self.favorite_repo.get_ids_for_user(current_user_id)
         total_pages = max(1, math.ceil(total / limit))
         return PaginatedProjectsResponse(
-            items=[_build_project_response(p) for p in projects],
+            items=[_build_project_response(p, favorite_ids) for p in projects],
             total=total,
             page=page,
             limit=limit,
             total_pages=total_pages,
         )
 
-    async def get_project(self, project_id: int) -> ProjectResponse:
+    async def get_project(self, project_id: int, current_user_id: int | None = None) -> ProjectResponse:
         project = await self.project_repo.get_by_id(project_id)
         if not project:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proje bulunamadı")
-        return _build_project_response(project)
+        favorite_ids: set[int] = set()
+        if self.favorite_repo and current_user_id is not None:
+            favorite_ids = await self.favorite_repo.get_ids_for_user(current_user_id)
+        return _build_project_response(project, favorite_ids)
 
     async def create_project(self, current_user: User, body: ProjectCreate) -> ProjectResponse:
         data = body.model_dump()
@@ -92,7 +107,7 @@ class ConstructionProjectService:
                 }
             )
         project = await self.project_repo.get_by_id(project.id)
-        return _build_project_response(project)
+        return _build_project_response(project, {project.id} if project else set())
 
     async def update_project(
         self, current_user: User, project_id: int, body: ProjectUpdate
@@ -129,7 +144,10 @@ class ConstructionProjectService:
                 )
         await self.project_repo.update(project, updates)
         project = await self.project_repo.get_by_id(project_id)
-        return _build_project_response(project)
+        favorite_ids: set[int] = set()
+        if self.favorite_repo:
+            favorite_ids = await self.favorite_repo.get_ids_for_user(current_user.id)
+        return _build_project_response(project, favorite_ids)
 
     async def delete_project(self, current_user: User, project_id: int) -> None:
         project = await self.project_repo.get_by_id(project_id)

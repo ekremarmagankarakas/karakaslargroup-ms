@@ -6,6 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import AdminOnly, CurrentUser, ManagerOrAdmin, get_db
 from app.models.construction.project import ConstructionProjectStatus, ConstructionProjectType
 from app.repositories.construction.audit_log_repository import ConstructionAuditLogRepository
+from app.repositories.construction.project_favorite_repository import (
+    ConstructionProjectFavoriteRepository,
+)
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.audit_log import AuditLogResponse
 from app.schemas.construction.project import (
@@ -14,6 +17,8 @@ from app.schemas.construction.project import (
     ProjectResponse,
     ProjectUpdate,
 )
+from app.schemas.construction.project_favorite import FavoriteToggleResponse
+from app.services.construction.project_favorite_service import ConstructionProjectFavoriteService
 from app.services.construction.project_service import ConstructionProjectService
 
 router = APIRouter()
@@ -23,6 +28,7 @@ def _get_service(db: AsyncSession) -> ConstructionProjectService:
     return ConstructionProjectService(
         project_repo=ConstructionProjectRepository(db),
         audit_repo=ConstructionAuditLogRepository(db),
+        favorite_repo=ConstructionProjectFavoriteRepository(db),
     )
 
 
@@ -53,6 +59,7 @@ async def list_projects(
 ):
     service = _get_service(db)
     return await service.list_projects(
+        current_user_id=current_user.id,
         status=status,
         project_type=project_type,
         location_id=location_id,
@@ -79,7 +86,7 @@ async def get_project(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     service = _get_service(db)
-    return await service.get_project(project_id)
+    return await service.get_project(project_id, current_user_id=current_user.id)
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)
@@ -101,6 +108,16 @@ async def delete_project(
 ):
     service = _get_service(db)
     await service.delete_project(current_user, project_id)
+
+
+@router.post("/{project_id}/favorite", response_model=FavoriteToggleResponse)
+async def toggle_favorite(
+    project_id: int,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    svc = ConstructionProjectFavoriteService(ConstructionProjectFavoriteRepository(db))
+    return await svc.toggle(current_user.id, project_id)
 
 
 @router.get("/{project_id}/audit-log", response_model=list[AuditLogResponse])

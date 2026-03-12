@@ -21,3 +21,4 @@ from app.models.construction.permit import ConstructionPermit  # noqa: F401
 from app.models.construction.change_order import ConstructionChangeOrder  # noqa: F401
 from app.models.construction.audit_log import ConstructionAuditLog  # noqa: F401
 from app.models.construction.document import ConstructionDocument  # noqa: F401
+from app.models.construction.project_favorite import ConstructionProjectFavorite  # noqa: F401

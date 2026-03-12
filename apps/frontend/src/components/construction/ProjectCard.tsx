@@ -4,6 +4,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import {
   Box,
   Card,
@@ -14,10 +16,12 @@ import {
   LinearProgress,
   Menu,
   MenuItem,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToggleProjectFavorite } from '../../hooks/construction/useConstructionFavorites';
 import type { ConstructionProject, ConstructionProjectStatus, ConstructionProjectType, UserRole } from '../../types';
 
 const STATUS_LABELS: Record<ConstructionProjectStatus, string> = {
@@ -57,6 +61,7 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
   const navigate = useNavigate();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const canEdit = userRole === 'admin' || userRole === 'manager';
+  const toggleFavorite = useToggleProjectFavorite();
 
   const handleMenuClick = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -95,15 +100,33 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
                 />
               )}
             </Box>
-            {canEdit && (
-              <IconButton
-                size="small"
-                onClick={handleMenuClick}
-                sx={{ mt: -0.5, mr: -1, color: 'text.secondary', flexShrink: 0 }}
-              >
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
-            )}
+            <Box display="flex" alignItems="center" sx={{ mt: -0.5, mr: -1 }}>
+              <Tooltip title={project.is_favorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite.mutate(project.id);
+                  }}
+                  sx={{ color: project.is_favorite ? 'warning.main' : 'text.secondary' }}
+                >
+                  {project.is_favorite ? (
+                    <StarIcon fontSize="small" />
+                  ) : (
+                    <StarBorderIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </Tooltip>
+              {canEdit && (
+                <IconButton
+                  size="small"
+                  onClick={handleMenuClick}
+                  sx={{ color: 'text.secondary', flexShrink: 0 }}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
           </Box>
 
           <Typography variant="subtitle1" fontWeight={700} mb={0.5} sx={{ lineHeight: 1.3 }}>

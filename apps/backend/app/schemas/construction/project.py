@@ -44,6 +44,7 @@ class ProjectResponse(BaseModel):
     budget: Decimal | None
     progress_pct: int
     created_at: datetime
+    is_favorite: bool = False
     model_config = ConfigDict(from_attributes=True)
 
 

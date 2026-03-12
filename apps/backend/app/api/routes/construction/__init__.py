@@ -6,6 +6,7 @@ from app.api.routes.construction import (
     comments,
     daily_logs,
     documents,
+    favorites,
     issues,
     materials,
     milestones,
@@ -17,6 +18,7 @@ from app.api.routes.construction import (
 
 router = APIRouter()
 router.include_router(analytics.router)
+router.include_router(favorites.router)
 router.include_router(projects.router)
 router.include_router(materials.router)
 router.include_router(milestones.router)
