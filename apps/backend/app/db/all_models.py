@@ -26,3 +26,4 @@ from app.models.construction.shipment import ConstructionShipment  # noqa: F401
 from app.models.construction.project_member import ConstructionProjectMember  # noqa: F401
 from app.models.construction.budget_line import ConstructionBudgetLine  # noqa: F401
 from app.models.construction.safety_incident import ConstructionSafetyIncident  # noqa: F401
+from app.models.construction.invoice import ConstructionInvoice  # noqa: F401

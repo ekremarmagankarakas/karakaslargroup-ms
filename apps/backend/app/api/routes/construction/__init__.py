@@ -4,6 +4,7 @@ from app.api.routes.construction import (
     analytics,
     budget,
     change_orders,
+    invoices,
     safety,
     chat,
     comments,
@@ -42,3 +43,4 @@ router.include_router(change_orders.router)
 router.include_router(documents.router)
 router.include_router(budget.router)
 router.include_router(safety.router)
+router.include_router(invoices.router)  # /invoices/overdue must be before /{project_id}

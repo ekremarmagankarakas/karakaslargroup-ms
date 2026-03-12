@@ -32,6 +32,8 @@ from app.models.construction.shipment import ConstructionShipment, ShipmentStatu
 from app.models.construction.project_member import ConstructionProjectMember, ConstructionProjectRole
 from app.models.construction.budget_line import ConstructionBudgetLine, BudgetCategory
 from app.models.construction.safety_incident import ConstructionSafetyIncident, IncidentType, IncidentStatus
+from app.models.construction.invoice import ConstructionInvoice, InvoiceStatus
+from app.models.construction.subcontractor import ConstructionSubcontractor
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1368,6 +1370,48 @@ async def seed_construction_shipments(db, users: dict) -> None:
     print(f"  created {created} construction shipments")
 
 
+async def seed_invoices(db) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionInvoice))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction invoices (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction invoices (no projects)")
+        return
+
+    today = date.today()
+    templates = [
+        {"status": InvoiceStatus.paid, "days_ago": 60, "due_days": 30, "amount_pct": 0.08},
+        {"status": InvoiceStatus.approved, "days_ago": 20, "due_days": 15, "amount_pct": 0.12},
+        {"status": InvoiceStatus.received, "days_ago": 5, "due_days": 30, "amount_pct": 0.07},
+    ]
+    created = 0
+    for idx, project in enumerate(projects):
+        budget = float(project.budget) if project.budget else 5_000_000
+        for t_idx, tmpl in enumerate(templates):
+            inv_date = today - timedelta(days=tmpl["days_ago"])
+            due = inv_date + timedelta(days=tmpl["due_days"])
+            amount = Decimal(str(round(budget * tmpl["amount_pct"], 2)))
+            tax = round(float(amount) * 0.20, 2)
+            db.add(ConstructionInvoice(
+                project_id=project.id,
+                invoice_number=f"INV-{project.id:03d}-{t_idx+1:02d}",
+                description=f"{'İşçilik' if t_idx==0 else 'Malzeme tedariki' if t_idx==1 else 'Ekipman kiralama'} faturası",
+                amount=amount,
+                tax_amount=Decimal(str(tax)),
+                status=tmpl["status"],
+                invoice_date=inv_date,
+                due_date=due,
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction invoices")
+
+
 async def seed_safety_incidents(db, users: dict) -> None:
     count_result = await db.execute(select(func.count()).select_from(ConstructionSafetyIncident))
     if count_result.scalar_one() > 0:
@@ -1502,6 +1546,8 @@ async def main() -> None:
         await seed_budget_lines(db)
         await db.flush()
         await seed_safety_incidents(db, users)
+        await db.flush()
+        await seed_invoices(db)
 
         await db.commit()
 

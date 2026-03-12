@@ -511,6 +511,32 @@ export interface BudgetSummaryResponse {
   utilization_pct: number;
 }
 
+// ── Invoices ──────────────────────────────────────────────────────────────────
+
+export type InvoiceStatus = 'received' | 'under_review' | 'approved' | 'paid' | 'disputed' | 'cancelled';
+
+export interface ConstructionInvoice {
+  id: number;
+  project_id: number;
+  invoice_number: string;
+  subcontractor_id: number | null;
+  subcontractor_name: string | null;
+  shipment_id: number | null;
+  description: string;
+  amount: string;
+  tax_amount: string;
+  total_amount: string;
+  status: InvoiceStatus;
+  invoice_date: string;
+  due_date: string | null;
+  paid_date: string | null;
+  paid_by: number | null;
+  payer_username: string | null;
+  notes: string | null;
+  is_overdue: boolean;
+  created_at: string;
+}
+
 // ── Safety Incidents ──────────────────────────────────────────────────────────
 
 export type IncidentType = 'near_miss' | 'minor_injury' | 'major_injury' | 'property_damage' | 'environmental' | 'fire' | 'other';
