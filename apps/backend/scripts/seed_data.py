@@ -36,6 +36,7 @@ from app.models.construction.invoice import ConstructionInvoice, InvoiceStatus
 from app.models.construction.subcontractor import ConstructionSubcontractor
 from app.models.construction.punch_list_item import ConstructionPunchListItem, PunchListStatus
 from app.models.construction.rfi import ConstructionRFI, RFIStatus, RFIPriority
+from app.models.construction.meeting import ConstructionMeeting, ConstructionMeetingAction
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1606,6 +1607,88 @@ async def seed_budget_lines(db) -> None:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
+async def seed_meetings(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionMeeting))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction meetings (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction meetings (no projects)")
+        return
+
+    creator = users.get("manager") or users.get("admin")
+    if not creator:
+        print("  skip  construction meetings (no user)")
+        return
+
+    today = date.today()
+    created = 0
+    for project in projects:
+        # Meeting 1: recent site coordination meeting
+        m1 = ConstructionMeeting(
+            project_id=project.id,
+            title="Haftalık Saha Koordinasyon Toplantısı",
+            meeting_date=today - timedelta(days=7),
+            location="Proje Sahası — Toplantı Odası",
+            attendees="Proje Müdürü, Şantiye Şefi, Taşeron Koordinatörü, İSG Uzmanı",
+            agenda="1. Haftalık ilerleme değerlendirmesi\n2. Açık sorunların takibi\n3. Malzeme teslimat durumu\n4. Güvenlik gözlemleri",
+            summary="Haftalık ilerleme hedeflerin %85 oranında gerçekleştirildiği değerlendirildi. Çelik kolonların montajı planlandığı gibi tamamlandı. Beton döküm gecikmeleri tartışıldı.",
+            decisions="1. Beton tedarikçisi ile acil toplantı yapılacak.\n2. Vardiya sayısı artırılacak.\n3. Güvenlik gözlem kayıtları günlük tutulacak.",
+            created_by=creator.id,
+        )
+        db.add(m1)
+        await db.flush()
+        db.add(ConstructionMeetingAction(
+            meeting_id=m1.id,
+            description="Beton tedarikçisi ile acil toplantı organize et",
+            assigned_to_name="Proje Müdürü",
+            due_date=today - timedelta(days=3),
+            completed=True,
+        ))
+        db.add(ConstructionMeetingAction(
+            meeting_id=m1.id,
+            description="Güvenlik gözlem formlarını güncelle ve dağıt",
+            assigned_to_name="İSG Uzmanı",
+            due_date=today + timedelta(days=3),
+            completed=False,
+        ))
+        # Meeting 2: design review
+        m2 = ConstructionMeeting(
+            project_id=project.id,
+            title="Tasarım Revizyon Toplantısı — 3. Kat Planları",
+            meeting_date=today - timedelta(days=21),
+            location="Mimar Ofisi — İstanbul",
+            attendees="Mimar, Statik Mühendis, Proje Müdürü, İşveren Temsilcisi",
+            agenda="1. 3. kat strüktürel revizyonların değerlendirilmesi\n2. MEP koordinasyon sorunları\n3. Malzeme değişiklikleri onayı",
+            summary="Statik revizyonlar onaylandı. MEP koordinasyon çakışmaları belirlendi ve çözüm takvimi oluşturuldu. Duvar kaplama malzemesi değişikliği revizyon emri sürecine alındı.",
+            decisions="1. MEP revizyonları 10 gün içinde tamamlanacak.\n2. Kaplama değişikliği için RFI açılacak.",
+            created_by=creator.id,
+        )
+        db.add(m2)
+        await db.flush()
+        db.add(ConstructionMeetingAction(
+            meeting_id=m2.id,
+            description="MEP koordinasyon çizimlerini revize et",
+            assigned_to_name="MEP Mühendisi",
+            due_date=today - timedelta(days=11),
+            completed=True,
+        ))
+        db.add(ConstructionMeetingAction(
+            meeting_id=m2.id,
+            description="Kaplama değişikliği için RFI-003 hazırla",
+            assigned_to_name="Proje Müdürü",
+            due_date=today + timedelta(days=5),
+            completed=False,
+        ))
+        created += 2
+
+    await db.flush()
+    print(f"  created {created} construction meetings")
+
+
 async def main() -> None:
     settings = get_settings()
     engine = create_async_engine(settings.DATABASE_URL)
@@ -1651,6 +1734,8 @@ async def main() -> None:
         await seed_punch_list(db, users)
         await db.flush()
         await seed_rfis(db, users)
+        await db.flush()
+        await seed_meetings(db, users)
 
         await db.commit()
 

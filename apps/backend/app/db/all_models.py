@@ -29,3 +29,4 @@ from app.models.construction.safety_incident import ConstructionSafetyIncident  
 from app.models.construction.invoice import ConstructionInvoice  # noqa: F401
 from app.models.construction.punch_list_item import ConstructionPunchListItem  # noqa: F401
 from app.models.construction.rfi import ConstructionRFI  # noqa: F401
+from app.models.construction.meeting import ConstructionMeeting, ConstructionMeetingAction  # noqa: F401

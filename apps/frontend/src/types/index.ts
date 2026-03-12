@@ -634,3 +634,56 @@ export interface BudgetLineUpdate {
   actual_amount?: string;
   notes?: string;
 }
+
+export interface MeetingActionCreate {
+  description: string;
+  assigned_to_name: string;
+  due_date?: string | null;
+}
+
+export interface MeetingActionResponse {
+  id: number;
+  meeting_id: number;
+  description: string;
+  assigned_to_name: string;
+  due_date: string | null;
+  completed: boolean;
+  created_at: string;
+}
+
+export interface ConstructionMeetingCreate {
+  title: string;
+  meeting_date: string;
+  location?: string | null;
+  attendees?: string | null;
+  agenda?: string | null;
+  summary: string;
+  decisions?: string | null;
+  actions: MeetingActionCreate[];
+}
+
+export interface ConstructionMeetingUpdate {
+  title?: string;
+  meeting_date?: string;
+  location?: string | null;
+  attendees?: string | null;
+  agenda?: string | null;
+  summary?: string;
+  decisions?: string | null;
+}
+
+export interface ConstructionMeeting {
+  id: number;
+  project_id: number;
+  title: string;
+  meeting_date: string;
+  location: string | null;
+  attendees: string | null;
+  agenda: string | null;
+  summary: string;
+  decisions: string | null;
+  created_by: number | null;
+  creator_username: string | null;
+  actions: MeetingActionResponse[];
+  created_at: string;
+}
