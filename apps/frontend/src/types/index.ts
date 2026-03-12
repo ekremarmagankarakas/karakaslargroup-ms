@@ -322,3 +322,56 @@ export interface ConstructionIssue {
   reporter_username: string | null;
   created_at: string;
 }
+
+export interface ConstructionPhoto {
+  id: number;
+  project_id: number;
+  uploaded_by: number | null;
+  uploader_username: string | null;
+  file_key: string;
+  url: string;
+  caption: string | null;
+  created_at: string;
+}
+
+export interface ConstructionComment {
+  id: number;
+  project_id: number;
+  user_id: number | null;
+  username: string | null;
+  content: string;
+  created_at: string;
+}
+
+export type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'stormy' | 'snowy';
+
+export interface ConstructionDailyLog {
+  id: number;
+  project_id: number;
+  log_date: string;
+  weather: WeatherCondition;
+  temperature_c: number | null;
+  worker_count: number;
+  work_summary: string;
+  equipment_on_site: string | null;
+  visitors: string | null;
+  recorded_by: number | null;
+  recorder_username: string | null;
+  created_at: string;
+}
+
+export type SubcontractorStatus = 'active' | 'inactive' | 'blacklisted';
+
+export interface ConstructionSubcontractor {
+  id: number;
+  project_id: number;
+  company_name: string;
+  trade: string;
+  contact_name: string;
+  contact_phone: string;
+  contact_email: string | null;
+  contract_value: string | null;
+  status: SubcontractorStatus;
+  notes: string | null;
+  created_at: string;
+}

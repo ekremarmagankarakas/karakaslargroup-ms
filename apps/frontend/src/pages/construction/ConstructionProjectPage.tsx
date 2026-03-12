@@ -17,10 +17,14 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { DailyLogList } from '../../components/construction/DailyLogList';
 import { IssuesLog } from '../../components/construction/IssuesLog';
 import { MaterialsTable } from '../../components/construction/MaterialsTable';
 import { MilestonesTimeline } from '../../components/construction/MilestonesTimeline';
+import { PhotoGallery } from '../../components/construction/PhotoGallery';
+import { ProjectComments } from '../../components/construction/ProjectComments';
 import { ProjectForm } from '../../components/construction/ProjectForm';
+import { SubcontractorList } from '../../components/construction/SubcontractorList';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useMaterials, useProject, useUpdateProject } from '../../hooks/construction/useConstruction';
@@ -174,11 +178,15 @@ export function ConstructionProjectPage() {
 
         {/* Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
             <Tab label="Genel Bakış" />
             <Tab label="Malzemeler" />
             <Tab label="Aşamalar" />
             <Tab label="Sorunlar" />
+            <Tab label="Fotoğraflar" />
+            <Tab label="Yorumlar" />
+            <Tab label="Günlük" />
+            <Tab label="Taşeronlar" />
           </Tabs>
         </Box>
 
@@ -231,6 +239,18 @@ export function ConstructionProjectPage() {
         )}
         {tab === 3 && (
           <IssuesLog projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 4 && (
+          <PhotoGallery projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 5 && (
+          <ProjectComments projectId={project.id} currentUserId={user!.id} userRole={user!.role} />
+        )}
+        {tab === 6 && (
+          <DailyLogList projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 7 && (
+          <SubcontractorList projectId={project.id} userRole={user!.role} />
         )}
 
         {/* Edit Form */}

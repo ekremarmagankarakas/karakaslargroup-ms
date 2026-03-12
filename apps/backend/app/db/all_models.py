@@ -13,3 +13,7 @@ from app.models.procurement.requirement_image import RequirementImage  # noqa: F
 from app.models.user import User  # noqa: F401
 from app.models.construction import ConstructionProject, ConstructionMaterial, ConstructionMilestone  # noqa: F401
 from app.models.construction.issue import ConstructionIssue  # noqa: F401
+from app.models.construction.photo import ConstructionPhoto  # noqa: F401
+from app.models.construction.comment import ConstructionComment  # noqa: F401
+from app.models.construction.daily_log import ConstructionDailyLog, WeatherCondition  # noqa: F401
+from app.models.construction.subcontractor import ConstructionSubcontractor  # noqa: F401
