@@ -2,7 +2,13 @@ import { Box, Toolbar } from '@mui/material';
 import { ChatWidget } from '../procurement/chat/ChatWidget';
 import { AppHeader } from './AppHeader';
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export function DashboardLayout({
+  children,
+  hideChatWidget,
+}: {
+  children: React.ReactNode;
+  hideChatWidget?: boolean;
+}) {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppHeader />
@@ -10,7 +16,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <Toolbar />
         {children}
       </Box>
-      <ChatWidget />
+      {!hideChatWidget && <ChatWidget />}
     </Box>
   );
 }

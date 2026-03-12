@@ -19,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useConstructionAnalytics } from '../../hooks/construction/useConstructionAnalytics';
 
@@ -113,7 +114,7 @@ export function ConstructionAnalyticsPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout hideChatWidget>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
           <CircularProgress />
         </Box>
@@ -271,6 +272,7 @@ export function ConstructionAnalyticsPage() {
           </ChartBox>
         </Grid>
       </Grid>
+      <ConstructionChatWidget />
     </DashboardLayout>
   );
 }

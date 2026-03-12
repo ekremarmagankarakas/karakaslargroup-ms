@@ -106,7 +106,7 @@ export function ConstructionDashboardPage() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout hideChatWidget>
       <Box sx={{ p: 3 }}>
         {/* Stats Panel */}
         <ConstructionStatsPanel />

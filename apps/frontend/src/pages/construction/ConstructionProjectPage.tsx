@@ -78,7 +78,7 @@ export function ConstructionProjectPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout hideChatWidget>
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
           <CircularProgress />
         </Box>
@@ -88,7 +88,7 @@ export function ConstructionProjectPage() {
 
   if (!project) {
     return (
-      <DashboardLayout>
+      <DashboardLayout hideChatWidget>
         <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
           <Typography color="text.secondary">Proje bulunamadı.</Typography>
         </Box>
@@ -97,7 +97,7 @@ export function ConstructionProjectPage() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout hideChatWidget>
       <Box sx={{ p: 3 }}>
         {/* Back + Header */}
         <Box display="flex" alignItems="flex-start" gap={1} mb={3}>
