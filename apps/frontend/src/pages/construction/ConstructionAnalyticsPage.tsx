@@ -1,0 +1,276 @@
+import {
+  Box,
+  Card,
+  CardContent,
+  CircularProgress,
+  Grid,
+  Typography,
+} from '@mui/material';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { useConstructionAnalytics } from '../../hooks/construction/useConstructionAnalytics';
+
+const COLORS = ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#64748b'];
+
+const STATUS_LABELS: Record<string, string> = {
+  planning: 'Planlama',
+  active: 'Aktif',
+  on_hold: 'Beklemede',
+  completed: 'Tamamlandı',
+  cancelled: 'İptal',
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  shopping_mall: 'AVM',
+  residential: 'Konut',
+  office: 'Ofis',
+  mixed_use: 'Karma',
+  hotel: 'Otel',
+  industrial: 'Endüstriyel',
+  other: 'Diğer',
+};
+
+const MILESTONE_STATUS_LABELS: Record<string, string> = {
+  not_started: 'Başlamadı',
+  in_progress: 'Devam Ediyor',
+  completed: 'Tamamlandı',
+  blocked: 'Engellendi',
+};
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('tr-TR', {
+    style: 'currency',
+    currency: 'TRY',
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+interface StatCardProps {
+  label: string;
+  value: string;
+}
+
+function StatCard({ label, value }: StatCardProps) {
+  return (
+    <Card
+      variant="outlined"
+      sx={{ borderRadius: 3, bgcolor: 'background.paper', borderColor: 'divider' }}
+    >
+      <CardContent>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          {label}
+        </Typography>
+        <Typography variant="h5" fontWeight={700}>
+          {value}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ChartBoxProps {
+  title: string;
+  children: React.ReactNode;
+  height?: number;
+}
+
+function ChartBox({ title, children, height = 260 }: ChartBoxProps) {
+  return (
+    <Box
+      sx={{
+        bgcolor: 'background.paper',
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        p: 2.5,
+        height: '100%',
+      }}
+    >
+      <Typography variant="subtitle1" fontWeight={700} mb={2}>
+        {title}
+      </Typography>
+      <ResponsiveContainer width="100%" height={height}>
+        {children as React.ReactElement}
+      </ResponsiveContainer>
+    </Box>
+  );
+}
+
+export function ConstructionAnalyticsPage() {
+  const { data, isLoading } = useConstructionAnalytics();
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+          <CircularProgress />
+        </Box>
+      </DashboardLayout>
+    );
+  }
+
+  const statusData = (data?.projects_by_status ?? []).map((item) => ({
+    name: STATUS_LABELS[item.status] ?? item.status,
+    value: item.count,
+  }));
+
+  const typeData = (data?.projects_by_type ?? []).map((item) => ({
+    name: TYPE_LABELS[item.project_type] ?? item.project_type,
+    value: item.count,
+  }));
+
+  const budgetData = (data?.budget_by_project ?? []).map((item) => ({
+    name: item.name.length > 14 ? item.name.slice(0, 14) + '…' : item.name,
+    Bütçe: item.budget,
+    Gerçekleşen: item.actual_cost,
+  }));
+
+  const materialCostData = (data?.material_cost_by_type ?? []).map((item) => ({
+    name: item.material_type,
+    value: item.total_cost,
+  }));
+
+  const milestoneData = (data?.milestone_status_counts ?? []).map((item) => ({
+    name: MILESTONE_STATUS_LABELS[item.status] ?? item.status,
+    value: item.count,
+  }));
+
+  return (
+    <DashboardLayout>
+      <Box mb={3} mt={1}>
+        <Typography variant="h4" sx={{ mb: 0.25 }}>
+          İnşaat Analitikleri
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Proje ve malzeme istatistikleri
+        </Typography>
+      </Box>
+
+      {/* Summary stat cards */}
+      <Grid container spacing={2.5} mb={3}>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <StatCard label="Toplam Bütçe" value={formatCurrency(data?.total_budget ?? 0)} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <StatCard
+            label="Toplam Gerçekleşen Maliyet"
+            value={formatCurrency(data?.total_actual_cost ?? 0)}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <StatCard
+            label="Ort. İlerleme"
+            value={`%${(data?.avg_progress ?? 0).toFixed(1)}`}
+          />
+        </Grid>
+      </Grid>
+
+      {/* Row 1: Status donut + Type bar */}
+      <Grid container spacing={2.5} mb={2.5}>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <ChartBox title="Proje Durumları" height={260}>
+            <PieChart>
+              <Pie
+                data={statusData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {statusData.map((_, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ChartBox>
+        </Grid>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <ChartBox title="Proje Tipleri" height={260}>
+            <BarChart data={typeData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="value" name="Proje Sayısı" radius={[4, 4, 0, 0]}>
+                {typeData.map((_, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartBox>
+        </Grid>
+      </Grid>
+
+      {/* Row 2: Budget vs actual per project (full width) */}
+      <Box mb={2.5}>
+        <ChartBox title="Proje Başına Bütçe" height={300}>
+          <BarChart data={budgetData} margin={{ top: 4, right: 16, left: 16, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
+            <Tooltip formatter={(value: number) => formatCurrency(value)} />
+            <Legend />
+            <Bar dataKey="Bütçe" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Gerçekleşen" fill={COLORS[2]} radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ChartBox>
+      </Box>
+
+      {/* Row 3: Material cost by type + Milestone status */}
+      <Grid container spacing={2.5} mb={6}>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <ChartBox title="Malzeme Maliyeti (Tip)" height={260}>
+            <PieChart>
+              <Pie
+                data={materialCostData}
+                cx="50%"
+                cy="50%"
+                innerRadius={55}
+                outerRadius={85}
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {materialCostData.map((_, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value: number) => formatCurrency(value)} />
+              <Legend />
+            </PieChart>
+          </ChartBox>
+        </Grid>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <ChartBox title="Aşama Durumları" height={260}>
+            <BarChart data={milestoneData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="value" name="Aşama Sayısı" radius={[4, 4, 0, 0]}>
+                {milestoneData.map((_, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartBox>
+        </Grid>
+      </Grid>
+    </DashboardLayout>
+  );
+}

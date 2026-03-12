@@ -270,3 +270,40 @@ export interface ConstructionProjectFilters {
   project_type?: ConstructionProjectType;
   location_id?: number;
 }
+
+export interface ConstructionStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface ConstructionTypeCount {
+  project_type: string;
+  count: number;
+}
+
+export interface ConstructionBudgetByProject {
+  name: string;
+  budget: number;
+  actual_cost: number;
+}
+
+export interface ConstructionMaterialCostByType {
+  material_type: string;
+  total_cost: number;
+}
+
+export interface ConstructionMilestoneStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface ConstructionAnalyticsResponse {
+  projects_by_status: ConstructionStatusCount[];
+  projects_by_type: ConstructionTypeCount[];
+  budget_by_project: ConstructionBudgetByProject[];
+  material_cost_by_type: ConstructionMaterialCostByType[];
+  milestone_status_counts: ConstructionMilestoneStatusCount[];
+  total_budget: number;
+  total_actual_cost: number;
+  avg_progress: number;
+}

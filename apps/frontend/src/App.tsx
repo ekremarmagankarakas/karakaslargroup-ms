@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { AnalyticsPage } from './pages/procurement/AnalyticsPage';
 import { BudgetPage } from './pages/procurement/BudgetPage';
+import { ConstructionAnalyticsPage } from './pages/construction/ConstructionAnalyticsPage';
 import { ConstructionDashboardPage } from './pages/construction/ConstructionDashboardPage';
 import { ConstructionProjectPage } from './pages/construction/ConstructionProjectPage';
 import { DashboardPage } from './pages/procurement/DashboardPage';
@@ -62,6 +63,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ConstructionDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/construction/analytics"
+        element={
+          <ProtectedRoute>
+            <ConstructionAnalyticsPage />
           </ProtectedRoute>
         }
       />
