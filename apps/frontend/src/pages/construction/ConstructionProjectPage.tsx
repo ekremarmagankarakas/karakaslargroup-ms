@@ -1,6 +1,7 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import EditIcon from '@mui/icons-material/Edit';
+import GroupIcon from '@mui/icons-material/Group';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import {
   Box,
@@ -26,6 +27,7 @@ import { MilestonesTimeline } from '../../components/construction/MilestonesTime
 import { PermitTracker } from '../../components/construction/PermitTracker';
 import { PhotoGallery } from '../../components/construction/PhotoGallery';
 import { ShipmentList } from '../../components/construction/ShipmentList';
+import { ProjectTeam } from '../../components/construction/ProjectTeam';
 import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
 import { ProjectAuditLog } from '../../components/construction/ProjectAuditLog';
 import { ProjectHealthCard } from '../../components/construction/ProjectHealthCard';
@@ -118,6 +120,15 @@ export function ConstructionProjectPage() {
                 size="small"
                 variant="outlined"
               />
+              {project.team_count > 0 && (
+                <Chip
+                  icon={<GroupIcon sx={{ fontSize: '14px !important' }} />}
+                  label={`${project.team_count} üye`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ color: 'text.secondary', borderColor: 'divider' }}
+                />
+              )}
               {canEdit && (
                 <Button
                   startIcon={<EditIcon />}
@@ -197,6 +208,7 @@ export function ConstructionProjectPage() {
             <Tab label="Taşeronlar" />
             <Tab label="İzinler" />
             <Tab label="Revizyonlar" />
+            <Tab label="Ekip" />
             <Tab label="Belgeler" />
             {canEdit && <Tab label="Geçmiş" />}
           </Tabs>
@@ -277,7 +289,10 @@ export function ConstructionProjectPage() {
         {tab === 11 && (
           <DocumentList projectId={project.id} userRole={user!.role} />
         )}
-        {tab === 12 && canEdit && (
+        {tab === 12 && (
+          <ProjectTeam projectId={project.id} userRole={user!.role} />
+        )}
+        {tab === 13 && canEdit && (
           <ProjectAuditLog projectId={project.id} />
         )}
 

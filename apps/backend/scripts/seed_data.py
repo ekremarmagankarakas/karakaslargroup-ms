@@ -29,6 +29,7 @@ from app.models.construction.material import ConstructionMaterial, ConstructionM
 from app.models.construction.milestone import ConstructionMilestone, ConstructionTaskStatus
 from app.models.construction.issue import ConstructionIssue, ConstructionIssueSeverity, ConstructionIssueStatus
 from app.models.construction.shipment import ConstructionShipment, ShipmentStatus
+from app.models.construction.project_member import ConstructionProjectMember, ConstructionProjectRole
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -1016,6 +1017,47 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
     print(f"  created {created_projects} construction projects, {created_materials} materials, {created_milestones} milestones, {created_issues} issues")
 
 
+async def seed_construction_team(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionProjectMember))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction team members (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction team members (no projects)")
+        return
+
+    all_users = list(users.values())
+    role_cycle = [
+        ConstructionProjectRole.project_manager,
+        ConstructionProjectRole.site_engineer,
+        ConstructionProjectRole.foreman,
+        ConstructionProjectRole.architect,
+    ]
+    today = date.today()
+    created = 0
+
+    for project in projects:
+        assigned_users: set[int] = set()
+        for idx, role in enumerate(role_cycle):
+            user = all_users[idx % len(all_users)]
+            if user.id in assigned_users:
+                continue
+            assigned_users.add(user.id)
+            db.add(ConstructionProjectMember(
+                project_id=project.id,
+                user_id=user.id,
+                construction_role=role,
+                joined_at=today - timedelta(days=30 * (idx + 1)),
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction team members")
+
+
 async def seed_construction_shipments(db, users: dict) -> None:
     count_result = await db.execute(select(func.count()).select_from(ConstructionShipment))
     if count_result.scalar_one() > 0:
@@ -1107,6 +1149,8 @@ async def main() -> None:
         await seed_audit_logs(db, users, all_reqs)
         await seed_budget_limits(db, users, locs)
         await seed_construction_projects(db, users, locs)
+        await db.flush()
+        await seed_construction_team(db, users)
         await db.flush()
         await seed_construction_shipments(db, users)
 

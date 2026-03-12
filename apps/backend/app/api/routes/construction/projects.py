@@ -14,6 +14,7 @@ from app.repositories.construction.audit_log_repository import ConstructionAudit
 from app.repositories.construction.project_favorite_repository import (
     ConstructionProjectFavoriteRepository,
 )
+from app.repositories.construction.project_member_repository import ProjectMemberRepository
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.audit_log import AuditLogResponse
 from app.schemas.construction.project import (
@@ -34,6 +35,7 @@ def _get_service(db: AsyncSession) -> ConstructionProjectService:
         project_repo=ConstructionProjectRepository(db),
         audit_repo=ConstructionAuditLogRepository(db),
         favorite_repo=ConstructionProjectFavoriteRepository(db),
+        member_repo=ProjectMemberRepository(db),
     )
 
 
@@ -59,6 +61,7 @@ async def list_projects(
     project_type: ConstructionProjectType | None = None,
     location_id: int | None = None,
     search: str | None = None,
+    my_projects: bool = False,
     page: int = 1,
     limit: int = 20,
 ):
@@ -69,6 +72,7 @@ async def list_projects(
         project_type=project_type,
         location_id=location_id,
         search=search,
+        my_projects=my_projects,
         page=page,
         limit=limit,
     )

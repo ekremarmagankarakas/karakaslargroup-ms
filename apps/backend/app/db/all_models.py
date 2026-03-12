@@ -23,3 +23,4 @@ from app.models.construction.audit_log import ConstructionAuditLog  # noqa: F401
 from app.models.construction.document import ConstructionDocument  # noqa: F401
 from app.models.construction.project_favorite import ConstructionProjectFavorite  # noqa: F401
 from app.models.construction.shipment import ConstructionShipment  # noqa: F401
+from app.models.construction.project_member import ConstructionProjectMember  # noqa: F401

@@ -22,6 +22,21 @@ class ConstructionProjectRepository:
         )
         return result.unique().scalar_one_or_none()
 
+    async def get_team_counts(self, project_ids: list[int]) -> dict[int, int]:
+        if not project_ids:
+            return {}
+        from sqlalchemy import func as sqlfunc
+        from app.models.construction.project_member import ConstructionProjectMember
+        result = await self.db.execute(
+            select(
+                ConstructionProjectMember.project_id,
+                sqlfunc.count(ConstructionProjectMember.id).label("cnt"),
+            )
+            .where(ConstructionProjectMember.project_id.in_(project_ids))
+            .group_by(ConstructionProjectMember.project_id)
+        )
+        return {row.project_id: row.cnt for row in result.all()}
+
     async def get_paginated(
         self,
         *,
@@ -29,6 +44,7 @@ class ConstructionProjectRepository:
         project_type: str | None = None,
         location_id: int | None = None,
         search: str | None = None,
+        project_ids: set[int] | None = None,
         page: int = 1,
         limit: int = 20,
     ) -> tuple[list[ConstructionProject], int]:
@@ -44,6 +60,8 @@ class ConstructionProjectRepository:
             query = query.where(ConstructionProject.location_id == location_id)
         if search:
             query = query.where(ConstructionProject.name.ilike(f"%{search}%"))
+        if project_ids is not None:
+            query = query.where(ConstructionProject.id.in_(project_ids))
 
         count_q = select(func.count()).select_from(query.subquery())
         total = await self.db.scalar(count_q) or 0

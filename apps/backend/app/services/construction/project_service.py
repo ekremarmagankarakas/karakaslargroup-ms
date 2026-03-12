@@ -9,6 +9,7 @@ from app.repositories.construction.audit_log_repository import ConstructionAudit
 from app.repositories.construction.project_favorite_repository import (
     ConstructionProjectFavoriteRepository,
 )
+from app.repositories.construction.project_member_repository import ProjectMemberRepository
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.project import (
     PaginatedProjectsResponse,
@@ -19,7 +20,9 @@ from app.schemas.construction.project import (
 
 
 def _build_project_response(
-    project: ConstructionProject, favorite_ids: set[int] | None = None
+    project: ConstructionProject,
+    favorite_ids: set[int] | None = None,
+    team_counts: dict[int, int] | None = None,
 ) -> ProjectResponse:
     return ProjectResponse(
         id=project.id,
@@ -37,6 +40,7 @@ def _build_project_response(
         progress_pct=project.progress_pct,
         created_at=project.created_at,
         is_favorite=project.id in favorite_ids if favorite_ids is not None else False,
+        team_count=team_counts.get(project.id, 0) if team_counts is not None else 0,
     )
 
 
@@ -46,10 +50,12 @@ class ConstructionProjectService:
         project_repo: ConstructionProjectRepository,
         audit_repo: ConstructionAuditLogRepository | None = None,
         favorite_repo: ConstructionProjectFavoriteRepository | None = None,
+        member_repo: ProjectMemberRepository | None = None,
     ) -> None:
         self.project_repo = project_repo
         self.audit_repo = audit_repo
         self.favorite_repo = favorite_repo
+        self.member_repo = member_repo
 
     async def list_projects(
         self,
@@ -59,23 +65,34 @@ class ConstructionProjectService:
         project_type: str | None = None,
         location_id: int | None = None,
         search: str | None = None,
+        my_projects: bool = False,
         page: int = 1,
         limit: int = 20,
     ) -> PaginatedProjectsResponse:
+        # Resolve my_projects filter
+        project_ids_filter: set[int] | None = None
+        if my_projects and current_user_id is not None and self.member_repo is not None:
+            project_ids_filter = await self.member_repo.get_project_ids_for_user(current_user_id)
+            if not project_ids_filter:
+                return PaginatedProjectsResponse(items=[], total=0, page=1, limit=limit, total_pages=1)
+
         projects, total = await self.project_repo.get_paginated(
             status=status,
             project_type=project_type,
             location_id=location_id,
             search=search,
+            project_ids=project_ids_filter,
             page=page,
             limit=limit,
         )
         favorite_ids: set[int] = set()
         if self.favorite_repo and current_user_id is not None:
             favorite_ids = await self.favorite_repo.get_ids_for_user(current_user_id)
+        pids = [p.id for p in projects]
+        team_counts = await self.project_repo.get_team_counts(pids)
         total_pages = max(1, math.ceil(total / limit))
         return PaginatedProjectsResponse(
-            items=[_build_project_response(p, favorite_ids) for p in projects],
+            items=[_build_project_response(p, favorite_ids, team_counts) for p in projects],
             total=total,
             page=page,
             limit=limit,
@@ -89,7 +106,8 @@ class ConstructionProjectService:
         favorite_ids: set[int] = set()
         if self.favorite_repo and current_user_id is not None:
             favorite_ids = await self.favorite_repo.get_ids_for_user(current_user_id)
-        return _build_project_response(project, favorite_ids)
+        team_counts = await self.project_repo.get_team_counts([project_id])
+        return _build_project_response(project, favorite_ids, team_counts)
 
     async def create_project(self, current_user: User, body: ProjectCreate) -> ProjectResponse:
         data = body.model_dump()

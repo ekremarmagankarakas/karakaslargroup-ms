@@ -1,12 +1,14 @@
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import GroupIcon from '@mui/icons-material/Group';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Box, Card, CardContent, CircularProgress, Grid, Typography } from '@mui/material';
 import { useProjects } from '../../hooks/construction/useConstruction';
 import { usePendingShipmentsCount } from '../../hooks/construction/useConstructionShipments';
+import { useTotalTeamCount } from '../../hooks/construction/useConstructionTeam';
 
 interface StatCardProps {
   label: string;
@@ -51,6 +53,7 @@ function StatCard({ label, value, icon, color }: StatCardProps) {
 export function ConstructionStatsPanel() {
   const { data, isLoading } = useProjects({ limit: 1000, page: 1 });
   const { data: pendingShipments = 0 } = usePendingShipmentsCount();
+  const { data: totalTeamMembers = 0 } = useTotalTeamCount();
 
   if (isLoading) {
     return (
@@ -106,6 +109,12 @@ export function ConstructionStatsPanel() {
       value: pendingShipments,
       icon: <LocalShippingIcon fontSize="small" />,
       color: '#0891b2',
+    },
+    {
+      label: 'Aktif Ekip Üyesi',
+      value: totalTeamMembers,
+      icon: <GroupIcon fontSize="small" />,
+      color: '#db2777',
     },
   ];
 

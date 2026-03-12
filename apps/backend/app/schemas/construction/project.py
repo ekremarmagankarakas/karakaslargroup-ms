@@ -45,6 +45,7 @@ class ProjectResponse(BaseModel):
     progress_pct: int
     created_at: datetime
     is_favorite: bool = False
+    team_count: int = 0
     model_config = ConfigDict(from_attributes=True)
 
 

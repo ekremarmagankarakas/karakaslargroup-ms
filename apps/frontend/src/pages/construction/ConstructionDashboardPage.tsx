@@ -63,6 +63,7 @@ export function ConstructionDashboardPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ConstructionProjectStatus | ''>('');
   const [typeFilter, setTypeFilter] = useState<ConstructionProjectType | ''>('');
+  const [myProjectsOnly, setMyProjectsOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
 
@@ -78,6 +79,7 @@ export function ConstructionDashboardPage() {
     search: search || undefined,
     status: statusFilter || undefined,
     project_type: typeFilter || undefined,
+    my_projects: myProjectsOnly || undefined,
     page,
     limit,
   };
@@ -212,6 +214,17 @@ export function ConstructionDashboardPage() {
               />
             ))}
           </Box>
+          <Chip
+            label="Projelerim"
+            onClick={() => {
+              setMyProjectsOnly((v) => !v);
+              setPage(1);
+            }}
+            variant={myProjectsOnly ? 'filled' : 'outlined'}
+            color={myProjectsOnly ? 'primary' : 'default'}
+            size="small"
+            sx={{ cursor: 'pointer' }}
+          />
         </Stack>
 
         {/* Content */}

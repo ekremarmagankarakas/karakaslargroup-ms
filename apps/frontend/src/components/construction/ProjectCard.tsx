@@ -2,6 +2,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import GroupIcon from '@mui/icons-material/Group';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import StarIcon from '@mui/icons-material/Star';
@@ -213,11 +214,23 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
             />
           </Box>
 
-          {project.budget && (
-            <Typography variant="caption" color="text.secondary" mt={1} display="block">
-              Bütçe: ₺{parseFloat(project.budget).toLocaleString('tr-TR')}
-            </Typography>
-          )}
+          <Box display="flex" alignItems="center" justifyContent="space-between" mt={1}>
+            {project.budget ? (
+              <Typography variant="caption" color="text.secondary">
+                Bütçe: ₺{parseFloat(project.budget).toLocaleString('tr-TR')}
+              </Typography>
+            ) : <Box />}
+            {project.team_count > 0 && (
+              <Tooltip title={`${project.team_count} ekip üyesi`}>
+                <Box display="flex" alignItems="center" gap={0.25}>
+                  <GroupIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
+                  <Typography variant="caption" color="text.secondary">
+                    {project.team_count}
+                  </Typography>
+                </Box>
+              </Tooltip>
+            )}
+          </Box>
         </CardContent>
       </CardActionArea>
 

@@ -237,6 +237,7 @@ export interface ConstructionProject {
   progress_pct: number;
   created_at: string;
   is_favorite: boolean;
+  team_count: number;
 }
 
 export interface ConstructionMaterial {
@@ -270,6 +271,7 @@ export interface ConstructionProjectFilters {
   status?: ConstructionProjectStatus;
   project_type?: ConstructionProjectType;
   location_id?: number;
+  my_projects?: boolean;
 }
 
 export interface ConstructionStatusCount {
@@ -437,6 +439,28 @@ export interface ConstructionDocument {
   file_size_bytes: number | null;
   document_type: string | null;
   caption: string | null;
+  created_at: string;
+}
+
+export type ConstructionProjectRole =
+  | 'project_manager'
+  | 'site_engineer'
+  | 'foreman'
+  | 'architect'
+  | 'safety_officer'
+  | 'consultant'
+  | 'observer';
+
+export interface ConstructionProjectMember {
+  id: number;
+  project_id: number;
+  user_id: number;
+  username: string;
+  email: string;
+  global_role: string;
+  construction_role: ConstructionProjectRole;
+  joined_at: string | null;
+  notes: string | null;
   created_at: string;
 }
 
