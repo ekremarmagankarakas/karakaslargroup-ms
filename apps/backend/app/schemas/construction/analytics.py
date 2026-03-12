@@ -28,6 +28,12 @@ class MilestoneStatusCount(BaseModel):
     count: int
 
 
+class SCurvePoint(BaseModel):
+    date: str          # YYYY-MM format
+    planned: float     # 0-100
+    actual: float | None = None  # None for future months
+
+
 class ConstructionAnalyticsResponse(BaseModel):
     projects_by_status: list[StatusCount]
     projects_by_type: list[TypeCount]

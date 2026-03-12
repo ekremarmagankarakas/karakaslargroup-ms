@@ -1,20 +1,22 @@
 from collections import defaultdict
+from datetime import date, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.api.deps import CurrentUser, get_db
 from app.models.construction.material import ConstructionMaterial
-from app.models.construction.milestone import ConstructionMilestone
+from app.models.construction.milestone import ConstructionMilestone, ConstructionTaskStatus
 from app.models.construction.project import ConstructionProject
 from app.schemas.construction.analytics import (
     BudgetByProject,
     ConstructionAnalyticsResponse,
     MaterialCostByType,
     MilestoneStatusCount,
+    SCurvePoint,
     StatusCount,
     TypeCount,
 )
@@ -113,3 +115,104 @@ async def get_construction_analytics(
         total_actual_cost=total_actual_cost,
         avg_progress=avg_progress,
     )
+
+
+@router.get("/{project_id}/s-curve", response_model=list[SCurvePoint])
+async def get_s_curve(
+    project_id: int,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[SCurvePoint]:
+    project_result = await db.execute(
+        select(ConstructionProject).where(ConstructionProject.id == project_id)
+    )
+    project = project_result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    milestones_result = await db.execute(
+        select(ConstructionMilestone)
+        .where(ConstructionMilestone.project_id == project_id)
+        .order_by(ConstructionMilestone.due_date)
+    )
+    milestones = list(milestones_result.scalars().all())
+
+    today = date.today()
+
+    # Determine timeline: use project dates if available, else today ± 6 months
+    start = project.start_date or (today.replace(day=1) - timedelta(days=180))
+    end = project.end_date or (today.replace(day=1) + timedelta(days=180))
+    # Extend end by 1 month to include the last month
+    end = max(end, today)
+
+    # Generate monthly bucket labels from start to end
+    def month_key(d: date) -> str:
+        return f"{d.year}-{d.month:02d}"
+
+    buckets: list[date] = []
+    cur = start.replace(day=1)
+    end_month = end.replace(day=1)
+    while cur <= end_month:
+        buckets.append(cur)
+        # next month
+        if cur.month == 12:
+            cur = cur.replace(year=cur.year + 1, month=1)
+        else:
+            cur = cur.replace(month=cur.month + 1)
+
+    if not buckets:
+        return []
+
+    n = len(buckets)
+    total_ms = len(milestones)
+
+    # Build planned: for each bucket, what % of milestones were due by end of that month?
+    # If no milestones, use linear interpolation based on project timeline
+    def last_day_of_month(d: date) -> date:
+        if d.month == 12:
+            return d.replace(day=31)
+        return (d.replace(month=d.month + 1) - timedelta(days=1))
+
+    points: list[SCurvePoint] = []
+    for i, bucket in enumerate(buckets):
+        month_end = last_day_of_month(bucket)
+
+        # Planned progress
+        if total_ms > 0:
+            planned_ms_due = sum(1 for m in milestones if m.due_date and m.due_date <= month_end)
+            planned = round(min(100.0, planned_ms_due / total_ms * 100), 1)
+        else:
+            # Linear from 0 to 100
+            planned = round(i / max(n - 1, 1) * 100, 1) if n > 1 else 100.0
+
+        # Actual progress (only for months up to current month)
+        if bucket <= today.replace(day=1):
+            if total_ms > 0:
+                actual_ms_done = sum(
+                    1 for m in milestones
+                    if m.status == ConstructionTaskStatus.completed
+                    and m.due_date and m.due_date <= month_end
+                )
+                # For current month, use project progress_pct as override
+                if bucket == today.replace(day=1):
+                    actual = float(project.progress_pct)
+                else:
+                    actual = round(min(100.0, actual_ms_done / total_ms * 100), 1)
+            else:
+                # Use project progress_pct for current month, interpolate backwards
+                if bucket == today.replace(day=1):
+                    actual = float(project.progress_pct)
+                else:
+                    # Estimate: assume linear growth up to current progress
+                    months_elapsed = i + 1
+                    months_total = today.replace(day=1).year * 12 + today.replace(day=1).month - (start.replace(day=1).year * 12 + start.replace(day=1).month) + 1
+                    if months_total > 0:
+                        actual = round(min(float(project.progress_pct), float(project.progress_pct) * months_elapsed / months_total), 1)
+                    else:
+                        actual = float(project.progress_pct)
+        else:
+            actual = None
+
+        points.append(SCurvePoint(date=month_key(bucket), planned=planned, actual=actual))
+
+    return points

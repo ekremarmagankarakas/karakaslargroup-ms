@@ -3,9 +3,15 @@ import {
   Card,
   CardContent,
   CircularProgress,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
   Typography,
 } from '@mui/material';
+import { useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -20,8 +26,10 @@ import {
   YAxis,
 } from 'recharts';
 import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
+import SCurveChart from '../../components/construction/SCurveChart';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useConstructionAnalytics } from '../../hooks/construction/useConstructionAnalytics';
+import { useProjects } from '../../hooks/construction/useConstruction';
 
 const COLORS = ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#64748b'];
 
@@ -111,6 +119,8 @@ function ChartBox({ title, children, height = 260 }: ChartBoxProps) {
 
 export function ConstructionAnalyticsPage() {
   const { data, isLoading } = useConstructionAnalytics();
+  const { data: projects = [] } = useProjects({});
+  const [sCurveProjectId, setSCurveProjectId] = useState<number | ''>('');
 
   if (isLoading) {
     return (
@@ -272,6 +282,41 @@ export function ConstructionAnalyticsPage() {
           </ChartBox>
         </Grid>
       </Grid>
+      {/* S-Curve section */}
+      <Box mb={6}>
+        <Paper
+          variant="outlined"
+          sx={{ p: 2.5, borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 3 }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700}>S-Eğrisi Analizi</Typography>
+              <Typography variant="caption" color="text.secondary">Planlanan vs gerçekleşen ilerleme (aylık)</Typography>
+            </Box>
+            <FormControl size="small" sx={{ minWidth: 240 }}>
+              <InputLabel>Proje Seçin</InputLabel>
+              <Select
+                value={sCurveProjectId}
+                label="Proje Seçin"
+                onChange={e => setSCurveProjectId(e.target.value as number | '')}
+              >
+                <MenuItem value=""><em>Seçiniz...</em></MenuItem>
+                {projects.map(p => (
+                  <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          {sCurveProjectId ? (
+            <SCurveChart projectId={sCurveProjectId as number} />
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+              S-eğrisini görmek için bir proje seçin.
+            </Typography>
+          )}
+        </Paper>
+      </Box>
+
       <ConstructionChatWidget />
     </DashboardLayout>
   );

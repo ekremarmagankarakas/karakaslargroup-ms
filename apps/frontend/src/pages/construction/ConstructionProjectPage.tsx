@@ -39,6 +39,7 @@ import { PunchList } from '../../components/construction/PunchList';
 import { RFIList } from '../../components/construction/RFIList';
 import MeetingMinutes from '../../components/construction/MeetingMinutes';
 import EquipmentRegister from '../../components/construction/EquipmentRegister';
+import SCurveChart from '../../components/construction/SCurveChart';
 import { SafetyLog } from '../../components/construction/SafetyLog';
 import { SubcontractorList } from '../../components/construction/SubcontractorList';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
@@ -264,9 +265,12 @@ export function ConstructionProjectPage() {
                   </Box>
                 </Paper>
               )}
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" mb={2}>
                 {project.description ?? 'Proje açıklaması bulunmuyor.'}
               </Typography>
+              <Paper variant="outlined" sx={{ p: 2, borderColor: 'divider', bgcolor: 'background.paper' }}>
+                <SCurveChart projectId={project.id} />
+              </Paper>
             </Box>
           );
         })()}
