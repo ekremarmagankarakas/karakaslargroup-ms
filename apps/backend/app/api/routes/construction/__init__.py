@@ -11,6 +11,7 @@ from app.api.routes.construction import (
     issues,
     materials,
     milestones,
+    notifications as construction_notifications,
     permits,
     photos,
     projects,
@@ -20,6 +21,7 @@ from app.api.routes.construction import (
 router = APIRouter()
 router.include_router(analytics.router)
 router.include_router(chat.router)
+router.include_router(construction_notifications.router)
 router.include_router(favorites.router)
 router.include_router(projects.router)
 router.include_router(materials.router)

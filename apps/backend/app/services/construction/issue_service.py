@@ -1,9 +1,11 @@
 from fastapi import HTTPException, status
 
+from app.models.construction.issue import ConstructionIssueSeverity
 from app.models.user import User, UserRole
 from app.repositories.construction.issue_repository import ConstructionIssueRepository
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.issue import IssueCreate, IssueResponse, IssueUpdate
+from app.services.construction import notification_service
 
 
 def _build_issue_response(issue) -> IssueResponse:
@@ -43,6 +45,15 @@ class ConstructionIssueService:
         data["project_id"] = project_id
         data["reported_by"] = current_user.id
         issue = await self.issue_repo.create(data)
+        # Notify managers/admins on critical issues
+        if body.severity == ConstructionIssueSeverity.critical:
+            from sqlalchemy.ext.asyncio import AsyncSession
+            db = self.issue_repo.db
+            await notification_service.notify_critical_issue(
+                db=db,
+                issue_title=body.title,
+                project_name=project.name,
+            )
         return _build_issue_response(issue)
 
     async def update_issue(

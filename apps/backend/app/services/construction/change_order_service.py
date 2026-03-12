@@ -8,6 +8,7 @@ from app.models.user import User, UserRole
 from app.repositories.construction.change_order_repository import ConstructionChangeOrderRepository
 from app.repositories.construction.project_repository import ConstructionProjectRepository
 from app.schemas.construction.change_order import ChangeOrderCreate, ChangeOrderResponse
+from app.services.construction import notification_service
 
 
 def _build_co_response(co) -> ChangeOrderResponse:
@@ -67,6 +68,14 @@ class ConstructionChangeOrderService:
             raise HTTPException(status_code=403, detail="Yetersiz yetki")
         co = await self.co_repo.update(co, {"status": ChangeOrderStatus.submitted})
         co = await self.co_repo.get_by_id(co.id)
+        # Notify managers/admins
+        project = await self.project_repo.get_by_id(project_id)
+        if project:
+            await notification_service.notify_change_order_submitted(
+                db=self.co_repo.db,
+                co_title=co.title,
+                project_name=project.name,
+            )
         return _build_co_response(co)
 
     async def approve_change_order(
