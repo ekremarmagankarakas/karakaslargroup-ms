@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { ConstructionStatsPanel } from '../../components/construction/ConstructionStatsPanel';
 import { ProjectCard } from '../../components/construction/ProjectCard';
 import { ProjectForm } from '../../components/construction/ProjectForm';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
@@ -81,6 +82,9 @@ export function ConstructionDashboardPage() {
   return (
     <DashboardLayout>
       <Box sx={{ p: 3 }}>
+        {/* Stats Panel */}
+        <ConstructionStatsPanel />
+
         {/* Header */}
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
           <Box>

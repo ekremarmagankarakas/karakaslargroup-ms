@@ -61,6 +61,7 @@ export function AppHeader() {
 
   const insaatNavLinks = [
     { label: 'Projeler', path: '/construction' },
+    { label: 'Analitik', path: '/construction/analytics' },
   ];
 
   const navLinks = activeSite === 'insaat' ? insaatNavLinks : tedarikNavLinks;
@@ -157,7 +158,7 @@ export function AppHeader() {
 
           <Box display="flex" alignItems="center" gap={0.5} ml={2}>
             {navLinks.map(({ label, path }) => {
-              const active = location.pathname === path;
+              const active = location.pathname === path || (path !== '/construction' && location.pathname.startsWith(path));
               return (
                 <Box
                   key={path}

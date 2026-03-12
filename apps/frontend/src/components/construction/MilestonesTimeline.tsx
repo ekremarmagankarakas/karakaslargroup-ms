@@ -1,5 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
 import BlockIcon from '@mui/icons-material/Block';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -146,6 +147,12 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
         <Stack spacing={1.5}>
           {milestones.map((m, index) => {
             const cfg = STATUS_CONFIG[m.status];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dueDate = m.due_date ? new Date(m.due_date) : null;
+            const isOverdue = dueDate && dueDate < today && m.status !== 'completed';
+            const diffDays = isOverdue && dueDate ? Math.floor((today.getTime() - dueDate.getTime()) / 86400000) : 0;
+            const overdueSeverity = diffDays > 14 ? 'error' : 'warning';
             return (
               <Box
                 key={m.id}
@@ -193,6 +200,14 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
                       <Typography variant="caption" color="text.secondary">
                         Son: {m.due_date}
                       </Typography>
+                    )}
+                    {isOverdue && (
+                      <Chip
+                        label={diffDays > 14 ? `${diffDays} gün gecikti` : `${diffDays} gün gecikti`}
+                        color={overdueSeverity}
+                        size="small"
+                        icon={<WarningAmberIcon fontSize="small" />}
+                      />
                     )}
                   </Box>
                   {m.description && (

@@ -22,7 +22,7 @@ import { MilestonesTimeline } from '../../components/construction/MilestonesTime
 import { ProjectForm } from '../../components/construction/ProjectForm';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
-import { useProject, useUpdateProject } from '../../hooks/construction/useConstruction';
+import { useMaterials, useProject, useUpdateProject } from '../../hooks/construction/useConstruction';
 import type { ConstructionProjectStatus } from '../../types';
 
 const STATUS_LABELS: Record<ConstructionProjectStatus, string> = {
@@ -51,6 +51,7 @@ export function ConstructionProjectPage() {
   const id = projectId ? parseInt(projectId) : undefined;
 
   const { data: project, isLoading } = useProject(id);
+  const { data: materials = [] } = useMaterials(id);
   const updateProject = useUpdateProject();
 
   const [tab, setTab] = useState(0);
@@ -173,15 +174,57 @@ export function ConstructionProjectPage() {
         {/* Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+            <Tab label="Genel Bakış" />
             <Tab label="Malzemeler" />
             <Tab label="Aşamalar" />
           </Tabs>
         </Box>
 
-        {tab === 0 && (
+        {tab === 0 && (() => {
+          const actualCost = materials.reduce((sum, m) => {
+            const used = parseFloat(m.quantity_used) || 0;
+            const cost = parseFloat(m.unit_cost ?? '0') || 0;
+            return sum + used * cost;
+          }, 0);
+          const plannedCost = materials.reduce((sum, m) => {
+            const planned = parseFloat(m.quantity_planned) || 0;
+            const cost = parseFloat(m.unit_cost ?? '0') || 0;
+            return sum + planned * cost;
+          }, 0);
+          const budget = project.budget ? parseFloat(project.budget) : null;
+          const budgetPct = budget && budget > 0 ? Math.min(200, Math.round((actualCost / budget) * 100)) : null;
+          const budgetColor = budgetPct == null ? 'primary.main' : budgetPct >= 100 ? 'error.main' : budgetPct >= 80 ? 'warning.main' : 'success.main';
+
+          return (
+            <Box>
+              {budget !== null && (
+                <Paper variant="outlined" sx={{ p: 2, mb: 2, borderColor: 'divider', bgcolor: 'background.paper' }}>
+                  <Typography variant="subtitle2" fontWeight={700} mb={1.5}>Bütçe Durumu</Typography>
+                  <Box display="flex" justifyContent="space-between" mb={0.5}>
+                    <Typography variant="body2" color="text.secondary">Gerçekleşen Maliyet</Typography>
+                    <Typography variant="body2" fontWeight={600} sx={{ color: budgetColor }}>
+                      ₺{actualCost.toLocaleString('tr-TR')} / ₺{budget!.toLocaleString('tr-TR')} ({budgetPct}%)
+                    </Typography>
+                  </Box>
+                  <Box sx={{ height: 10, borderRadius: 5, bgcolor: 'action.hover', overflow: 'hidden' }}>
+                    <Box sx={{ height: '100%', width: `${Math.min(100, budgetPct ?? 0)}%`, bgcolor: budgetColor, borderRadius: 5, transition: 'width 0.3s' }} />
+                  </Box>
+                  <Box display="flex" justifyContent="space-between" mt={1}>
+                    <Typography variant="caption" color="text.secondary">Planlanan Maliyet: ₺{plannedCost.toLocaleString('tr-TR')}</Typography>
+                    <Typography variant="caption" color="text.secondary">Bütçe: ₺{budget!.toLocaleString('tr-TR')}</Typography>
+                  </Box>
+                </Paper>
+              )}
+              <Typography variant="body2" color="text.secondary">
+                {project.description ?? 'Proje açıklaması bulunmuyor.'}
+              </Typography>
+            </Box>
+          );
+        })()}
+        {tab === 1 && (
           <MaterialsTable projectId={project.id} userRole={user!.role} />
         )}
-        {tab === 1 && (
+        {tab === 2 && (
           <MilestonesTimeline projectId={project.id} userRole={user!.role} />
         )}
 
