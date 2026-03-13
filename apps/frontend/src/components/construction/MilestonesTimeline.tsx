@@ -8,6 +8,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import PendingIcon from '@mui/icons-material/Pending';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -75,7 +76,7 @@ interface Props {
 }
 
 export function MilestonesTimeline({ projectId, userRole }: Props) {
-  const { data: milestones = [], isLoading } = useMilestones(projectId);
+  const { data: milestones = [], isLoading, isError } = useMilestones(projectId);
   const createMilestone = useCreateMilestone();
   const updateMilestone = useUpdateMilestone();
   const deleteMilestone = useDeleteMilestone();
@@ -150,7 +151,9 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
         </Box>
       </Box>
 
-      {isLoading ? (
+      {isError ? (
+        <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>
+      ) : isLoading ? (
         <Typography variant="body2" color="text.secondary">
           Yükleniyor...
         </Typography>

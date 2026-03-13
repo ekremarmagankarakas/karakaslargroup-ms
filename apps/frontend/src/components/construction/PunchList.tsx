@@ -5,6 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import WarningIcon from '@mui/icons-material/Warning';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -58,7 +59,7 @@ interface Props {
 const EMPTY_FORM = { title: '', description: '', location_on_site: '', due_date: '' };
 
 export function PunchList({ projectId, userRole }: Props) {
-  const { data: items = [], isLoading } = usePunchList(projectId);
+  const { data: items = [], isLoading, isError } = usePunchList(projectId);
   const createItem = useCreatePunchListItem();
   const updateItem = useUpdatePunchListItem();
   const verifyItem = useVerifyPunchListItem();
@@ -113,6 +114,8 @@ export function PunchList({ projectId, userRole }: Props) {
   if (isLoading) {
     return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
   }
+
+  if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
   const total = items.length;
   const verified = items.filter((i) => i.status === 'verified').length;

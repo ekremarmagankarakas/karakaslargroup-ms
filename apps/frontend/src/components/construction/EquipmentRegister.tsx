@@ -70,7 +70,7 @@ const emptyForm = {
 };
 
 export default function EquipmentRegister({ projectId, canEdit }: Props) {
-  const { data: items = [], isLoading } = useEquipment(projectId);
+  const { data: items = [], isLoading, isError } = useEquipment(projectId);
   const createMutation = useCreateEquipment(projectId);
   const updateMutation = useUpdateEquipment(projectId);
   const deleteMutation = useDeleteEquipment(projectId);
@@ -138,6 +138,8 @@ export default function EquipmentRegister({ projectId, canEdit }: Props) {
   const overdueCount = items.filter(i => i.maintenance_overdue).length;
 
   if (isLoading) return <Typography sx={{ p: 2 }}>Yükleniyor...</Typography>;
+
+  if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
   return (
     <Box>

@@ -4,6 +4,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import PaymentIcon from '@mui/icons-material/Payment';
 import WarningIcon from '@mui/icons-material/Warning';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -71,7 +72,7 @@ const EMPTY_FORM = {
 };
 
 export function InvoiceList({ projectId, userRole, subcontractors = [] }: Props) {
-  const { data: invoices = [], isLoading } = useInvoices(projectId);
+  const { data: invoices = [], isLoading, isError } = useInvoices(projectId);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const markPaid = useMarkInvoicePaid();
@@ -136,6 +137,8 @@ export function InvoiceList({ projectId, userRole, subcontractors = [] }: Props)
   if (isLoading) {
     return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
   }
+
+  if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
   return (
     <Box>

@@ -17,14 +17,27 @@ interface Props {
   projectId: number;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry {
+  name: string;
+  value: number | null;
+  color: string;
+  dataKey: string;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
         {label}
       </Typography>
-      {payload.map((entry: any) => (
+      {payload.map((entry) => (
         <Typography key={entry.name} variant="body2" sx={{ color: entry.color }}>
           {entry.name}: {entry.value != null ? `${entry.value}%` : '-'}
         </Typography>

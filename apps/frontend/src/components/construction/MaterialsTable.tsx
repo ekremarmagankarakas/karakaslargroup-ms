@@ -3,6 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -77,7 +78,7 @@ interface Props {
 }
 
 export function MaterialsTable({ projectId, userRole }: Props) {
-  const { data: materials = [], isLoading } = useMaterials(projectId);
+  const { data: materials = [], isLoading, isError } = useMaterials(projectId);
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial();
   const deleteMaterial = useDeleteMaterial();
@@ -163,7 +164,9 @@ export function MaterialsTable({ projectId, userRole }: Props) {
         </Box>
       </Box>
 
-      {isLoading ? (
+      {isError ? (
+        <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>
+      ) : isLoading ? (
         <Typography variant="body2" color="text.secondary">
           Yükleniyor...
         </Typography>

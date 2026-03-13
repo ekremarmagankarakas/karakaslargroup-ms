@@ -2,6 +2,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -96,7 +97,7 @@ interface Props {
 const EMPTY_FORM = { category: 'labor' as BudgetCategory, description: '', planned_amount: '', actual_amount: '0', notes: '' };
 
 export function BudgetBreakdown({ projectId, userRole }: Props) {
-  const { data: summary, isLoading } = useBudget(projectId);
+  const { data: summary, isLoading, isError } = useBudget(projectId);
   const createLine = useCreateBudgetLine();
   const updateLine = useUpdateBudgetLine();
   const deleteLine = useDeleteBudgetLine();
@@ -148,6 +149,8 @@ export function BudgetBreakdown({ projectId, userRole }: Props) {
   if (isLoading) {
     return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
   }
+
+  if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
   if (!summary) return null;
 

@@ -15,11 +15,31 @@ import { useLocationStats } from '../../../hooks/procurement/useAnalytics';
 
 const COLORS = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706', '#dc2626'];
 
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  color: string;
+  dataKey: string;
+  payload: {
+    location_name: string;
+    total_price: number;
+    accepted_price: number;
+    total_count: number;
+    accepted_count: number;
+  };
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
 interface Props {
   filters: Pick<AnalyticsFilters, 'month' | 'year'>;
 }
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const approvalRate = d.total_count > 0 ? ((d.accepted_count / d.total_count) * 100).toFixed(0) : 0;

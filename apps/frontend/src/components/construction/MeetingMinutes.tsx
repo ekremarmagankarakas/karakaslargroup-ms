@@ -39,7 +39,7 @@ const emptyForm = {
 };
 
 export default function MeetingMinutes({ projectId, canEdit }: Props) {
-  const { data: meetings = [], isLoading } = useMeetings(projectId);
+  const { data: meetings = [], isLoading, isError } = useMeetings(projectId);
   const createMutation = useCreateMeeting(projectId);
   const updateMutation = useUpdateMeeting(projectId);
   const deleteMutation = useDeleteMeeting(projectId);
@@ -135,6 +135,8 @@ export default function MeetingMinutes({ projectId, canEdit }: Props) {
     m.actions.filter(a => !a.completed && a.due_date && a.due_date < new Date().toISOString().split('T')[0]);
 
   if (isLoading) return <Typography sx={{ p: 2 }}>Yükleniyor...</Typography>;
+
+  if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
   return (
     <Box>

@@ -12,11 +12,30 @@ import type { AnalyticsFilters } from '../../../types';
 import { formatPrice } from '../../../utils/formatters';
 import { useTopRequesters } from '../../../hooks/procurement/useAnalytics';
 
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  color: string;
+  dataKey: string;
+  payload: {
+    username: string;
+    total_price: number;
+    total_count: number;
+    accepted_count: number;
+  };
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
 interface Props {
   filters: AnalyticsFilters;
 }
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const rate = d.total_count > 0 ? ((d.accepted_count / d.total_count) * 100).toFixed(0) : 0;

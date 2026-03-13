@@ -1,9 +1,11 @@
+import React from 'react';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import EditIcon from '@mui/icons-material/Edit';
 import SavingsIcon from '@mui/icons-material/Savings';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -120,12 +122,26 @@ function UtilizationChip({ pct }: { pct: number }) {
   );
 }
 
-function ChartTooltip({ active, payload, label }: any) {
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  color?: string;
+  stroke?: string;
+  dataKey: string;
+}
+
+interface ChartTooltipComponentProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+function ChartTooltip({ active, payload, label }: ChartTooltipComponentProps) {
   if (!active || !payload?.length) return null;
   return (
     <Paper elevation={3} sx={{ p: 1.5, minWidth: 180 }}>
       <Typography variant="caption" fontWeight={700} display="block" mb={0.5}>{label}</Typography>
-      {payload.map((entry: any) => (
+      {payload.map((entry) => (
         <Typography key={entry.name} variant="caption" display="block" sx={{ color: entry.color ?? entry.stroke }}>
           {entry.name}: {entry.name === 'Kullanım (%)' ? `%${entry.value?.toFixed(1)}` : `₺${formatPrice(entry.value)}`}
         </Typography>
@@ -210,12 +226,12 @@ export function BudgetPage() {
   // undefined = company-wide; number = specific location
   const [selectedLocationId, setSelectedLocationId] = useState<number | undefined>(undefined);
 
-  const { data: currentBudget, isLoading: budgetLoading } = useBudgetStatus(
+  const { data: currentBudget, isLoading: budgetLoading, isError: budgetError } = useBudgetStatus(
     now.getMonth() + 1,
     now.getFullYear(),
     selectedLocationId,
   );
-  const { data: history, isLoading: historyLoading } = useBudgetHistory(12, selectedLocationId);
+  const { data: history, isLoading: historyLoading, isError: historyError } = useBudgetHistory(12, selectedLocationId);
 
   const [dialogItem, setDialogItem] = useState<BudgetHistoryItem | null>(null);
 
@@ -295,6 +311,11 @@ export function BudgetPage() {
           <Chip label="Lokasyon Bütçesi" size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
         )}
       </Box>
+
+      {/* Error states */}
+      {(budgetError || historyError) && (
+        <Alert severity="error" sx={{ mb: 2 }}>Veriler yüklenirken bir hata oluştu.</Alert>
+      )}
 
       {/* Summary cards */}
       {budgetLoading ? (

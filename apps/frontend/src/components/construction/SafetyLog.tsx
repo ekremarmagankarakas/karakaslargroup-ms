@@ -4,6 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -85,7 +86,7 @@ const EMPTY_FORM = {
 };
 
 export function SafetyLog({ projectId, userRole }: Props) {
-  const { data: incidents = [], isLoading } = useSafetyIncidents(projectId);
+  const { data: incidents = [], isLoading, isError } = useSafetyIncidents(projectId);
   const { data: stats } = useSafetyStats(projectId);
   const createIncident = useCreateSafetyIncident();
   const updateIncident = useUpdateSafetyIncident();
@@ -167,6 +168,8 @@ export function SafetyLog({ projectId, userRole }: Props) {
   if (isLoading) {
     return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
   }
+
+  if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
   return (
     <Box>

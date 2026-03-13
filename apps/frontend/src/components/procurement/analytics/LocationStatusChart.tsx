@@ -12,18 +12,32 @@ import {
 import type { AnalyticsFilters } from '../../../types';
 import { useLocationStats } from '../../../hooks/procurement/useAnalytics';
 
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  color: string;
+  fill: string;
+  dataKey: string;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
 interface Props {
   filters: Pick<AnalyticsFilters, 'month' | 'year'>;
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <Paper elevation={3} sx={{ p: 1.5, minWidth: 170 }}>
       <Typography variant="caption" fontWeight={700} display="block" mb={0.5}>
         {label}
       </Typography>
-      {payload.map((entry: any) => (
+      {payload.map((entry) => (
         <Typography key={entry.name} variant="caption" display="block" sx={{ color: entry.fill }}>
           {entry.name}: {entry.value}
         </Typography>

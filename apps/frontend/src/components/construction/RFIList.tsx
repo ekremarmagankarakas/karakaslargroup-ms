@@ -8,6 +8,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
   Box,
   Button,
   Chip,
@@ -70,7 +71,7 @@ const EMPTY_FORM = { subject: '', question: '', submitted_to: '', priority: 'nor
 const EMPTY_RESPONSE = { response: '', answered_by_name: '' };
 
 export function RFIList({ projectId, userRole }: Props) {
-  const { data: rfis = [], isLoading } = useRFIs(projectId);
+  const { data: rfis = [], isLoading, isError } = useRFIs(projectId);
   const createRFI = useCreateRFI();
   const updateRFI = useUpdateRFI();
   const deleteRFI = useDeleteRFI();
@@ -142,6 +143,8 @@ export function RFIList({ projectId, userRole }: Props) {
   if (isLoading) {
     return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
   }
+
+  if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
   return (
     <Box>

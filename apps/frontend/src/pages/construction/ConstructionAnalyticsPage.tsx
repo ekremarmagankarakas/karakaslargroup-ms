@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Card,
   CardContent,
@@ -118,7 +119,7 @@ function ChartBox({ title, children, height = 260 }: ChartBoxProps) {
 }
 
 export function ConstructionAnalyticsPage() {
-  const { data, isLoading } = useConstructionAnalytics();
+  const { data, isLoading, isError } = useConstructionAnalytics();
   const { data: projects = [] } = useProjects({});
   const [sCurveProjectId, setSCurveProjectId] = useState<number | ''>('');
 
@@ -128,6 +129,14 @@ export function ConstructionAnalyticsPage() {
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
           <CircularProgress />
         </Box>
+      </DashboardLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>
       </DashboardLayout>
     );
   }
