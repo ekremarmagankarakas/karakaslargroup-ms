@@ -31,6 +31,9 @@ import { useUsers } from '../../hooks/useUsers';
 import type { Requirement, RequirementFilters } from '../../types';
 import { ls } from '../../utils/localStorage';
 import { PaginationControls } from '../../components/common/PaginationControls';
+import { EmptyState } from '../../components/common/EmptyState';
+import { PageHeader } from '../../components/common/PageHeader';
+import { SectionCard } from '../../components/common/SectionCard';
 import { FavoritesSection } from '../../components/procurement/favorites/FavoritesSection';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { RequirementCard } from '../../components/procurement/requirements/RequirementCard';
@@ -186,31 +189,19 @@ export function DashboardPage() {
   return (
     <DashboardLayout>
       {/* ── Page header ── */}
-      <Box mb={3} mt={1}>
-        <Typography variant="h4" sx={{ mb: 0.25 }}>
-          {user?.username
-            ? `Merhaba, ${user.username.charAt(0).toUpperCase() + user.username.slice(1)}`
-            : 'Merhaba'}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {currentDate}
-        </Typography>
-      </Box>
+      <PageHeader
+        title={user?.username
+          ? `Merhaba, ${user.username.charAt(0).toUpperCase() + user.username.slice(1)}`
+          : 'Merhaba'}
+        subtitle={currentDate}
+      />
 
       {/* ── Statistics ── */}
       <StatisticsPanel filters={statsFilters} />
 
       {/* ── Requirements ── */}
-      <Box
-        sx={{
-          bgcolor: 'background.paper',
-          borderRadius: 3,
-          border: '1px solid',
-          borderColor: 'divider',
-          p: 2.5,
-          mb: 3,
-        }}
-      >
+      <SectionCard noPadding sx={{ mb: 3 }}>
+        <Box sx={{ p: 2.5 }}>
         {/* Section title row */}
         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
           <SectionHeader
@@ -302,23 +293,11 @@ export function DashboardPage() {
             </Box>
           )
         ) : requirements.length === 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              py: 7,
-              color: 'text.disabled',
-            }}
-          >
-            <ListAltIcon sx={{ fontSize: 56, mb: 2, opacity: 0.25 }} />
-            <Typography variant="subtitle1" fontWeight={600} color="text.secondary" gutterBottom>
-              Talep bulunamadı
-            </Typography>
-            <Typography variant="body2">
-              Filtrelerinizi değiştirmeyi veya yeni talep oluşturmayı deneyin.
-            </Typography>
-          </Box>
+          <EmptyState
+            Icon={ListAltIcon}
+            title="Talep bulunamadı"
+            description="Filtrelerinizi değiştirmeyi veya yeni talep oluşturmayı deneyin."
+          />
         ) : stylePreference === 'sectioned' && canSectionView ? (
           /* Kanban columns */
           <Grid container spacing={2}>
@@ -435,22 +414,13 @@ export function DashboardPage() {
             />
           </Box>
         )}
-      </Box>
+        </Box>
+      </SectionCard>
 
       {/* ── Favorites ── */}
-      <Box
-        sx={{
-          bgcolor: 'background.paper',
-          borderRadius: 3,
-          border: '1px solid',
-          borderColor: 'divider',
-          p: 2.5,
-          mb: 6,
-        }}
-      >
-        <SectionHeader icon={FavoriteIcon} title="Favorilerim" />
+      <SectionCard title="Favorilerim" sx={{ mb: 6 }}>
         <FavoritesSection />
-      </Box>
+      </SectionCard>
 
       {/* Modals */}
       <RequirementModal

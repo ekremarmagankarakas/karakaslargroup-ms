@@ -40,6 +40,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { PageHeader } from '../../components/common/PageHeader';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useBudgetHistory, useBudgetStatus, useSetBudget } from '../../hooks/procurement/useBudget';
@@ -253,13 +254,10 @@ export function BudgetPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <Box mb={3} mt={1} display="flex" alignItems="flex-end" justifyContent="space-between" flexWrap="wrap" gap={2}>
-        <Box>
-          <Typography variant="h4" sx={{ mb: 0.25 }}>Bütçe Yönetimi</Typography>
-          <Typography variant="body2" color="text.secondary">{currentDate}</Typography>
-        </Box>
-        {isAdmin && (
+      <PageHeader
+        title="Bütçe Yönetimi"
+        subtitle={currentDate}
+        actions={isAdmin ? (
           <Button
             variant="contained"
             startIcon={<EditIcon />}
@@ -276,8 +274,8 @@ export function BudgetPage() {
           >
             Bu Ay Bütçe Belirle
           </Button>
-        )}
-      </Box>
+        ) : undefined}
+      />
 
       {/* Location selector */}
       {locations.length > 0 && (
