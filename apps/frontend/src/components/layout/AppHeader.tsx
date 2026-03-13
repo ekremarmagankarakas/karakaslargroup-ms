@@ -23,7 +23,7 @@ import { useMarkAllRead, useNotifications } from '../../hooks/useNotifications';
 import { formatDate } from '../../utils/formatters';
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard':            'Dashboard',
+  '/dashboard':            'Ana Sayfa',
   '/analytics':            'Analitik',
   '/budget':               'Bütçe Yönetimi',
   '/users':                'Kullanıcılar',

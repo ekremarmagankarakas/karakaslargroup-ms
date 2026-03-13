@@ -72,7 +72,7 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
   const collapsed = mini && !isMobile;
 
   const procurementItems: NavItem[] = [
-    { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon sx={{ fontSize: 18 }} /> },
+    { label: 'Ana Sayfa', path: '/dashboard', icon: <DashboardIcon sx={{ fontSize: 18 }} /> },
     { label: 'Analitik', path: '/analytics', icon: <AnalyticsIcon sx={{ fontSize: 18 }} /> },
     ...(user?.role === 'manager' || user?.role === 'admin' || user?.role === 'accountant'
       ? [{ label: 'Bütçe', path: '/budget', icon: <AttachMoneyIcon sx={{ fontSize: 18 }} /> }]
