@@ -2,7 +2,7 @@ import { Box, Toolbar, useMediaQuery, useTheme } from '@mui/material';
 import { useState } from 'react';
 import { ChatWidget } from '../procurement/chat/ChatWidget';
 import { AppHeader } from './AppHeader';
-import { Sidebar, SIDEBAR_FULL, SIDEBAR_MINI } from './Sidebar';
+import { Sidebar } from './Sidebar';
 
 export function DashboardLayout({
   children,
@@ -28,8 +28,6 @@ export function DashboardLayout({
     });
   };
 
-  const sidebarWidth = isMobile ? 0 : mini ? SIDEBAR_MINI : SIDEBAR_FULL;
-
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Sidebar */}
@@ -48,8 +46,6 @@ export function DashboardLayout({
           minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
-          ml: { md: `${sidebarWidth}px` },
-          transition: 'margin-left 0.2s ease',
         }}
       >
         <AppHeader onMenuClick={() => (isMobile ? setMobileOpen(true) : handleToggleMini())} />
