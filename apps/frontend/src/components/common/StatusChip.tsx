@@ -1,13 +1,21 @@
 import { Chip } from '@mui/material';
-import type { ConstructionProjectStatus } from '../../types';
-import { CONSTRUCTION_STATUS_COLORS } from '../../context/ThemeContext';
+import {
+  CONSTRUCTION_STATUS_COLORS,
+  PROCUREMENT_STATUS_COLORS,
+  PRIORITY_COLORS,
+} from '../../context/ThemeContext';
+import type {
+  ConstructionProjectStatus,
+  RequirementStatus,
+  RequirementPriority,
+} from '../../types';
 
-// ── Construction project status ──────────────────────────────────────────────
+// ── Construction project status ───────────────────────────────────────────────
 
 const PROJECT_STATUS_LABELS: Record<ConstructionProjectStatus, string> = {
-  planning: 'Planlama',
-  active: 'Aktif',
-  on_hold: 'Beklemede',
+  planning:  'Planlama',
+  active:    'Aktif',
+  on_hold:   'Beklemede',
   completed: 'Tamamlandı',
   cancelled: 'İptal',
 };
@@ -18,32 +26,88 @@ interface ProjectStatusChipProps {
 }
 
 export function ProjectStatusChip({ status, size = 'small' }: ProjectStatusChipProps) {
-  const colors = CONSTRUCTION_STATUS_COLORS[status];
+  const c = CONSTRUCTION_STATUS_COLORS[status];
   return (
     <Chip
       label={PROJECT_STATUS_LABELS[status]}
       size={size}
       sx={{
-        bgcolor: colors.bg,
-        color: colors.text,
-        border: `1px solid ${colors.border}`,
+        bgcolor: c.bg,
+        color: c.text,
+        border: `1px solid ${c.border}`,
         fontWeight: 600,
-        fontSize: size === 'small' ? '0.7rem' : '0.8rem',
-        height: size === 'small' ? 22 : 28,
-        '& .MuiChip-label': { px: 1 },
       }}
     />
   );
 }
 
-// ── Health status chip (green / amber / red) ─────────────────────────────────
+// ── Procurement requirement status ────────────────────────────────────────────
+
+const REQ_STATUS_LABELS: Record<RequirementStatus, string> = {
+  pending:  'Beklemede',
+  accepted: 'Onaylandı',
+  declined: 'Reddedildi',
+};
+
+interface RequirementStatusChipProps {
+  status: RequirementStatus;
+  size?: 'small' | 'medium';
+}
+
+export function RequirementStatusChip({ status, size = 'small' }: RequirementStatusChipProps) {
+  const c = PROCUREMENT_STATUS_COLORS[status];
+  return (
+    <Chip
+      label={REQ_STATUS_LABELS[status]}
+      size={size}
+      sx={{
+        bgcolor: c.bg,
+        color: c.text,
+        border: `1px solid ${c.border}`,
+        fontWeight: 600,
+      }}
+    />
+  );
+}
+
+// ── Priority chip ─────────────────────────────────────────────────────────────
+
+const PRIORITY_LABELS: Record<RequirementPriority, string> = {
+  low:    'Düşük',
+  normal: 'Normal',
+  high:   'Yüksek',
+  urgent: 'Acil',
+};
+
+interface PriorityChipProps {
+  priority: RequirementPriority;
+  size?: 'small' | 'medium';
+}
+
+export function PriorityChip({ priority, size = 'small' }: PriorityChipProps) {
+  const c = PRIORITY_COLORS[priority];
+  return (
+    <Chip
+      label={PRIORITY_LABELS[priority]}
+      size={size}
+      sx={{
+        bgcolor: c.bg,
+        color: c.text,
+        border: `1px solid ${c.border}`,
+        fontWeight: 600,
+      }}
+    />
+  );
+}
+
+// ── Health status chip (green / amber / red) ──────────────────────────────────
 
 type HealthStatus = 'green' | 'amber' | 'red';
 
 const HEALTH_COLORS: Record<HealthStatus, { bg: string; border: string; text: string; label: string }> = {
-  green: { bg: 'rgba(22,163,74,0.10)',  border: 'rgba(22,163,74,0.30)',  text: '#16a34a', label: 'İyi' },
-  amber: { bg: 'rgba(217,119,6,0.10)',  border: 'rgba(217,119,6,0.30)',  text: '#d97706', label: 'Dikkat' },
-  red:   { bg: 'rgba(220,38,38,0.10)',  border: 'rgba(220,38,38,0.30)',  text: '#dc2626', label: 'Kritik' },
+  green: { bg: 'rgba(22,163,74,0.08)',  border: 'rgba(22,163,74,0.20)',  text: '#16a34a', label: 'İyi' },
+  amber: { bg: 'rgba(217,119,6,0.08)',  border: 'rgba(217,119,6,0.20)',  text: '#d97706', label: 'Dikkat' },
+  red:   { bg: 'rgba(220,38,38,0.08)',  border: 'rgba(220,38,38,0.20)',  text: '#dc2626', label: 'Kritik' },
 };
 
 interface HealthChipProps {
@@ -53,19 +117,16 @@ interface HealthChipProps {
 }
 
 export function HealthChip({ status, label, size = 'small' }: HealthChipProps) {
-  const colors = HEALTH_COLORS[status];
+  const c = HEALTH_COLORS[status];
   return (
     <Chip
-      label={label ?? colors.label}
+      label={label ?? c.label}
       size={size}
       sx={{
-        bgcolor: colors.bg,
-        color: colors.text,
-        border: `1px solid ${colors.border}`,
+        bgcolor: c.bg,
+        color: c.text,
+        border: `1px solid ${c.border}`,
         fontWeight: 600,
-        fontSize: size === 'small' ? '0.7rem' : '0.8rem',
-        height: size === 'small' ? 22 : 28,
-        '& .MuiChip-label': { px: 1 },
       }}
     />
   );
@@ -75,30 +136,22 @@ export function HealthChip({ status, label, size = 'small' }: HealthChipProps) {
 
 interface ColoredChipProps {
   label: string;
-  color: string; // hex or named color
+  color: string;
   size?: 'small' | 'medium';
-  variant?: 'filled' | 'outlined';
 }
 
-/** Renders a chip with rgba background derived from the given color string */
-export function ColoredChip({ label, color, size = 'small', variant = 'filled' }: ColoredChipProps) {
-  const isRgba = color.startsWith('rgba') || color.startsWith('rgb');
-  const bg = variant === 'outlined' ? 'transparent' : isRgba ? color : `${color}18`;
-  const border = isRgba ? color.replace(/[\d.]+\)$/, '0.3)') : `${color}40`;
-
+export function ColoredChip({ label, color, size = 'small' }: ColoredChipProps) {
+  const bg = `${color}14`;
+  const border = `${color}33`;
   return (
     <Chip
       label={label}
       size={size}
-      variant="outlined"
       sx={{
         bgcolor: bg,
         color,
-        borderColor: border,
+        border: `1px solid ${border}`,
         fontWeight: 600,
-        fontSize: size === 'small' ? '0.7rem' : '0.8rem',
-        height: size === 'small' ? 22 : 28,
-        '& .MuiChip-label': { px: 1 },
       }}
     />
   );

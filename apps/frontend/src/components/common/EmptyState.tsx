@@ -3,11 +3,9 @@ import type { SvgIconComponent } from '@mui/icons-material';
 import InboxIcon from '@mui/icons-material/Inbox';
 
 interface EmptyStateProps {
-  /** MUI icon component to display */
   Icon?: SvgIconComponent;
   title: string;
   description?: string;
-  /** Optional CTA button */
   action?: {
     label: string;
     onClick: () => void;
@@ -25,10 +23,22 @@ export function EmptyState({ Icon = InboxIcon, title, description, action }: Emp
         py: 8,
         px: 2,
         gap: 1,
-        color: 'text.secondary',
       }}
     >
-      <Icon sx={{ fontSize: 48, opacity: 0.3, mb: 1 }} />
+      <Box
+        sx={{
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          bgcolor: 'action.hover',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mb: 0.5,
+        }}
+      >
+        <Icon sx={{ fontSize: 28, color: 'text.disabled' }} />
+      </Box>
       <Typography variant="subtitle1" fontWeight={600} color="text.primary" textAlign="center">
         {title}
       </Typography>
