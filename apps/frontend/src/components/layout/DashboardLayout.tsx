@@ -1,6 +1,8 @@
-import { Box, Toolbar } from '@mui/material';
+import { Box, Toolbar, useMediaQuery, useTheme } from '@mui/material';
+import { useState } from 'react';
 import { ChatWidget } from '../procurement/chat/ChatWidget';
 import { AppHeader } from './AppHeader';
+import { Sidebar, SIDEBAR_FULL, SIDEBAR_MINI } from './Sidebar';
 
 export function DashboardLayout({
   children,
@@ -9,13 +11,65 @@ export function DashboardLayout({
   children: React.ReactNode;
   hideChatWidget?: boolean;
 }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mini, setMini] = useState(() => {
+    const saved = localStorage.getItem('sidebar_mini');
+    return saved === 'true';
+  });
+
+  const handleToggleMini = () => {
+    setMini((prev) => {
+      const next = !prev;
+      localStorage.setItem('sidebar_mini', String(next));
+      return next;
+    });
+  };
+
+  const sidebarWidth = isMobile ? 0 : mini ? SIDEBAR_MINI : SIDEBAR_FULL;
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppHeader />
-      <Box component="main" sx={{ px: 3, pb: 4 }}>
-        <Toolbar />
-        {children}
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* Sidebar */}
+      <Sidebar
+        open={mobileOpen}
+        mini={mini}
+        onToggleMini={handleToggleMini}
+        onClose={() => setMobileOpen(false)}
+        isMobile={isMobile}
+      />
+
+      {/* Main area */}
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          ml: { md: `${sidebarWidth}px` },
+          transition: 'margin-left 0.2s ease',
+        }}
+      >
+        <AppHeader onMenuClick={() => (isMobile ? setMobileOpen(true) : handleToggleMini())} />
+        <Toolbar sx={{ minHeight: '56px !important' }} />
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            px: { xs: 2, sm: 3 },
+            pt: { xs: 2, sm: 2.5 },
+            pb: 4,
+            maxWidth: 1400,
+            width: '100%',
+            mx: 'auto',
+          }}
+        >
+          {children}
+        </Box>
       </Box>
+
       {!hideChatWidget && <ChatWidget />}
     </Box>
   );
