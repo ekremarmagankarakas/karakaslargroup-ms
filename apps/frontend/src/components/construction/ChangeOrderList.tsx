@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -103,13 +104,7 @@ export function ChangeOrderList({ projectId, userRole }: Props) {
     setForm(EMPTY_FORM);
   };
 
-  if (isLoading) {
-    return (
-      <Typography color="text.secondary" variant="body2">
-        Yükleniyor...
-      </Typography>
-    );
-  }
+  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
 
   return (
     <Box>

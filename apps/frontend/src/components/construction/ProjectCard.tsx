@@ -13,6 +13,7 @@ import {
   CardActionArea,
   CardContent,
   Chip,
+  Fade,
   IconButton,
   LinearProgress,
   Menu,
@@ -24,15 +25,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjectHealth } from '../../hooks/construction/useConstruction';
 import { useToggleProjectFavorite } from '../../hooks/construction/useConstructionFavorites';
-import type { ConstructionProject, ConstructionProjectStatus, ConstructionProjectType, UserRole } from '../../types';
-
-const STATUS_LABELS: Record<ConstructionProjectStatus, string> = {
-  planning: 'Planlama',
-  active: 'Aktif',
-  on_hold: 'Beklemede',
-  completed: 'Tamamlandı',
-  cancelled: 'İptal',
-};
+import { ProjectStatusChip } from '../common/StatusChip';
+import type { ConstructionProject, ConstructionProjectType, UserRole } from '../../types';
 
 const TYPE_LABELS: Record<ConstructionProjectType, string> = {
   shopping_mall: 'AVM',
@@ -42,14 +36,6 @@ const TYPE_LABELS: Record<ConstructionProjectType, string> = {
   hotel: 'Otel',
   industrial: 'Endüstriyel',
   other: 'Diğer',
-};
-
-const STATUS_COLORS: Record<ConstructionProjectStatus, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
-  planning: 'info',
-  active: 'success',
-  on_hold: 'warning',
-  completed: 'default',
-  cancelled: 'error',
 };
 
 interface Props {
@@ -80,6 +66,7 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
   };
 
   return (
+    <Fade in timeout={350}>
     <Card
       variant="outlined"
       sx={{
@@ -88,8 +75,8 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'box-shadow 0.15s',
-        '&:hover': { boxShadow: 3 },
+        transition: 'box-shadow 0.2s, transform 0.2s',
+        '&:hover': { boxShadow: 4, transform: 'translateY(-2px)' },
       }}
     >
       <CardActionArea onClick={() => navigate(`/construction/${project.id}`)} sx={{ flexGrow: 1 }}>
@@ -109,12 +96,7 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
                   />
                 </Tooltip>
               )}
-              <Chip
-                label={STATUS_LABELS[project.status]}
-                color={STATUS_COLORS[project.status]}
-                size="small"
-                variant="outlined"
-              />
+              <ProjectStatusChip status={project.status} />
               {project.project_type && project.project_type !== 'other' && (
                 <Chip
                   label={TYPE_LABELS[project.project_type]}
@@ -263,5 +245,6 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
         )}
       </Menu>
     </Card>
+    </Fade>
   );
 }

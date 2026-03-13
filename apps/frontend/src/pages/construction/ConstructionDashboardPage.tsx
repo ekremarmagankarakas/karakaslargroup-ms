@@ -3,14 +3,16 @@ import DownloadIcon from '@mui/icons-material/Download';
 import GridViewIcon from '@mui/icons-material/GridView';
 import SearchIcon from '@mui/icons-material/Search';
 import TableRowsIcon from '@mui/icons-material/TableRows';
+import ConstructionIcon from '@mui/icons-material/Construction';
 import {
   Box,
+  Card,
   Chip,
-  CircularProgress,
   Fab,
   Grid,
   IconButton,
   InputAdornment,
+  Skeleton,
   Stack,
   TextField,
   Tooltip,
@@ -25,6 +27,7 @@ import { ProjectCard } from '../../components/construction/ProjectCard';
 import { ProjectForm } from '../../components/construction/ProjectForm';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { EmptyState } from '../../components/common/EmptyState';
 import { PaginationControls } from '../../components/common/PaginationControls';
 import { useAuth } from '../../context/AuthContext';
 import { downloadCsv } from '../../utils/exportCsv';
@@ -229,27 +232,30 @@ export function ConstructionDashboardPage() {
 
         {/* Content */}
         {isLoading ? (
-          <Box display="flex" justifyContent="center" py={8}>
-            <CircularProgress />
-          </Box>
+          <Grid container spacing={2}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={i}>
+                <Card variant="outlined" sx={{ p: 2, height: 220 }}>
+                  <Box display="flex" gap={1} mb={1.5}>
+                    <Skeleton variant="rounded" width={56} height={22} />
+                    <Skeleton variant="rounded" width={48} height={22} />
+                  </Box>
+                  <Skeleton variant="text" width="70%" height={24} sx={{ mb: 0.5 }} />
+                  <Skeleton variant="text" width="90%" height={16} />
+                  <Skeleton variant="text" width="60%" height={16} sx={{ mb: 1.5 }} />
+                  <Skeleton variant="text" width="50%" height={14} />
+                  <Skeleton variant="text" width="40%" height={14} sx={{ mb: 1.5 }} />
+                  <Skeleton variant="rounded" width="100%" height={6} />
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         ) : !data || data.items.length === 0 ? (
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            py={10}
-            gap={1}
-          >
-            <Typography variant="h6" color="text.secondary">
-              Proje bulunamadı
-            </Typography>
-            {canCreate && (
-              <Typography variant="body2" color="text.secondary">
-                Sağ alttaki butona tıklayarak yeni proje oluşturabilirsiniz.
-              </Typography>
-            )}
-          </Box>
+          <EmptyState
+            Icon={ConstructionIcon}
+            title="Proje bulunamadı"
+            description={canCreate ? 'Sağ alttaki butona tıklayarak yeni proje oluşturabilirsiniz.' : undefined}
+          />
         ) : viewMode === 'gantt' ? (
           <GanttTimeline projects={data.items} />
         ) : (

@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -147,7 +148,7 @@ export function IssuesLog({ projectId, userRole }: Props) {
       </Box>
 
       {isLoading ? (
-        <Typography variant="body2" color="text.secondary">Yükleniyor...</Typography>
+        <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>
       ) : issues.length === 0 ? (
         <Typography variant="body2" color="text.secondary">Henüz sorun kaydedilmemiş.</Typography>
       ) : (

@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -167,9 +168,7 @@ export function MaterialsTable({ projectId, userRole }: Props) {
       {isError ? (
         <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>
       ) : isLoading ? (
-        <Typography variant="body2" color="text.secondary">
-          Yükleniyor...
-        </Typography>
+        <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>
       ) : materials.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           Henüz malzeme eklenmemiş.

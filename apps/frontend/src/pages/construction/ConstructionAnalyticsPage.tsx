@@ -120,7 +120,8 @@ function ChartBox({ title, children, height = 260 }: ChartBoxProps) {
 
 export function ConstructionAnalyticsPage() {
   const { data, isLoading, isError } = useConstructionAnalytics();
-  const { data: projects = [] } = useProjects({});
+  const { data: projectsData } = useProjects({ limit: 100 });
+  const projects = projectsData?.items ?? [];
   const [sCurveProjectId, setSCurveProjectId] = useState<number | ''>('');
 
   if (isLoading) {
@@ -244,7 +245,7 @@ export function ConstructionAnalyticsPage() {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
-            <Tooltip formatter={(value: number) => formatCurrency(value)} />
+            <Tooltip formatter={(value) => formatCurrency(value as number)} />
             <Legend />
             <Bar dataKey="Bütçe" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
             <Bar dataKey="Gerçekleşen" fill={COLORS[2]} radius={[4, 4, 0, 0]} />
@@ -270,7 +271,7 @@ export function ConstructionAnalyticsPage() {
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number) => formatCurrency(value)} />
+              <Tooltip formatter={(value) => formatCurrency(value as number)} />
               <Legend />
             </PieChart>
           </ChartBox>

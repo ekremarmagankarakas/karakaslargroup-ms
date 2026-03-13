@@ -2,6 +2,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
   Box,
   Chip,
+  CircularProgress,
   Paper,
   Typography,
 } from '@mui/material';
@@ -45,13 +46,7 @@ interface Props {
 export function ProjectAuditLog({ projectId }: Props) {
   const { data: logs = [], isLoading } = useProjectAuditLog(projectId);
 
-  if (isLoading) {
-    return (
-      <Typography color="text.secondary" variant="body2">
-        Yükleniyor...
-      </Typography>
-    );
-  }
+  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
 
   if (logs.length === 0) {
     return (

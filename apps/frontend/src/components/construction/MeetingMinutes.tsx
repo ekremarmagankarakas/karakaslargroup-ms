@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box, Button, Typography, Accordion, AccordionSummary, AccordionDetails,
-  Chip, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Stack, Checkbox, FormControlLabel, Divider, Alert,
+  Chip, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Stack, Checkbox, Divider, Alert,
   Table, TableBody, TableCell, TableHead, TableRow, Paper,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -134,7 +134,7 @@ export default function MeetingMinutes({ projectId, canEdit }: Props) {
   const overdueActions = (m: ConstructionMeeting) =>
     m.actions.filter(a => !a.completed && a.due_date && a.due_date < new Date().toISOString().split('T')[0]);
 
-  if (isLoading) return <Typography sx={{ p: 2 }}>Yükleniyor...</Typography>;
+  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
 
   if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 

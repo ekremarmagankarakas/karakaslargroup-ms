@@ -132,7 +132,7 @@ export function InvoiceList({ projectId, userRole, subcontractors = [] }: Props)
   const totalReceived = invoices.filter((i) => !['paid', 'cancelled'].includes(i.status))
     .reduce((s, i) => s + parseFloat(i.total_amount), 0);
   const totalPaid = invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(i.total_amount), 0);
-  const outstanding = totalReceived;
+
 
   if (isLoading) {
     return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;

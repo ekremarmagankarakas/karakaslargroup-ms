@@ -3,7 +3,6 @@ import {
   Box,
   Collapse,
   Grid,
-  IconButton,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';

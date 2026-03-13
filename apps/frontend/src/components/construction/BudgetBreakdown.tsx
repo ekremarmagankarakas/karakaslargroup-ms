@@ -199,7 +199,7 @@ export function BudgetBreakdown({ projectId, userRole }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `₺${(v / 1000).toFixed(0)}K`} />
-              <RechartsTooltip formatter={(v: number) => `₺${v.toLocaleString('tr-TR')}`} />
+              <RechartsTooltip formatter={(v) => `₺${(v as number).toLocaleString('tr-TR')}`} />
               <Legend />
               <Bar dataKey="Planlanan" fill="#3b82f6" radius={[3, 3, 0, 0]} />
               <Bar dataKey="Gerçekleşen" fill="#f59e0b" radius={[3, 3, 0, 0]} />

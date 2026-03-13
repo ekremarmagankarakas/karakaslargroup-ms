@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  Box, Button, Typography, Chip, IconButton, Tooltip, Dialog, DialogTitle,
+  Box, Button, Typography, Chip, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, Stack, Select, MenuItem,
   FormControl, InputLabel, Paper, Table, TableBody, TableCell, TableHead,
   TableRow, Alert,
@@ -137,7 +137,7 @@ export default function EquipmentRegister({ projectId, canEdit }: Props) {
 
   const overdueCount = items.filter(i => i.maintenance_overdue).length;
 
-  if (isLoading) return <Typography sx={{ p: 2 }}>Yükleniyor...</Typography>;
+  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
 
   if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 

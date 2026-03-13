@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -177,13 +178,7 @@ export function ShipmentList({ projectId, userRole, materials = [] }: Props) {
     });
   };
 
-  if (isLoading) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        Yükleniyor...
-      </Typography>
-    );
-  }
+  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
 
   return (
     <Box>

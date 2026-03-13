@@ -41,6 +41,17 @@ const D = {
   info:      '#38bdf8',   // sky blue
 };
 
+// ── Construction semantic status colors ────────────────────────────────────────
+// Used via CSS custom properties so construction components can reference them
+// without hardcoding per-component
+export const CONSTRUCTION_STATUS_COLORS = {
+  planning:  { bg: 'rgba(56,189,248,0.10)',  border: 'rgba(56,189,248,0.30)',  text: '#0284c7' },
+  active:    { bg: 'rgba(22,163,74,0.10)',   border: 'rgba(22,163,74,0.30)',   text: '#16a34a' },
+  on_hold:   { bg: 'rgba(217,119,6,0.10)',   border: 'rgba(217,119,6,0.30)',   text: '#d97706' },
+  completed: { bg: 'rgba(100,116,139,0.10)', border: 'rgba(100,116,139,0.30)', text: '#64748b' },
+  cancelled: { bg: 'rgba(220,38,38,0.10)',   border: 'rgba(220,38,38,0.30)',   text: '#dc2626' },
+} as const;
+
 function buildTheme(mode: ThemeMode) {
   const isDark = mode === 'dark';
   return createTheme({
@@ -279,6 +290,44 @@ function buildTheme(mode: ThemeMode) {
       MuiBadge: {
         styleOverrides: {
           badge: { fontWeight: 700 },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          root: {
+            minHeight: 44,
+          },
+          indicator: {
+            height: 3,
+            borderRadius: '3px 3px 0 0',
+          },
+          scrollButtons: {
+            '&.Mui-disabled': { opacity: 0.3 },
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '0.8125rem',
+            minHeight: 44,
+            padding: '8px 14px',
+            letterSpacing: 0,
+            '&.Mui-selected': { fontWeight: 700 },
+          },
+        },
+      },
+      MuiTableContainer: {
+        styleOverrides: {
+          root: {
+            '& thead th': {
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+            },
+          },
         },
       },
     },
