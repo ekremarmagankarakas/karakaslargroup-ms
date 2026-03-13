@@ -1,7 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewListIcon from '@mui/icons-material/ViewList';

@@ -16,7 +16,6 @@ import {
   Stack,
   TextField,
   Tooltip,
-  Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';

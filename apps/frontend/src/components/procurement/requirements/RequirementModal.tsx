@@ -36,18 +36,7 @@ import {
 import type { Requirement } from '../../../types';
 import { formatDate, formatPrice } from '../../../utils/formatters';
 import { ConfirmDialog } from '../../common/ConfirmDialog';
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Beklemede',
-  accepted: 'Onaylandı',
-  declined: 'Reddedildi',
-};
-
-const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success' | 'error'> = {
-  pending: 'warning',
-  accepted: 'success',
-  declined: 'error',
-};
+import { RequirementStatusChip } from '../../common/StatusChip';
 
 const ACTION_LABELS: Record<string, string> = {
   created: 'Oluşturuldu',
@@ -91,8 +80,6 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
   const canEdit =
     requirement.status === 'pending' &&
     (user?.role === 'admin' || user?.id === requirement.user_id);
-
-  const statusColor = STATUS_COLORS[requirement.status] ?? 'default';
 
   const handleEditOpen = () => {
     setEditItemName(requirement.item_name);
@@ -213,11 +200,7 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                 <>
                   {/* Status badges */}
                   <Box display="flex" gap={1} mb={2.5} flexWrap="wrap">
-                    <Chip
-                      label={STATUS_LABELS[requirement.status] ?? requirement.status}
-                      color={statusColor}
-                      size="medium"
-                    />
+                    <RequirementStatusChip status={requirement.status} size="medium" />
                     {requirement.paid && (
                       <Chip label="Ödendi" color="info" size="medium" variant="outlined" />
                     )}

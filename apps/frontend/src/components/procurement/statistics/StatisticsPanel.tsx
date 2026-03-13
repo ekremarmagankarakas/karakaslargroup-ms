@@ -4,6 +4,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import SavingsIcon from '@mui/icons-material/Savings';
 import { Box, Button, Dialog, DialogContent, DialogTitle, Grid, LinearProgress, Skeleton, TextField, Tooltip, Typography } from '@mui/material';
+import { SectionCard } from '../../common/SectionCard';
 import { useState } from 'react';
 import { useStatistics } from '../../../hooks/procurement/useStatistics';
 import { useBudgetStatus, useSetBudget } from '../../../hooks/procurement/useBudget';
@@ -67,7 +68,7 @@ export function StatisticsPanel({ filters }: Props) {
       <Grid container spacing={2} mb={3}>
         {[0, 1, 2, 3].map((i) => (
           <Grid size={{ xs: 6, md: 3 }} key={i}>
-            <Skeleton variant="rounded" height={110} sx={{ borderRadius: 3 }} />
+            <Skeleton variant="rounded" height={110} />
           </Grid>
         ))}
       </Grid>
@@ -99,7 +100,7 @@ export function StatisticsPanel({ filters }: Props) {
         <Grid size={{ xs: 6, md: 3 }} key={key}>
           <Box
             sx={{
-              borderRadius: 3,
+              borderRadius: 2,
               overflow: 'hidden',
               height: '100%',
               background: featured ? gradient! : 'transparent',
@@ -185,18 +186,7 @@ export function StatisticsPanel({ filters }: Props) {
       {/* Budget bar */}
       {budget && (
         <Grid size={12}>
-          <Box
-            sx={{
-              bgcolor: 'background.paper',
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              p: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-            }}
-          >
+          <SectionCard padding={2} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <SavingsIcon sx={{ color: '#2563eb', flexShrink: 0 }} />
             <Box flex={1}>
               <Box display="flex" justifyContent="space-between" mb={0.5}>
@@ -226,7 +216,7 @@ export function StatisticsPanel({ filters }: Props) {
                 Bütçe Belirle
               </Button>
             )}
-          </Box>
+          </SectionCard>
         </Grid>
       )}
     </Grid>

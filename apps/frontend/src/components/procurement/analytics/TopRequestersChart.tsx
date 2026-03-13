@@ -1,4 +1,4 @@
-import { Box, Paper, Skeleton, Typography } from '@mui/material';
+import { Paper, Skeleton, Typography } from '@mui/material';
 import {
   Bar,
   BarChart,
@@ -11,6 +11,7 @@ import {
 import type { AnalyticsFilters } from '../../../types';
 import { formatPrice } from '../../../utils/formatters';
 import { useTopRequesters } from '../../../hooks/procurement/useAnalytics';
+import { SectionCard } from '../../common/SectionCard';
 
 interface TooltipPayloadEntry {
   name: string;
@@ -60,7 +61,7 @@ function CustomTooltip({ active, payload }: ChartTooltipProps) {
 export function TopRequestersChart({ filters }: Props) {
   const { data, isLoading } = useTopRequesters(8, filters);
 
-  if (isLoading) return <Skeleton variant="rounded" height={300} sx={{ borderRadius: 3 }} />;
+  if (isLoading) return <Skeleton variant="rounded" height={300} />;
 
   const chartData = (data?.data ?? []).map((d) => ({
     username: d.username,
@@ -70,10 +71,7 @@ export function TopRequestersChart({ filters }: Props) {
   }));
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5 }}>
-      <Typography variant="subtitle1" fontWeight={700} mb={2}>
-        En Çok Talep Edenler
-      </Typography>
+    <SectionCard title="En Çok Talep Edenler">
       <ResponsiveContainer width="100%" height={300}>
         <BarChart layout="vertical" data={chartData} margin={{ top: 4, right: 24, bottom: 0, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" horizontal={false} />
@@ -87,6 +85,6 @@ export function TopRequestersChart({ filters }: Props) {
           <Bar dataKey="total_price" fill="#2563eb" radius={[0, 4, 4, 0]} maxBarSize={24} />
         </BarChart>
       </ResponsiveContainer>
-    </Box>
+    </SectionCard>
   );
 }

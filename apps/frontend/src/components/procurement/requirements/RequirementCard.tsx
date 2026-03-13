@@ -6,32 +6,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { Box, Button, Chip, IconButton, Tooltip, Typography } from '@mui/material';
 import type { Requirement } from '../../../types';
 import { formatDate, formatPrice } from '../../../utils/formatters';
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Beklemede',
-  accepted: 'Onaylandı',
-  declined: 'Reddedildi',
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  low: 'Düşük',
-  normal: 'Normal',
-  high: 'Yüksek',
-  urgent: 'Acil',
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  low: '#64748b',
-  normal: '#2563eb',
-  high: '#d97706',
-  urgent: '#dc2626',
-};
-
-const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success' | 'error'> = {
-  pending: 'warning',
-  accepted: 'success',
-  declined: 'error',
-};
+import { RequirementStatusChip, PriorityChip, ColoredChip } from '../../common/StatusChip';
 
 const STATUS_ACCENT: Record<string, string> = {
   pending: '#d97706',
@@ -55,7 +30,7 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
       sx={{
         position: 'relative',
         bgcolor: 'background.paper',
-        borderRadius: 3,
+        borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
         borderTop: `3px solid ${accent}`,
@@ -105,33 +80,14 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
 
       {/* Status + paid + priority */}
       <Box display="flex" gap={0.75} flexWrap="wrap" alignItems="center">
-        <Chip
-          label={STATUS_LABELS[requirement.status] ?? requirement.status}
-          color={STATUS_COLORS[requirement.status] ?? 'default'}
-          size="small"
-        />
+        <RequirementStatusChip status={requirement.status} />
         {requirement.priority && requirement.priority !== 'normal' && (
-          <Chip
-            label={PRIORITY_LABELS[requirement.priority] ?? requirement.priority}
-            size="small"
-            sx={{
-              bgcolor: `${PRIORITY_COLORS[requirement.priority]}18`,
-              color: PRIORITY_COLORS[requirement.priority],
-              fontWeight: 600,
-              border: `1px solid ${PRIORITY_COLORS[requirement.priority]}40`,
-            }}
-          />
+          <PriorityChip priority={requirement.priority} />
         )}
         {requirement.category_name && (
-          <Chip
+          <ColoredChip
             label={requirement.category_name}
-            size="small"
-            sx={{
-              bgcolor: requirement.category_color ? `${requirement.category_color}18` : 'action.hover',
-              color: requirement.category_color ?? 'text.secondary',
-              border: '1px solid',
-              borderColor: requirement.category_color ? `${requirement.category_color}40` : 'divider',
-            }}
+            color={requirement.category_color ?? '#64748b'}
           />
         )}
         {requirement.paid && (

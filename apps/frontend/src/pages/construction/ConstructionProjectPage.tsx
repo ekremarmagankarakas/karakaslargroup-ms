@@ -119,7 +119,6 @@ export function ConstructionProjectPage() {
           bgcolor: 'background.default',
           borderBottom: '1px solid',
           borderColor: 'divider',
-          px: { xs: 0, sm: 0 },
           pt: 2,
           pb: 0,
           mx: { xs: -2, sm: -3 },

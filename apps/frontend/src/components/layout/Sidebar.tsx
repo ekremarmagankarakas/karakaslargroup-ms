@@ -11,7 +11,6 @@ import PeopleIcon from '@mui/icons-material/People';
 import {
   Avatar,
   Box,
-  Chip,
   Divider,
   Drawer,
   IconButton,

@@ -1,4 +1,4 @@
-import { Box, Paper, Skeleton, Typography } from '@mui/material';
+import { Paper, Skeleton, Typography } from '@mui/material';
 import {
   Bar,
   BarChart,
@@ -12,6 +12,7 @@ import {
 import type { AnalyticsFilters } from '../../../types';
 import { formatPrice } from '../../../utils/formatters';
 import { useLocationStats } from '../../../hooks/procurement/useAnalytics';
+import { SectionCard } from '../../common/SectionCard';
 
 const COLORS = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706', '#dc2626'];
 
@@ -67,7 +68,7 @@ function CustomTooltip({ active, payload }: ChartTooltipProps) {
 export function SpendByLocationChart({ filters }: Props) {
   const { data, isLoading } = useLocationStats(filters);
 
-  if (isLoading) return <Skeleton variant="rounded" height={280} sx={{ borderRadius: 3 }} />;
+  if (isLoading) return <Skeleton variant="rounded" height={280} />;
 
   const chartData = (data?.data ?? []).map((d) => ({
     location_name: d.location_name,
@@ -79,20 +80,16 @@ export function SpendByLocationChart({ filters }: Props) {
 
   if (chartData.length === 0) {
     return (
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5 }}>
-        <Typography variant="subtitle1" fontWeight={700} mb={2}>Lokasyona Göre Harcama</Typography>
+      <SectionCard title="Lokasyona Göre Harcama">
         <Typography variant="body2" color="text.disabled" textAlign="center" py={4}>
           Lokasyon verisi bulunamadı
         </Typography>
-      </Box>
+      </SectionCard>
     );
   }
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5 }}>
-      <Typography variant="subtitle1" fontWeight={700} mb={2}>
-        Lokasyona Göre Harcama
-      </Typography>
+    <SectionCard title="Lokasyona Göre Harcama">
       <ResponsiveContainer width="100%" height={280}>
         <BarChart layout="vertical" data={chartData} margin={{ top: 4, right: 24, bottom: 0, left: 16 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" horizontal={false} />
@@ -115,6 +112,6 @@ export function SpendByLocationChart({ filters }: Props) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-    </Box>
+    </SectionCard>
   );
 }
