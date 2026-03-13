@@ -1,14 +1,11 @@
 import {
   Alert,
   Box,
-  Card,
-  CardContent,
   CircularProgress,
   FormControl,
   Grid,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   Typography,
 } from '@mui/material';
@@ -28,6 +25,9 @@ import {
 } from 'recharts';
 import { ConstructionChatWidget } from '../../components/construction/ConstructionChatWidget';
 import SCurveChart from '../../components/construction/SCurveChart';
+import { PageHeader } from '../../components/common/PageHeader';
+import { SectionCard } from '../../components/common/SectionCard';
+import { StatCard } from '../../components/common/StatCard';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useConstructionAnalytics } from '../../hooks/construction/useConstructionAnalytics';
 import { useProjects } from '../../hooks/construction/useConstruction';
@@ -67,54 +67,13 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-interface StatCardProps {
-  label: string;
-  value: string;
-}
-
-function StatCard({ label, value }: StatCardProps) {
+function ChartBox({ title, children, height = 260 }: { title: string; children: React.ReactNode; height?: number }) {
   return (
-    <Card
-      variant="outlined"
-      sx={{ borderRadius: 3, bgcolor: 'background.paper', borderColor: 'divider' }}
-    >
-      <CardContent>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          {label}
-        </Typography>
-        <Typography variant="h5" fontWeight={700}>
-          {value}
-        </Typography>
-      </CardContent>
-    </Card>
-  );
-}
-
-interface ChartBoxProps {
-  title: string;
-  children: React.ReactNode;
-  height?: number;
-}
-
-function ChartBox({ title, children, height = 260 }: ChartBoxProps) {
-  return (
-    <Box
-      sx={{
-        bgcolor: 'background.paper',
-        borderRadius: 3,
-        border: '1px solid',
-        borderColor: 'divider',
-        p: 2.5,
-        height: '100%',
-      }}
-    >
-      <Typography variant="subtitle1" fontWeight={700} mb={2}>
-        {title}
-      </Typography>
+    <SectionCard title={title} sx={{ height: '100%' }}>
       <ResponsiveContainer width="100%" height={height}>
         {children as React.ReactElement}
       </ResponsiveContainer>
-    </Box>
+    </SectionCard>
   );
 }
 
@@ -170,31 +129,18 @@ export function ConstructionAnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <Box mb={3} mt={1}>
-        <Typography variant="h4" sx={{ mb: 0.25 }}>
-          İnşaat Analitikleri
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Proje ve malzeme istatistikleri
-        </Typography>
-      </Box>
+      <PageHeader title="İnşaat Analitikleri" subtitle="Proje ve malzeme istatistikleri" />
 
       {/* Summary stat cards */}
-      <Grid container spacing={2.5} mb={3}>
+      <Grid container spacing={2} mb={3}>
         <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard label="Toplam Bütçe" value={formatCurrency(data?.total_budget ?? 0)} />
+          <StatCard label="Toplam Bütçe" value={formatCurrency(data?.total_budget ?? 0)} accentColor="#2563eb" />
         </Grid>
         <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
-            label="Toplam Gerçekleşen Maliyet"
-            value={formatCurrency(data?.total_actual_cost ?? 0)}
-          />
+          <StatCard label="Toplam Gerçekleşen Maliyet" value={formatCurrency(data?.total_actual_cost ?? 0)} accentColor="#d97706" />
         </Grid>
         <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
-            label="Ort. İlerleme"
-            value={`%${(data?.avg_progress ?? 0).toFixed(1)}`}
-          />
+          <StatCard label="Ort. İlerleme" value={`%${(data?.avg_progress ?? 0).toFixed(1)}`} accentColor="#16a34a" />
         </Grid>
       </Grid>
 
@@ -294,16 +240,11 @@ export function ConstructionAnalyticsPage() {
       </Grid>
       {/* S-Curve section */}
       <Box mb={6}>
-        <Paper
-          variant="outlined"
-          sx={{ p: 2.5, borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 3 }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-            <Box>
-              <Typography variant="subtitle1" fontWeight={700}>S-Eğrisi Analizi</Typography>
-              <Typography variant="caption" color="text.secondary">Planlanan vs gerçekleşen ilerleme (aylık)</Typography>
-            </Box>
-            <FormControl size="small" sx={{ minWidth: 240 }}>
+        <SectionCard
+          title="S-Eğrisi Analizi"
+          subtitle="Planlanan vs gerçekleşen ilerleme (aylık)"
+          action={
+            <FormControl size="small" sx={{ minWidth: 220 }}>
               <InputLabel>Proje Seçin</InputLabel>
               <Select
                 value={sCurveProjectId}
@@ -316,7 +257,8 @@ export function ConstructionAnalyticsPage() {
                 ))}
               </Select>
             </FormControl>
-          </Box>
+          }
+        >
           {sCurveProjectId ? (
             <SCurveChart projectId={sCurveProjectId as number} />
           ) : (
@@ -324,7 +266,7 @@ export function ConstructionAnalyticsPage() {
               S-eğrisini görmek için bir proje seçin.
             </Typography>
           )}
-        </Paper>
+        </SectionCard>
       </Box>
 
       <ConstructionChatWidget />

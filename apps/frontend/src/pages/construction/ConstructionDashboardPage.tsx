@@ -25,10 +25,11 @@ import { FavoriteProjectsSection } from '../../components/construction/FavoriteP
 import { GanttTimeline } from '../../components/construction/GanttTimeline';
 import { ProjectCard } from '../../components/construction/ProjectCard';
 import { ProjectForm } from '../../components/construction/ProjectForm';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { EmptyState } from '../../components/common/EmptyState';
+import { PageHeader } from '../../components/common/PageHeader';
 import { PaginationControls } from '../../components/common/PaginationControls';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { downloadCsv } from '../../utils/exportCsv';
 import {
@@ -112,7 +113,6 @@ export function ConstructionDashboardPage() {
 
   return (
     <DashboardLayout hideChatWidget>
-      <Box sx={{ p: 3 }}>
         {/* Stats Panel */}
         <ConstructionStatsPanel />
 
@@ -124,47 +124,43 @@ export function ConstructionDashboardPage() {
         />
 
         {/* Header */}
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-          <Box>
-            <Typography variant="h5" fontWeight={700}>
-              İnşaat Projeleri
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Projeleri görüntüle, malzemeleri ve ilerlemeyi takip et
-            </Typography>
-          </Box>
-          <Box display="flex" gap={0.5}>
-            {canCreate && (
-              <Tooltip title="CSV İndir">
+        <PageHeader
+          title="İnşaat Projeleri"
+          subtitle="Projeleri görüntüle, malzemeleri ve ilerlemeyi takip et"
+          actions={
+            <Box display="flex" gap={0.5}>
+              {canCreate && (
+                <Tooltip title="CSV İndir">
+                  <IconButton
+                    size="small"
+                    onClick={() => downloadCsv('/construction/export/projects', 'projeler.csv')}
+                    sx={{ color: 'text.secondary' }}
+                  >
+                    <DownloadIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip title="Kart Görünümü">
                 <IconButton
                   size="small"
-                  onClick={() => downloadCsv('/construction/export/projects', 'projeler.csv')}
-                  sx={{ color: 'text.secondary' }}
+                  onClick={() => { setViewMode('grid'); localStorage.setItem('construction_view_preference', 'grid'); }}
+                  color={viewMode === 'grid' ? 'primary' : 'default'}
                 >
-                  <DownloadIcon fontSize="small" />
+                  <GridViewIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-            )}
-            <Tooltip title="Kart Görünümü">
-              <IconButton
-                size="small"
-                onClick={() => { setViewMode('grid'); localStorage.setItem('construction_view_preference', 'grid'); }}
-                color={viewMode === 'grid' ? 'primary' : 'default'}
-              >
-                <GridViewIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Gantt Görünümü">
-              <IconButton
-                size="small"
-                onClick={() => { setViewMode('gantt'); localStorage.setItem('construction_view_preference', 'gantt'); }}
-                color={viewMode === 'gantt' ? 'primary' : 'default'}
-              >
-                <TableRowsIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Box>
+              <Tooltip title="Gantt Görünümü">
+                <IconButton
+                  size="small"
+                  onClick={() => { setViewMode('gantt'); localStorage.setItem('construction_view_preference', 'gantt'); }}
+                  color={viewMode === 'gantt' ? 'primary' : 'default'}
+                >
+                  <TableRowsIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          }
+        />
 
         {/* Filters */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mb={3} alignItems="center">
@@ -325,7 +321,6 @@ export function ConstructionDashboardPage() {
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
         />
-      </Box>
     </DashboardLayout>
   );
 }
