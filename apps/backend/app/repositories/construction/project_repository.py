@@ -22,6 +22,20 @@ class ConstructionProjectRepository:
         )
         return result.unique().scalar_one_or_none()
 
+    async def get_by_ids(self, project_ids: list[int]) -> list[ConstructionProject]:
+        if not project_ids:
+            return []
+        result = await self.db.execute(
+            select(ConstructionProject)
+            .options(
+                joinedload(ConstructionProject.location),
+                joinedload(ConstructionProject.creator),
+            )
+            .where(ConstructionProject.id.in_(project_ids))
+            .order_by(ConstructionProject.created_at.desc())
+        )
+        return list(result.scalars().unique().all())
+
     async def get_team_counts(self, project_ids: list[int]) -> dict[int, int]:
         if not project_ids:
             return {}

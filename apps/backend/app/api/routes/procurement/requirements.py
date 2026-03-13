@@ -48,6 +48,7 @@ def _get_service(db: AsyncSession) -> RequirementService:
         notif_repo=NotificationRepository(db),
         audit_repo=AuditLogRepository(db),
         location_repo=LocationRepository(db),
+        comment_repo=CommentRepository(db),
     )
 
 
@@ -254,20 +255,8 @@ async def list_comments(
     requirement_id: int,
     _: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
-):
-    repo = CommentRepository(db)
-    comments = await repo.get_by_requirement(requirement_id)
-    return [
-        CommentResponse(
-            id=c.id,
-            requirement_id=c.requirement_id,
-            user_id=c.user_id,
-            username=c.user.username,
-            body=c.body,
-            created_at=c.created_at,
-        )
-        for c in comments
-    ]
+) -> list[CommentResponse]:
+    return await _get_service(db).list_comments(requirement_id)
 
 
 @router.post("/{requirement_id}/comments", response_model=CommentResponse, status_code=201)
@@ -276,17 +265,8 @@ async def create_comment(
     body: CommentCreate,
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
-):
-    repo = CommentRepository(db)
-    comment = await repo.create(requirement_id=requirement_id, user_id=current_user.id, body=body.body)
-    return CommentResponse(
-        id=comment.id,
-        requirement_id=comment.requirement_id,
-        user_id=comment.user_id,
-        username=comment.user.username,
-        body=comment.body,
-        created_at=comment.created_at,
-    )
+) -> CommentResponse:
+    return await _get_service(db).create_comment(requirement_id, current_user.id, body.body)
 
 
 @router.get("/{requirement_id}/audit", response_model=list[AuditLogResponse])
@@ -294,19 +274,5 @@ async def get_audit_log(
     requirement_id: int,
     _: ManagerOrAdmin,
     db: Annotated[AsyncSession, Depends(get_db)],
-):
-    repo = AuditLogRepository(db)
-    logs = await repo.get_for_requirement(requirement_id)
-    return [
-        AuditLogResponse(
-            id=log.id,
-            requirement_id=log.requirement_id,
-            actor_id=log.actor_id,
-            actor_username=log.actor.username,
-            action=log.action.value,
-            old_value=log.old_value,
-            new_value=log.new_value,
-            created_at=log.created_at,
-        )
-        for log in logs
-    ]
+) -> list[AuditLogResponse]:
+    return await _get_service(db).get_audit_log(requirement_id)

@@ -13,9 +13,7 @@ from app.schemas.construction.project_member import (
 )
 from app.schemas.construction.project import PaginatedProjectsResponse
 from app.services.construction.project_member_service import ProjectMemberService
-from app.services.construction.project_service import ConstructionProjectService
 from app.repositories.construction.project_favorite_repository import ConstructionProjectFavoriteRepository
-import math
 
 router = APIRouter()
 
@@ -42,22 +40,8 @@ async def get_my_projects(
 
     project_repo = ConstructionProjectRepository(db)
     favorite_repo = ConstructionProjectFavoriteRepository(db)
-    project_service = ConstructionProjectService(
-        project_repo=project_repo,
-        favorite_repo=favorite_repo,
-    )
+    projects = await project_repo.get_by_ids(list(project_ids))
     favorite_ids = await favorite_repo.get_ids_for_user(current_user.id)
-
-    from sqlalchemy import select
-    from app.models.construction.project import ConstructionProject
-    from sqlalchemy.orm import joinedload
-    result = await db.execute(
-        select(ConstructionProject)
-        .options(joinedload(ConstructionProject.location), joinedload(ConstructionProject.creator))
-        .where(ConstructionProject.id.in_(project_ids))
-        .order_by(ConstructionProject.created_at.desc())
-    )
-    projects = list(result.scalars().unique().all())
 
     from app.services.construction.project_service import _build_project_response
     items = [_build_project_response(p, favorite_ids) for p in projects]
