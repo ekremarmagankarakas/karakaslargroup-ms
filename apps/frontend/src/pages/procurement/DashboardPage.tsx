@@ -33,7 +33,6 @@ import { PaginationControls } from '../../components/common/PaginationControls';
 import { EmptyState } from '../../components/common/EmptyState';
 import { PageHeader } from '../../components/common/PageHeader';
 import { SectionCard } from '../../components/common/SectionCard';
-import { FavoritesSection } from '../../components/procurement/favorites/FavoritesSection';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { RequirementCard } from '../../components/procurement/requirements/RequirementCard';
 import { RequirementFilters as FiltersBar } from '../../components/procurement/requirements/RequirementFilters';
@@ -314,11 +313,6 @@ export function DashboardPage() {
           </Box>
         )}
         </Box>
-      </SectionCard>
-
-      {/* ── Favorites ── */}
-      <SectionCard title="Favorilerim" sx={{ mb: 6 }}>
-        <FavoritesSection />
       </SectionCard>
 
       {/* Modals */}

@@ -4,6 +4,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
 import {
@@ -63,6 +64,7 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
 
   const procurementItems: NavItem[] = [
     { label: 'Ana Sayfa', path: '/dashboard', icon: <DashboardIcon sx={{ fontSize: 18 }} /> },
+    { label: 'Favoriler', path: '/favorites', icon: <FavoriteIcon sx={{ fontSize: 18 }} /> },
     { label: 'Analitik', path: '/analytics', icon: <AnalyticsIcon sx={{ fontSize: 18 }} /> },
     ...(user?.role === 'manager' || user?.role === 'admin' || user?.role === 'accountant'
       ? [{ label: 'Bütçe', path: '/budget', icon: <AttachMoneyIcon sx={{ fontSize: 18 }} /> }]
@@ -83,7 +85,7 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
   const sections: NavSection[] = [
     {
       title: 'Tedarik',
-      prefix: '/dashboard|/analytics|/budget|/users|/locations',
+      prefix: '/dashboard|/favorites|/analytics|/budget|/users|/locations',
       items: procurementItems,
     },
     {
