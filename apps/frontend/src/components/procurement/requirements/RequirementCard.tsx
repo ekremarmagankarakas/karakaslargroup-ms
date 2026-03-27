@@ -8,12 +8,6 @@ import type { Requirement } from '../../../types';
 import { formatDate, formatPrice } from '../../../utils/formatters';
 import { RequirementStatusChip, PriorityChip, ColoredChip } from '../../common/StatusChip';
 
-const STATUS_ACCENT: Record<string, string> = {
-  pending: '#d97706',
-  accepted: '#16a34a',
-  declined: '#dc2626',
-};
-
 interface Props {
   requirement: Requirement;
   onClick: () => void;
@@ -22,8 +16,6 @@ interface Props {
 }
 
 export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpdateStatus }: Props) {
-  const accent = STATUS_ACCENT[requirement.status] ?? '#94a3b8';
-
   return (
     <Box
       onClick={onClick}
@@ -33,15 +25,10 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
-        borderTop: `3px solid ${accent}`,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         cursor: 'pointer',
         overflow: 'hidden',
-        transition: 'box-shadow 0.15s ease, transform 0.15s ease',
-        '&:hover': {
-          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-          transform: 'translateY(-2px)',
-        },
+        transition: 'box-shadow 0.15s ease',
+        '&:hover': { boxShadow: 3 },
         p: 2.5,
         pr: 4.5,
       }}
@@ -72,7 +59,7 @@ export function RequirementCard({ requirement, onClick, onToggleFavorite, onUpda
           mt: 1.5,
           mb: 1.5,
           lineHeight: 1,
-          fontFamily: '"Inter", sans-serif',
+          fontFamily: '"Fraunces", serif',
         }}
       >
         ₺{formatPrice(requirement.price)}

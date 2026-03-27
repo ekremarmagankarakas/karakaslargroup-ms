@@ -25,7 +25,7 @@ import type { RequirementPriority } from '../../../types';
 
 const PRIORITY_OPTIONS: { value: RequirementPriority; label: string; color: string }[] = [
   { value: 'low', label: 'Düşük', color: '#64748b' },
-  { value: 'normal', label: 'Normal', color: '#2563eb' },
+  { value: 'normal', label: 'Normal', color: '#4338ca' },
   { value: 'high', label: 'Yüksek', color: '#d97706' },
   { value: 'urgent', label: 'Acil', color: '#dc2626' },
 ];

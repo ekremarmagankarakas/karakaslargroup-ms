@@ -1,12 +1,12 @@
 import {
   Alert,
   Box,
-  CircularProgress,
   FormControl,
   Grid,
   InputLabel,
   MenuItem,
   Select,
+  Skeleton,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -27,12 +27,11 @@ import { ConstructionChatWidget } from '../../components/construction/Constructi
 import SCurveChart from '../../components/construction/SCurveChart';
 import { PageHeader } from '../../components/common/PageHeader';
 import { SectionCard } from '../../components/common/SectionCard';
-import { StatCard } from '../../components/common/StatCard';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useConstructionAnalytics } from '../../hooks/construction/useConstructionAnalytics';
 import { useProjects } from '../../hooks/construction/useConstruction';
 
-const COLORS = ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#64748b'];
+const COLORS = ['#4338ca', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#64748b'];
 
 const STATUS_LABELS: Record<string, string> = {
   planning: 'Planlama',
@@ -86,8 +85,10 @@ export function ConstructionAnalyticsPage() {
   if (isLoading) {
     return (
       <DashboardLayout hideChatWidget>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-          <CircularProgress />
+        <Box sx={{ pt: 2 }}>
+          <Skeleton variant="rounded" height={36} sx={{ mb: 3 }} />
+          <Skeleton variant="rounded" height={56} sx={{ mb: 3 }} />
+          <Skeleton variant="rounded" height={300} />
         </Box>
       </DashboardLayout>
     );
@@ -129,20 +130,44 @@ export function ConstructionAnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <PageHeader title="İnşaat Analitikleri" subtitle="Proje ve malzeme istatistikleri" />
+      <PageHeader title="İnşaat Analitikleri" />
 
-      {/* Summary stat cards */}
-      <Grid container spacing={2} mb={3}>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard label="Toplam Bütçe" value={formatCurrency(data?.total_budget ?? 0)} accentColor="#2563eb" />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard label="Toplam Gerçekleşen Maliyet" value={formatCurrency(data?.total_actual_cost ?? 0)} accentColor="#d97706" />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard label="Ort. İlerleme" value={`%${(data?.avg_progress ?? 0).toFixed(1)}`} accentColor="#16a34a" />
-        </Grid>
-      </Grid>
+      {/* Summary stats strip */}
+      <Box
+        sx={{
+          display: 'flex',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          overflow: 'hidden',
+          mb: 3,
+        }}
+      >
+        {([
+          { label: 'Toplam Bütçe', value: formatCurrency(data?.total_budget ?? 0) },
+          { label: 'Gerçekleşen Maliyet', value: formatCurrency(data?.total_actual_cost ?? 0) },
+          { label: 'Ort. İlerleme', value: `%${(data?.avg_progress ?? 0).toFixed(1)}` },
+        ] as { label: string; value: string }[]).map(({ label, value }, i, arr) => (
+          <Box
+            key={label}
+            sx={{
+              flex: 1,
+              px: { xs: 1.5, sm: 2 },
+              py: 1.75,
+              borderRight: i < arr.length - 1 ? '1px solid' : 'none',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography sx={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 }}>
+              {label}
+            </Typography>
+            <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '1.1rem', sm: '1.375rem' }, fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+              {value}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
 
       {/* Row 1: Status donut + Type bar */}
       <Grid container spacing={2.5} mb={2.5}>
@@ -193,8 +218,8 @@ export function ConstructionAnalyticsPage() {
             <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
             <Tooltip formatter={(value) => formatCurrency(value as number)} />
             <Legend />
-            <Bar dataKey="Bütçe" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Gerçekleşen" fill={COLORS[2]} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Bütçe" fill="#4338ca" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Gerçekleşen" fill="#f59e0b" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartBox>
       </Box>

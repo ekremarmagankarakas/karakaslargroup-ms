@@ -3,7 +3,6 @@ import DownloadIcon from '@mui/icons-material/Download';
 import GridViewIcon from '@mui/icons-material/GridView';
 import SearchIcon from '@mui/icons-material/Search';
 import TableRowsIcon from '@mui/icons-material/TableRows';
-import ConstructionIcon from '@mui/icons-material/Construction';
 import {
   Box,
   Card,
@@ -12,9 +11,13 @@ import {
   Grid,
   IconButton,
   InputAdornment,
+  MenuItem,
+  Select,
   Skeleton,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
 } from '@mui/material';
 import { useState } from 'react';
@@ -125,9 +128,25 @@ export function ConstructionDashboardPage() {
         {/* Header */}
         <PageHeader
           title="İnşaat Projeleri"
-          subtitle="Projeleri görüntüle, malzemeleri ve ilerlemeyi takip et"
           actions={
-            <Box display="flex" gap={0.5}>
+            <Box display="flex" gap={1} alignItems="center">
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                size="small"
+                onChange={(_, v) => {
+                  if (!v) return;
+                  setViewMode(v);
+                  localStorage.setItem('construction_view_preference', v);
+                }}
+              >
+                <ToggleButton value="grid" aria-label="kart görünümü">
+                  <Tooltip title="Kart Görünümü"><GridViewIcon sx={{ fontSize: 18 }} /></Tooltip>
+                </ToggleButton>
+                <ToggleButton value="gantt" aria-label="gantt görünümü">
+                  <Tooltip title="Gantt Görünümü"><TableRowsIcon sx={{ fontSize: 18 }} /></Tooltip>
+                </ToggleButton>
+              </ToggleButtonGroup>
               {canCreate && (
                 <Tooltip title="CSV İndir">
                   <IconButton
@@ -139,24 +158,6 @@ export function ConstructionDashboardPage() {
                   </IconButton>
                 </Tooltip>
               )}
-              <Tooltip title="Kart Görünümü">
-                <IconButton
-                  size="small"
-                  onClick={() => { setViewMode('grid'); localStorage.setItem('construction_view_preference', 'grid'); }}
-                  color={viewMode === 'grid' ? 'primary' : 'default'}
-                >
-                  <GridViewIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Gantt Görünümü">
-                <IconButton
-                  size="small"
-                  onClick={() => { setViewMode('gantt'); localStorage.setItem('construction_view_preference', 'gantt'); }}
-                  color={viewMode === 'gantt' ? 'primary' : 'default'}
-                >
-                  <TableRowsIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
             </Box>
           }
         />
@@ -196,22 +197,20 @@ export function ConstructionDashboardPage() {
               />
             ))}
           </Box>
-          <Box display="flex" gap={0.75} flexWrap="wrap">
+          <Select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value as ConstructionProjectType | '');
+              setPage(1);
+            }}
+            size="small"
+            displayEmpty
+            sx={{ minWidth: 140 }}
+          >
             {TYPE_FILTER_OPTIONS.map((opt) => (
-              <Chip
-                key={opt.value}
-                label={opt.label}
-                onClick={() => {
-                  setTypeFilter(opt.value as ConstructionProjectType | '');
-                  setPage(1);
-                }}
-                variant={typeFilter === opt.value ? 'filled' : 'outlined'}
-                color={typeFilter === opt.value ? 'secondary' : 'default'}
-                size="small"
-                sx={{ cursor: 'pointer' }}
-              />
+              <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
             ))}
-          </Box>
+          </Select>
           <Chip
             label="Projelerim"
             onClick={() => {
@@ -247,7 +246,6 @@ export function ConstructionDashboardPage() {
           </Grid>
         ) : !data || data.items.length === 0 ? (
           <EmptyState
-            Icon={ConstructionIcon}
             title="Proje bulunamadı"
             description={canCreate ? 'Sağ alttaki butona tıklayarak yeni proje oluşturabilirsiniz.' : undefined}
           />

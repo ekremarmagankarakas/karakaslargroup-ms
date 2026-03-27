@@ -5,7 +5,6 @@ import HistoryIcon from '@mui/icons-material/History';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import SendIcon from '@mui/icons-material/Send';
 import {
-  Avatar,
   Box,
   Button,
   Chip,
@@ -207,45 +206,34 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                   </Box>
 
                   {/* Details grid */}
-                  <Box
-                    sx={{
-                      bgcolor: 'action.hover',
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      p: 2,
-                      mb: 2,
-                    }}
-                  >
-                    <Grid container spacing={1.5}>
+                  <Grid container spacing={1.5} mb={2}>
+                    <Grid size={6}>
+                      <Typography variant="caption" color="text.disabled" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.65rem', display: 'block', mb: 0.25 }}>
+                        Fiyat
+                      </Typography>
+                      <Typography variant="body1" fontWeight={700} color="primary.main">
+                        {formatPrice(requirement.price)} ₺
+                      </Typography>
+                    </Grid>
+                    <Grid size={6}>
+                      <Typography variant="caption" color="text.disabled" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.65rem', display: 'block', mb: 0.25 }}>
+                        Talep Eden
+                      </Typography>
+                      <Typography variant="body2" fontWeight={500}>
+                        {requirement.username}
+                      </Typography>
+                    </Grid>
+                    {requirement.approved_by_username && (
                       <Grid size={6}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>
-                          Fiyat
-                        </Typography>
-                        <Typography variant="body1" fontWeight={700} color="primary.main">
-                          {formatPrice(requirement.price)} ₺
-                        </Typography>
-                      </Grid>
-                      <Grid size={6}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>
-                          Talep Eden
+                        <Typography variant="caption" color="text.disabled" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.65rem', display: 'block', mb: 0.25 }}>
+                          Onaylayan
                         </Typography>
                         <Typography variant="body2" fontWeight={500}>
-                          {requirement.username}
+                          {requirement.approved_by_username}
                         </Typography>
                       </Grid>
-                      {requirement.approved_by_username && (
-                        <Grid size={6}>
-                          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>
-                            Onaylayan
-                          </Typography>
-                          <Typography variant="body2" fontWeight={500}>
-                            {requirement.approved_by_username}
-                          </Typography>
-                        </Grid>
-                      )}
-                    </Grid>
-                  </Box>
+                    )}
+                  </Grid>
 
                   {/* Explanation */}
                   {requirement.explanation && (
@@ -379,19 +367,14 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                   Henüz yorum yok
                 </Typography>
               ) : (
-                <Box display="flex" flexDirection="column" gap={1.5} mb={2}>
+                <Box display="flex" flexDirection="column" gap={1} mb={2}>
                   {comments.map((c) => (
-                    <Box key={c.id} display="flex" gap={1.5}>
-                      <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.75rem', flexShrink: 0 }}>
-                        {c.username.slice(0, 2).toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ bgcolor: 'action.hover', borderRadius: 2, px: 1.5, py: 1, flex: 1 }}>
-                        <Box display="flex" gap={1} alignItems="center" mb={0.5}>
-                          <Typography variant="caption" fontWeight={600}>{c.username}</Typography>
-                          <Typography variant="caption" color="text.disabled">{formatDate(c.created_at)}</Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>{c.body}</Typography>
+                    <Box key={c.id} sx={{ bgcolor: 'action.hover', borderRadius: 1, px: 1.5, py: 1 }}>
+                      <Box display="flex" gap={1} alignItems="center" mb={0.25}>
+                        <Typography variant="caption" fontWeight={600}>{c.username}</Typography>
+                        <Typography variant="caption" color="text.disabled">{formatDate(c.created_at)}</Typography>
                       </Box>
+                      <Typography variant="body2" sx={{ lineHeight: 1.6 }}>{c.body}</Typography>
                     </Box>
                   ))}
                 </Box>
@@ -433,23 +416,10 @@ export function RequirementModal({ requirement, open, onClose }: Props) {
                 </Typography>
               ) : (
                 <Box display="flex" flexDirection="column" gap={0}>
-                  {auditLogs.map((log, idx) => (
-                    <Box key={log.id} display="flex" gap={1.5} sx={{ position: 'relative' }}>
-                      {/* Timeline line */}
-                      {idx < auditLogs.length - 1 && (
-                        <Box sx={{ position: 'absolute', left: 11, top: 28, bottom: 0, width: 2, bgcolor: 'divider' }} />
-                      )}
-                      <Box
-                        sx={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: '50%',
-                          bgcolor: 'primary.main',
-                          flexShrink: 0,
-                          mt: 0.25,
-                        }}
-                      />
-                      <Box pb={2} flex={1}>
+                  {auditLogs.map((log) => (
+                    <Box key={log.id} display="flex" gap={1.5} alignItems="flex-start" pb={1.5}>
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'text.disabled', flexShrink: 0, mt: 0.75 }} />
+                      <Box flex={1}>
                         <Typography variant="caption" fontWeight={600}>
                           {ACTION_LABELS[log.action] ?? log.action}
                         </Typography>

@@ -1,9 +1,9 @@
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import {
-  Avatar,
   Box,
   CircularProgress,
+  Skeleton,
   IconButton,
   InputAdornment,
   Stack,
@@ -24,14 +24,6 @@ interface Props {
   projectId: number;
   currentUserId: number;
   userRole: UserRole;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .slice(0, 2)
-    .join('');
 }
 
 export function ProjectComments({ projectId, currentUserId, userRole }: Props) {
@@ -64,9 +56,7 @@ export function ProjectComments({ projectId, currentUserId, userRole }: Props) {
       </Typography>
 
       {isLoading ? (
-        <Box display="flex" justifyContent="center" py={3}>
-          <CircularProgress size={28} />
-        </Box>
+        <Skeleton variant="rounded" height={80} sx={{ mb: 2 }} />
       ) : comments.length === 0 ? (
         <Typography variant="body2" color="text.secondary" mb={2}>
           Henüz yorum yapılmamış.
@@ -76,51 +66,33 @@ export function ProjectComments({ projectId, currentUserId, userRole }: Props) {
           {comments.map((comment) => {
             const isOwn = comment.user_id === currentUserId;
             const canDelete = isOwn || canModerate;
-            const initials = getInitials(comment.username ?? '?');
-
             return (
               <Box
                 key={comment.id}
                 sx={{
-                  display: 'flex',
-                  gap: 1.5,
                   p: 1.5,
                   borderRadius: 2,
                   border: '1px solid',
                   borderColor: 'divider',
                   bgcolor: 'background.paper',
-                  alignItems: 'flex-start',
                 }}
               >
-                <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'primary.main' }}>
-                  {initials}
-                </Avatar>
-                <Box flexGrow={1} minWidth={0}>
+                <Box display="flex" alignItems="center" justifyContent="space-between" gap={1} mb={0.25}>
                   <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-                    <Typography variant="body2" fontWeight={600}>
-                      {comment.username ?? 'Bilinmiyor'}
-                    </Typography>
-                    <Typography variant="caption" color="text.disabled">
-                      {formatDate(comment.created_at)}
-                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>{comment.username ?? 'Bilinmiyor'}</Typography>
+                    <Typography variant="caption" color="text.disabled">{formatDate(comment.created_at)}</Typography>
                   </Box>
-                  <Typography variant="body2" color="text.primary" mt={0.25} sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {comment.content}
-                  </Typography>
+                  {canDelete && (
+                    <Tooltip title="Sil">
+                      <IconButton size="small" color="error" onClick={() => deleteComment.mutate({ projectId, commentId: comment.id })}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
-                {canDelete && (
-                  <Tooltip title="Sil">
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() =>
-                        deleteComment.mutate({ projectId, commentId: comment.id })
-                      }
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                )}
+                <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {comment.content}
+                </Typography>
               </Box>
             );
           })}

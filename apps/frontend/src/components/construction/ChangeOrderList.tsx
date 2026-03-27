@@ -7,7 +7,7 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
+  Skeleton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -104,7 +104,7 @@ export function ChangeOrderList({ projectId, userRole }: Props) {
     setForm(EMPTY_FORM);
   };
 
-  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
+  if (isLoading) return <Skeleton variant="rounded" height={120} />;
 
   return (
     <Box>

@@ -82,7 +82,7 @@ export function TopRequestersChart({ filters }: Props) {
           />
           <YAxis type="category" dataKey="username" tick={{ fontSize: 12 }} width={90} />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="total_price" fill="#2563eb" radius={[0, 4, 4, 0]} maxBarSize={24} />
+          <Bar dataKey="total_price" fill="#4338ca" radius={[0, 4, 4, 0]} maxBarSize={24} />
         </BarChart>
       </ResponsiveContainer>
     </SectionCard>

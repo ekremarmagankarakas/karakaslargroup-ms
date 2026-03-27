@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Paper, Typography } from '@mui/material';
+import { Box, Paper, Skeleton, Typography } from '@mui/material';
 import {
   CartesianGrid,
   Legend,
@@ -48,13 +48,7 @@ const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
 export default function SCurveChart({ projectId }: Props) {
   const { data, isLoading } = useSCurve(projectId);
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress size={24} />
-      </Box>
-    );
-  }
+  if (isLoading) return <Skeleton variant="rounded" height={160} />;
 
   if (!data || data.length === 0) {
     return (
@@ -113,7 +107,7 @@ export default function SCurveChart({ projectId }: Props) {
             type="monotone"
             dataKey="planned"
             name="planned"
-            stroke="#2563eb"
+            stroke="#4338ca"
             strokeWidth={2}
             dot={false}
             strokeDasharray="6 3"

@@ -1,18 +1,13 @@
 import AddIcon from '@mui/icons-material/Add';
-import BlockIcon from '@mui/icons-material/Block';
-import DownloadIcon from '@mui/icons-material/Download';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
-import PendingIcon from '@mui/icons-material/Pending';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import {
   Alert,
   Box,
   Button,
   Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -20,8 +15,10 @@ import {
   FormControl,
   IconButton,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Select,
+  Skeleton,
   Slider,
   Stack,
   TextField,
@@ -38,14 +35,11 @@ import {
 import type { ConstructionMilestone, ConstructionTaskStatus, UserRole } from '../../types';
 import { downloadCsv } from '../../utils/exportCsv';
 
-const STATUS_CONFIG: Record<
-  ConstructionTaskStatus,
-  { label: string; color: 'default' | 'info' | 'success' | 'error'; icon: React.ReactNode }
-> = {
-  not_started: { label: 'Başlamadı', color: 'default', icon: <PendingIcon fontSize="small" /> },
-  in_progress: { label: 'Devam Ediyor', color: 'info', icon: <PlayCircleIcon fontSize="small" /> },
-  completed: { label: 'Tamamlandı', color: 'success', icon: <CheckCircleIcon fontSize="small" /> },
-  blocked: { label: 'Engellendi', color: 'error', icon: <BlockIcon fontSize="small" /> },
+const STATUS_CONFIG: Record<ConstructionTaskStatus, { label: string; color: 'default' | 'info' | 'success' | 'error' }> = {
+  not_started: { label: 'Başlamadı', color: 'default' },
+  in_progress: { label: 'Devam Ediyor', color: 'info' },
+  completed: { label: 'Tamamlandı', color: 'success' },
+  blocked: { label: 'Engellendi', color: 'error' },
 };
 
 const STATUS_OPTIONS: { value: ConstructionTaskStatus; label: string }[] = [
@@ -155,14 +149,14 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
       {isError ? (
         <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>
       ) : isLoading ? (
-        <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>
+        <Stack spacing={1.5}>{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} variant="rounded" height={72} />)}</Stack>
       ) : milestones.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           Henüz aşama eklenmemiş.
         </Typography>
       ) : (
         <Stack spacing={1.5}>
-          {milestones.map((m, index) => {
+          {milestones.map((m) => {
             const cfg = STATUS_CONFIG[m.status];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -174,7 +168,7 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
               <Box
                 key={m.id}
                 display="flex"
-                gap={2}
+                gap={1.5}
                 alignItems="flex-start"
                 sx={{
                   p: 1.5,
@@ -184,35 +178,12 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
                   bgcolor: 'background.paper',
                 }}
               >
-                <Box
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    bgcolor: 'action.selected',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    mt: 0.25,
-                  }}
-                >
-                  <Typography variant="caption" fontWeight={700}>
-                    {index + 1}
-                  </Typography>
-                </Box>
-
                 <Box flexGrow={1} minWidth={0}>
                   <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
                     <Typography variant="body2" fontWeight={600}>
                       {m.title}
                     </Typography>
-                    <Chip
-                      label={cfg.label}
-                      color={cfg.color}
-                      size="small"
-                      icon={cfg.icon as React.ReactElement}
-                    />
+                    <Chip label={cfg.label} color={cfg.color} size="small" />
                     {m.due_date && (
                       <Typography variant="caption" color="text.secondary">
                         Son: {m.due_date}
@@ -233,26 +204,12 @@ export function MilestonesTimeline({ projectId, userRole }: Props) {
                     </Typography>
                   )}
                   <Box display="flex" alignItems="center" gap={1} mt={0.75}>
-                    <Box
-                      sx={{
-                        flexGrow: 1,
-                        maxWidth: 180,
-                        height: 6,
-                        borderRadius: 3,
-                        bgcolor: 'action.hover',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          height: '100%',
-                          width: `${m.completion_pct}%`,
-                          bgcolor:
-                            m.completion_pct === 100 ? 'success.main' : 'primary.main',
-                          borderRadius: 3,
-                        }}
-                      />
-                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={m.completion_pct}
+                      color={m.completion_pct === 100 ? 'success' : 'primary'}
+                      sx={{ flex: 1, maxWidth: 180, height: 4, borderRadius: 2 }}
+                    />
                     <Typography variant="caption" color="text.secondary">
                       {m.completion_pct}%
                     </Typography>

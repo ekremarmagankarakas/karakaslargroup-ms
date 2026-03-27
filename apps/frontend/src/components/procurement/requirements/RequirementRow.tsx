@@ -8,12 +8,6 @@ import type { Requirement } from '../../../types';
 import { formatDate, formatPrice } from '../../../utils/formatters';
 import { RequirementStatusChip, PriorityChip, ColoredChip } from '../../common/StatusChip';
 
-const STATUS_DOT: Record<string, string> = {
-  pending: '#d97706',
-  accepted: '#16a34a',
-  declined: '#dc2626',
-};
-
 interface Props {
   requirement: Requirement;
   onClick: () => void;
@@ -28,11 +22,7 @@ export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdat
     <TableRow
       hover
       selected={selected}
-      sx={{
-        cursor: 'pointer',
-        '&:hover': { bgcolor: 'action.hover' },
-        borderLeft: `3px solid ${STATUS_DOT[requirement.status] ?? 'transparent'}`,
-      }}
+      sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
     >
       {onSelect && (
         <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
@@ -73,21 +63,9 @@ export function RequirementRow({ requirement, onClick, onToggleFavorite, onUpdat
         </Box>
       </TableCell>
       <TableCell onClick={onClick}>
-        <Box
-          sx={{
-            display: 'inline-flex',
-            px: 1,
-            py: 0.25,
-            borderRadius: 1,
-            bgcolor: requirement.paid ? 'rgba(52,211,153,0.1)' : 'action.hover',
-            border: '1px solid',
-            borderColor: requirement.paid ? 'success.main' : 'divider',
-          }}
-        >
-          <Typography variant="caption" fontWeight={500} color={requirement.paid ? 'success.main' : 'text.secondary'}>
-            {requirement.paid ? 'Ödendi' : 'Ödenmedi'}
-          </Typography>
-        </Box>
+        <Typography variant="caption" color={requirement.paid ? 'success.main' : 'text.disabled'}>
+          {requirement.paid ? 'Ödendi' : '—'}
+        </Typography>
       </TableCell>
       <TableCell onClick={onClick}>
         <Typography variant="caption" color="text.secondary">

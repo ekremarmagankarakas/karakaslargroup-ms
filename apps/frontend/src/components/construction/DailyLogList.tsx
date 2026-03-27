@@ -9,7 +9,7 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
+  Skeleton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -156,9 +156,7 @@ export function DailyLogList({ projectId, userRole }: Props) {
       </Box>
 
       {isLoading ? (
-        <Box display="flex" justifyContent="center" py={4}>
-          <CircularProgress size={28} />
-        </Box>
+        <Skeleton variant="rounded" height={120} />
       ) : logs.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           Henüz günlük kaydı eklenmemiş.

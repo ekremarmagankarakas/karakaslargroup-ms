@@ -2,11 +2,10 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {
-  Avatar,
   Box,
   Button,
   Chip,
-  CircularProgress,
+  Skeleton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -52,10 +51,6 @@ const GLOBAL_ROLE_LABELS: Record<string, string> = {
   accountant: 'Muhasebeci',
   admin: 'Admin',
 };
-
-function getInitials(username: string): string {
-  return username.slice(0, 2).toUpperCase();
-}
 
 interface Props {
   projectId: number;
@@ -105,7 +100,7 @@ export function ProjectTeam({ projectId, userRole }: Props) {
     setEditTarget(null);
   };
 
-  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
+  if (isLoading) return <Skeleton variant="rounded" height={120} />;
 
   return (
     <Box>
@@ -141,9 +136,6 @@ export function ProjectTeam({ projectId, userRole }: Props) {
                 borderColor: 'divider',
               }}
             >
-              <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40, fontSize: 14 }}>
-                {getInitials(member.username)}
-              </Avatar>
               <Box flexGrow={1}>
                 <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
                   <Typography variant="body2" fontWeight={600}>

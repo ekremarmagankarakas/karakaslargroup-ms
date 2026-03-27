@@ -24,16 +24,16 @@ const L = {
   elevated:  '#ffffff',
   border:    '#e5e7eb',
   hover:     'rgba(0,0,0,0.04)',
-  selected:  'rgba(37,99,235,0.08)',
+  selected:  'rgba(67,56,202,0.08)',
   divider:   '#e5e7eb',
 
   textPrimary:   '#111827',
   textSecondary: '#6b7280',
   textDisabled:  '#9ca3af',
 
-  primary:   '#2563eb',
-  primaryDk: '#1d4ed8',
-  primaryLt: '#3b82f6',
+  primary:   '#4338ca',
+  primaryDk: '#3730a3',
+  primaryLt: '#6366f1',
   success:   '#16a34a',
   warning:   '#d97706',
   error:     '#dc2626',
@@ -47,16 +47,16 @@ const D = {
   elevated:  '#222536',
   border:    'rgba(255,255,255,0.08)',
   hover:     'rgba(255,255,255,0.05)',
-  selected:  'rgba(79,135,245,0.14)',
+  selected:  'rgba(129,140,248,0.14)',
   divider:   'rgba(255,255,255,0.08)',
 
   textPrimary:   '#f1f5f9',
   textSecondary: '#94a3b8',
   textDisabled:  '#475569',
 
-  primary:   '#4f87f5',
-  primaryDk: '#3d6fd4',
-  primaryLt: '#6b9bf7',
+  primary:   '#818cf8',
+  primaryDk: '#6366f1',
+  primaryLt: '#a5b4fc',
   success:   '#22c55e',
   warning:   '#f59e0b',
   error:     '#f87171',
@@ -82,7 +82,7 @@ export const PROCUREMENT_STATUS_COLORS = {
 // ── Priority colors ────────────────────────────────────────────────────────────
 export const PRIORITY_COLORS = {
   low:    { bg: 'rgba(100,116,139,0.08)', border: 'rgba(100,116,139,0.20)', text: '#64748b' },
-  normal: { bg: 'rgba(37,99,235,0.08)',   border: 'rgba(37,99,235,0.20)',   text: '#2563eb' },
+  normal: { bg: 'rgba(67,56,202,0.08)',   border: 'rgba(67,56,202,0.20)',   text: '#4338ca' },
   high:   { bg: 'rgba(217,119,6,0.08)',   border: 'rgba(217,119,6,0.20)',   text: '#d97706' },
   urgent: { bg: 'rgba(220,38,38,0.08)',   border: 'rgba(220,38,38,0.20)',   text: '#dc2626' },
 } as const;
@@ -122,7 +122,7 @@ function buildTheme(mode: ThemeMode) {
       },
     },
     typography: {
-      fontFamily: '"Inter", "system-ui", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
       h1: { fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.2 },
       h2: { fontSize: '1.375rem', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.3 },
       h3: { fontSize: '1.125rem', fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.35 },
@@ -500,15 +500,15 @@ function buildTheme(mode: ThemeMode) {
         styleOverrides: {
           root: {
             boxShadow: isDark
-              ? '0 4px 20px rgba(79,135,245,0.45)'
-              : '0 4px 20px rgba(37,99,235,0.35)',
+              ? '0 4px 20px rgba(129,140,248,0.45)'
+              : '0 4px 20px rgba(67,56,202,0.35)',
             textTransform: 'none',
             fontWeight: 600,
             fontSize: '0.8125rem',
             '&:hover': {
               boxShadow: isDark
-                ? '0 6px 28px rgba(79,135,245,0.55)'
-                : '0 6px 28px rgba(37,99,235,0.45)',
+                ? '0 6px 28px rgba(129,140,248,0.55)'
+                : '0 6px 28px rgba(67,56,202,0.45)',
             },
           },
         },

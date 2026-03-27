@@ -1,10 +1,8 @@
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import ApartmentIcon from '@mui/icons-material/Apartment';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ConstructionIcon from '@mui/icons-material/Construction';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
@@ -32,7 +30,6 @@ interface NavItem {
 
 interface NavSection {
   title: string;
-  icon: React.ReactElement;
   items: NavItem[];
   prefix: string;
 }
@@ -42,13 +39,6 @@ const ROLE_LABELS: Record<string, string> = {
   manager:    'Müdür',
   accountant: 'Muhasebe',
   employee:   'Çalışan',
-};
-
-const ROLE_COLORS: Record<string, string> = {
-  admin:      'rgba(220,38,38,0.1)',
-  manager:    'rgba(217,119,6,0.1)',
-  accountant: 'rgba(8,145,178,0.1)',
-  employee:   'rgba(100,116,139,0.1)',
 };
 
 const ROLE_TEXT: Record<string, string> = {
@@ -94,13 +84,11 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
     {
       title: 'Tedarik',
       prefix: '/dashboard|/analytics|/budget|/users|/locations',
-      icon: <AssignmentIcon sx={{ fontSize: 16 }} />,
       items: procurementItems,
     },
     {
       title: 'İnşaat',
       prefix: '/construction',
-      icon: <ConstructionIcon sx={{ fontSize: 16 }} />,
       items: constructionItems,
     },
   ];
@@ -141,22 +129,20 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
           flexShrink: 0,
         }}
       >
-        <Box
+        <Typography
           sx={{
-            width: 28,
-            height: 28,
-            borderRadius: '7px',
-            bgcolor: 'primary.main',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            color: 'primary.main',
+            fontWeight: 700,
+            fontSize: '0.9375rem',
+            letterSpacing: '-0.04em',
+            fontFamily: '"Fraunces", serif',
             flexShrink: 0,
+            lineHeight: 1,
+            userSelect: 'none',
           }}
         >
-          <Typography sx={{ color: 'white', fontWeight: 800, fontSize: '0.6rem', letterSpacing: '-0.01em' }}>
-            KG
-          </Typography>
-        </Box>
+          KG
+        </Typography>
         {!collapsed && (
           <Typography
             variant="subtitle2"
@@ -185,20 +171,12 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
         {sections.map((section) => (
           <Box key={section.title} sx={{ mb: 1.5 }}>
             {!collapsed && (
-              <Box
-                display="flex"
-                alignItems="center"
-                gap={0.75}
-                sx={{ px: 2, mb: 0.5 }}
+              <Typography
+                variant="overline"
+                sx={{ color: 'text.disabled', lineHeight: 1.5, px: 2, mb: 0.5, display: 'block' }}
               >
-                <Box sx={{ color: 'text.disabled' }}>{section.icon}</Box>
-                <Typography
-                  variant="overline"
-                  sx={{ color: 'text.disabled', lineHeight: 1.5 }}
-                >
-                  {section.title}
-                </Typography>
-              </Box>
+                {section.title}
+              </Typography>
             )}
             {section.items.map((item) => {
               const active = isActive(item.path);
@@ -218,12 +196,12 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
                     borderRadius: 1.5,
                     textDecoration: 'none',
                     justifyContent: collapsed ? 'center' : 'flex-start',
-                    bgcolor: active ? 'primary.main' : 'transparent',
-                    color: active ? 'primary.contrastText' : 'text.secondary',
+                    bgcolor: active ? 'action.selected' : 'transparent',
+                    color: active ? 'primary.main' : 'text.secondary',
                     transition: 'background 0.12s, color 0.12s',
                     '&:hover': {
-                      bgcolor: active ? 'primary.dark' : 'action.hover',
-                      color: active ? 'primary.contrastText' : 'text.primary',
+                      bgcolor: active ? 'action.selected' : 'action.hover',
+                      color: active ? 'primary.main' : 'text.primary',
                     },
                   }}
                 >
@@ -285,23 +263,12 @@ export function Sidebar({ open, mini, onToggleMini, onClose, isMobile }: Props) 
               {user?.username}
             </Typography>
             {user?.role && (
-              <Box
-                sx={{
-                  display: 'inline-block',
-                  mt: 0.25,
-                  px: 0.75,
-                  py: 0.125,
-                  borderRadius: 1,
-                  bgcolor: ROLE_COLORS[user.role] ?? 'action.hover',
-                }}
+              <Typography
+                variant="caption"
+                sx={{ color: ROLE_TEXT[user.role] ?? 'text.secondary', fontWeight: 500, lineHeight: 1.4 }}
               >
-                <Typography
-                  variant="caption"
-                  sx={{ color: ROLE_TEXT[user.role] ?? 'text.secondary', fontWeight: 600, lineHeight: 1.4 }}
-                >
-                  {ROLE_LABELS[user.role] ?? user.role}
-                </Typography>
-              </Box>
+                {ROLE_LABELS[user.role] ?? user.role}
+              </Typography>
             )}
           </Box>
         )}

@@ -5,18 +5,15 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Grid,
   IconButton,
   LinearProgress,
   MenuItem,
   Paper,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -69,25 +66,6 @@ const CATEGORY_COLORS: Record<BudgetCategory, string> = {
 const ALL_CATEGORIES: BudgetCategory[] = [
   'labor', 'materials', 'equipment', 'subcontractors', 'overhead', 'contingency', 'other',
 ];
-
-interface StatCardProps {
-  label: string;
-  value: string;
-  sub?: string;
-  color?: string;
-}
-
-function StatCard({ label, value, sub, color }: StatCardProps) {
-  return (
-    <Card variant="outlined" sx={{ bgcolor: 'background.paper', borderColor: 'divider' }}>
-      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-        <Typography variant="caption" color="text.secondary">{label}</Typography>
-        <Typography variant="h6" fontWeight={700} sx={{ color: color || 'text.primary' }}>{value}</Typography>
-        {sub && <Typography variant="caption" color="text.secondary">{sub}</Typography>}
-      </CardContent>
-    </Card>
-  );
-}
 
 interface Props {
   projectId: number;
@@ -146,9 +124,7 @@ export function BudgetBreakdown({ projectId, userRole }: Props) {
     }
   };
 
-  if (isLoading) {
-    return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
-  }
+  if (isLoading) return <Skeleton variant="rounded" height={72} />;
 
   if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
@@ -169,26 +145,43 @@ export function BudgetBreakdown({ projectId, userRole }: Props) {
 
   return (
     <Box>
-      {/* Summary cards */}
-      <Grid container spacing={2} mb={3}>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard label="Toplam Planlanan" value={`₺${totalPlanned.toLocaleString('tr-TR')}`} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard label="Toplam Gerçekleşen" value={`₺${totalActual.toLocaleString('tr-TR')}`} color={utilizationColor} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard
-            label="Fark"
-            value={`₺${Math.abs(variance).toLocaleString('tr-TR')}`}
-            sub={variance >= 0 ? 'Tasarruf' : 'Aşım'}
-            color={variance >= 0 ? '#22c55e' : '#ef4444'}
-          />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard label="Kullanım" value={`%${util}`} color={utilizationColor} />
-        </Grid>
-      </Grid>
+      {/* Summary strip */}
+      <Box
+        sx={{
+          display: 'flex',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          overflow: 'hidden',
+          mb: 3,
+        }}
+      >
+        {([
+          { label: 'Toplam Planlanan', value: `₺${totalPlanned.toLocaleString('tr-TR')}`, color: undefined },
+          { label: 'Toplam Gerçekleşen', value: `₺${totalActual.toLocaleString('tr-TR')}`, color: utilizationColor },
+          { label: 'Fark', value: `₺${Math.abs(variance).toLocaleString('tr-TR')}`, color: variance >= 0 ? '#22c55e' : '#ef4444' },
+          { label: 'Kullanım', value: `%${util}`, color: utilizationColor },
+        ] as { label: string; value: string; color?: string }[]).map(({ label, value, color }, i, arr) => (
+          <Box
+            key={label}
+            sx={{
+              flex: 1,
+              px: { xs: 1.5, sm: 2 },
+              py: 1.75,
+              borderRight: i < arr.length - 1 ? '1px solid' : 'none',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography sx={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 }}>
+              {label}
+            </Typography>
+            <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '1.1rem', sm: '1.375rem' }, fontWeight: 700, lineHeight: 1, color: color ?? 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+              {value}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
 
       {/* Chart */}
       {chartData.length > 0 && (
@@ -201,7 +194,7 @@ export function BudgetBreakdown({ projectId, userRole }: Props) {
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `₺${(v / 1000).toFixed(0)}K`} />
               <RechartsTooltip formatter={(v) => `₺${(v as number).toLocaleString('tr-TR')}`} />
               <Legend />
-              <Bar dataKey="Planlanan" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Planlanan" fill="#4338ca" radius={[3, 3, 0, 0]} />
               <Bar dataKey="Gerçekleşen" fill="#f59e0b" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Box, Button, Typography, Accordion, AccordionSummary, AccordionDetails,
-  Chip, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
+  Chip, Skeleton, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Stack, Checkbox, Divider, Alert,
   Table, TableBody, TableCell, TableHead, TableRow, Paper,
 } from '@mui/material';
@@ -134,7 +134,7 @@ export default function MeetingMinutes({ projectId, canEdit }: Props) {
   const overdueActions = (m: ConstructionMeeting) =>
     m.actions.filter(a => !a.completed && a.due_date && a.due_date < new Date().toISOString().split('T')[0]);
 
-  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
+  if (isLoading) return <Skeleton variant="rounded" height={120} />;
 
   if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 

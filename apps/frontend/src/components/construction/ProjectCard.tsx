@@ -75,8 +75,8 @@ export function ProjectCard({ project, userRole, onEdit, onDelete }: Props) {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'box-shadow 0.2s, transform 0.2s',
-        '&:hover': { boxShadow: 4, transform: 'translateY(-2px)' },
+        transition: 'box-shadow 0.2s',
+        '&:hover': { boxShadow: 4 },
       }}
     >
       <CardActionArea onClick={() => navigate(`/construction/${project.id}`)} sx={{ flexGrow: 1 }}>

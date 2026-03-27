@@ -8,7 +8,7 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
+  Skeleton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -134,9 +134,7 @@ export function InvoiceList({ projectId, userRole, subcontractors = [] }: Props)
   const totalPaid = invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(i.total_amount), 0);
 
 
-  if (isLoading) {
-    return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
-  }
+  if (isLoading) return <Skeleton variant="rounded" height={120} />;
 
   if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 

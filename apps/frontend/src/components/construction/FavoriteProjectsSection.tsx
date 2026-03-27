@@ -1,3 +1,5 @@
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import StarIcon from '@mui/icons-material/Star';
 import {
   Box,
@@ -36,9 +38,10 @@ export function FavoriteProjectsSection({ userRole, onEdit, onDelete }: Props) {
         <Typography variant="subtitle2" fontWeight={700} color="text.primary">
           Favori Projeler ({favorites.length})
         </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {expanded ? '▲ Gizle' : '▼ Göster'}
-        </Typography>
+        {expanded
+          ? <ExpandLessIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+          : <ExpandMoreIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+        }
       </Box>
       <Collapse in={expanded}>
         <Grid container spacing={2}>

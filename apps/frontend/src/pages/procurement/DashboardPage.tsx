@@ -2,7 +2,6 @@ import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import GridViewIcon from '@mui/icons-material/GridView';
-import ListAltIcon from '@mui/icons-material/ListAlt';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import {
   Box,
@@ -22,6 +21,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useBulkUpdateStatus, useRequirements, useUpdateStatus } from '../../hooks/procurement/useRequirements';
@@ -43,49 +43,22 @@ import { RequirementRow } from '../../components/procurement/requirements/Requir
 import { StatisticsPanel } from '../../components/procurement/statistics/StatisticsPanel';
 
 const STATUS_SECTIONS = [
-  { key: 'pending', title: 'Beklemede', color: '#d97706', bg: 'rgba(217,119,6,0.08)', border: 'rgba(217,119,6,0.2)' },
-  { key: 'accepted', title: 'Onaylandı', color: '#16a34a', bg: 'rgba(22,163,74,0.08)', border: 'rgba(22,163,74,0.2)' },
-  { key: 'declined', title: 'Reddedildi', color: '#dc2626', bg: 'rgba(220,38,38,0.08)', border: 'rgba(220,38,38,0.2)' },
+  { key: 'pending',  title: 'Beklemede',  color: '#d97706' },
+  { key: 'accepted', title: 'Onaylandı',  color: '#16a34a' },
+  { key: 'declined', title: 'Reddedildi', color: '#dc2626' },
 ] as const;
 
-const currentDate = new Date().toLocaleDateString('tr-TR', {
-  weekday: 'long',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
-function SectionHeader({
-  icon: Icon,
-  title,
-  subtitle,
-}: {
-  icon: React.ElementType;
-  title: string;
-  subtitle?: string;
-}) {
+// Inline status group header — no visual container, just a label row
+function StatusGroupLabel({ color, title, count, children }: { color: string; title: string; count: number; children?: ReactNode }) {
   return (
-    <Box display="flex" alignItems="center" gap={1.5} mb={2}>
-      <Box
-        sx={{
-          p: 0.875,
-          borderRadius: 2,
-          bgcolor: 'primary.main',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Icon sx={{ color: 'white', fontSize: 18 }} />
-      </Box>
-      <Box>
-        <Typography variant="h6">{title}</Typography>
-        {subtitle && (
-          <Typography variant="caption" color="text.secondary">
-            {subtitle}
-          </Typography>
-        )}
+    <Box>
+      <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
+        <Typography variant="overline" sx={{ color, lineHeight: 1, letterSpacing: '0.08em' }}>
+          {title}
+        </Typography>
+        <Typography variant="caption" color="text.disabled">({count})</Typography>
+        {children}
       </Box>
     </Box>
   );
@@ -192,7 +165,6 @@ export function DashboardPage() {
         title={user?.username
           ? `Merhaba, ${user.username.charAt(0).toUpperCase() + user.username.slice(1)}`
           : 'Merhaba'}
-        subtitle={currentDate}
       />
 
       {/* ── Statistics ── */}
@@ -202,38 +174,27 @@ export function DashboardPage() {
       <SectionCard noPadding sx={{ mb: 3 }}>
         <Box sx={{ p: 2.5 }}>
         {/* Section title row */}
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-          <SectionHeader
-            icon={ListAltIcon}
-            title="Talepler"
-            subtitle={
-              data
-                ? `${data.total} kayıt · Sayfa ${data.page}/${data.total_pages}`
-                : undefined
-            }
-          />
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Box>
+            <Typography variant="h3">Talepler</Typography>
+            {data && (
+              <Typography variant="caption" color="text.secondary">
+                {data.total} kayıt · Sayfa {data.page}/{data.total_pages}
+              </Typography>
+            )}
+          </Box>
 
           <Box display="flex" gap={1} alignItems="center">
             {canSectionView && (
-              <Tooltip title={stylePreference === 'sectioned' ? 'Tümünü tek listede göster' : 'Duruma göre grupla'}>
-                <Box
-                  onClick={handleStyleChange}
-                  sx={{
-                    px: 1.5,
-                    py: 0.75,
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    '&:hover': { bgcolor: 'action.hover' },
-                  }}
-                >
-                  <Typography variant="caption" fontWeight={600} color="text.secondary">
-                    {stylePreference === 'sectioned' ? 'Tümünü Göster' : 'Grupla'}
-                  </Typography>
-                </Box>
-              </Tooltip>
+              <Button
+                size="small"
+                variant="text"
+                color="inherit"
+                onClick={handleStyleChange}
+                sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
+              >
+                {stylePreference === 'sectioned' ? 'Tümünü Göster' : 'Grupla'}
+              </Button>
             )}
 
             <ToggleButtonGroup
@@ -241,21 +202,6 @@ export function DashboardPage() {
               exclusive
               onChange={handleLayoutChange}
               size="small"
-              sx={{
-                '& .MuiToggleButton-root': {
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  px: 1,
-                  py: 0.5,
-                  color: 'text.secondary',
-                  '&.Mui-selected': {
-                    bgcolor: 'primary.main',
-                    color: 'white',
-                    borderColor: 'primary.main',
-                    '&:hover': { bgcolor: 'primary.dark' },
-                  },
-                },
-              }}
             >
               <ToggleButton value="grid-layout" aria-label="kart görünümü">
                 <Tooltip title="Kart görünümü">
@@ -293,72 +239,26 @@ export function DashboardPage() {
           )
         ) : requirements.length === 0 ? (
           <EmptyState
-            Icon={ListAltIcon}
             title="Talep bulunamadı"
             description="Filtrelerinizi değiştirmeyi veya yeni talep oluşturmayı deneyin."
           />
         ) : stylePreference === 'sectioned' && canSectionView ? (
-          /* Kanban columns */
-          <Grid container spacing={2}>
-            {STATUS_SECTIONS.map(({ key, title, color, bg, border }) => {
+          /* Grouped by status — flat layout, no colored containers */
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {STATUS_SECTIONS.map(({ key, title, color }) => {
               const items = byStatus[key];
               return (
-                <Grid size={{ xs: 12, md: 4 }} key={key}>
-                  <Box
-                    sx={{
-                      bgcolor: bg,
-                      borderRadius: 2.5,
-                      border: `1px solid ${border}`,
-                      p: 1.5,
-                      minHeight: 160,
-                    }}
-                  >
-                    {/* Column header */}
-                    <Box display="flex" alignItems="center" gap={1} mb={1.5} px={0.5}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          bgcolor: color,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <Typography variant="subtitle2" fontWeight={700} sx={{ color, flex: 1 }}>
-                        {title}
-                      </Typography>
-                      <Box
-                        sx={{
-                          px: 1,
-                          py: 0.25,
-                          borderRadius: 10,
-                          bgcolor: color,
-                          minWidth: 24,
-                          textAlign: 'center',
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'white', fontWeight: 700, fontSize: '0.68rem', lineHeight: 1 }}
-                        >
-                          {items.length}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {items.length === 0 ? (
-                      <Typography
-                        variant="caption"
-                        color="text.disabled"
-                        sx={{ display: 'block', textAlign: 'center', py: 3 }}
-                      >
-                        Bu grupta talep yok
-                      </Typography>
-                    ) : layout === 'grid-layout' ? (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {items.map((req) => (
+                <Box key={key}>
+                  <StatusGroupLabel color={color} title={title} count={items.length} />
+                  {items.length === 0 ? (
+                    <Typography variant="caption" color="text.disabled" sx={{ pl: 1.75 }}>
+                      Bu grupta talep yok
+                    </Typography>
+                  ) : layout === 'grid-layout' ? (
+                    <Grid container spacing={2}>
+                      {items.map((req) => (
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={req.id}>
                           <RequirementCard
-                            key={req.id}
                             requirement={req}
                             onClick={() => setSelectedReq(req)}
                             onToggleFavorite={() =>
@@ -366,20 +266,20 @@ export function DashboardPage() {
                             }
                             onUpdateStatus={canManageStatus ? (status) => handleUpdateStatus(req, status) : undefined}
                           />
-                        ))}
-                      </Box>
-                    ) : (
-                      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
-                        <Table size="small">
-                          <TableBody>{items.map((req) => renderRow(req))}</TableBody>
-                        </Table>
-                      </TableContainer>
-                    )}
-                  </Box>
-                </Grid>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
+                      <Table size="small">
+                        <TableBody>{items.map((req) => renderRow(req))}</TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </Box>
               );
             })}
-          </Grid>
+          </Box>
         ) : layout === 'grid-layout' ? (
           <Grid container spacing={2}>
             {requirements.map((req) => renderCard(req))}

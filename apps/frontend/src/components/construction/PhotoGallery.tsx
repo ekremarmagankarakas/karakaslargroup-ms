@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Skeleton,
   Dialog,
   DialogContent,
   IconButton,
@@ -53,13 +54,7 @@ export function PhotoGallery({ projectId, userRole }: Props) {
     if (lightbox?.id === photo.id) setLightbox(null);
   };
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" py={4}>
-        <CircularProgress size={32} />
-      </Box>
-    );
-  }
+  if (isLoading) return <Skeleton variant="rounded" height={160} />;
 
   return (
     <Box>

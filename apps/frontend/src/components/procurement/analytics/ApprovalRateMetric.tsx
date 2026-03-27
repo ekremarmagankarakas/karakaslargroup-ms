@@ -18,11 +18,11 @@ export function ApprovalRateMetric({ filters }: Props) {
   return (
     <SectionCard sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
       <Box sx={{ flexShrink: 0 }}>
-        <Typography variant="caption" color="text.secondary" fontWeight={600} letterSpacing="0.08em" textTransform="uppercase" fontSize="0.63rem">
+        <Typography variant="caption" color="text.disabled" fontWeight={600} letterSpacing="0.08em" textTransform="uppercase" fontSize="0.63rem" display="block" mb={0.25}>
           Onay Oranı
         </Typography>
         <Typography
-          sx={{ fontWeight: 800, fontSize: '2.5rem', lineHeight: 1, color: '#16a34a', letterSpacing: '-0.03em' }}
+          sx={{ fontWeight: 700, fontSize: '1.75rem', lineHeight: 1, color: 'success.main', fontFamily: '"Fraunces", serif' }}
         >
           %{rate.toFixed(0)}
         </Typography>
@@ -35,7 +35,7 @@ export function ApprovalRateMetric({ filters }: Props) {
           variant="determinate"
           value={rate}
           color="success"
-          sx={{ height: 10, borderRadius: 5 }}
+          sx={{ height: 6, borderRadius: 3 }}
         />
       </Box>
     </SectionCard>

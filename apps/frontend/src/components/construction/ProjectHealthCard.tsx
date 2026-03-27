@@ -1,4 +1,4 @@
-import { Box, Chip, CircularProgress, Paper, Tooltip, Typography } from '@mui/material';
+import { Box, Chip, Paper, Skeleton, Tooltip, Typography } from '@mui/material';
 import { useProjectHealth } from '../../hooks/construction/useConstruction';
 import { useSafetyStats } from '../../hooks/construction/useConstructionSafety';
 
@@ -31,15 +31,7 @@ export function ProjectHealthCard({ projectId }: Props) {
   const { data: health, isLoading } = useProjectHealth(projectId);
   const { data: safetyStats } = useSafetyStats(projectId);
 
-  if (isLoading) {
-    return (
-      <Paper variant="outlined" sx={{ p: 2, mb: 2, borderColor: 'divider', bgcolor: 'background.paper' }}>
-        <Box display="flex" justifyContent="center">
-          <CircularProgress size={20} />
-        </Box>
-      </Paper>
-    );
-  }
+  if (isLoading) return <Skeleton variant="rounded" height={72} sx={{ mb: 2 }} />;
 
   if (!health) return null;
 
@@ -50,12 +42,11 @@ export function ProjectHealthCard({ projectId }: Props) {
         <Tooltip title={`Genel durum: ${RAG_LABELS[health.overall]}`}>
           <Box
             sx={{
-              width: 40,
-              height: 40,
+              width: 20,
+              height: 20,
               borderRadius: '50%',
               bgcolor: RAG_COLORS[health.overall],
               flexShrink: 0,
-              boxShadow: `0 0 8px ${RAG_COLORS[health.overall]}60`,
             }}
           />
         </Tooltip>

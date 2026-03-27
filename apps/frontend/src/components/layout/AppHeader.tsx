@@ -7,7 +7,6 @@ import {
   AppBar,
   Badge,
   Box,
-  Divider,
   IconButton,
   Menu,
   MenuItem,
@@ -113,10 +112,6 @@ export function AppHeader({ onMenuClick }: Props) {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <Box px={2} py={1.5}>
-              <Typography variant="subtitle2" fontWeight={700}>Bildirimler</Typography>
-            </Box>
-            <Divider />
             {!notifications || notifications.length === 0 ? (
               <MenuItem disabled>
                 <Typography variant="body2" color="text.secondary">Bildirim yok</Typography>
@@ -128,8 +123,6 @@ export function AppHeader({ onMenuClick }: Props) {
                   sx={{
                     whiteSpace: 'normal',
                     alignItems: 'flex-start',
-                    borderLeft: n.read ? 'none' : '2px solid',
-                    borderColor: n.read ? 'transparent' : 'primary.main',
                     bgcolor: n.read ? 'transparent' : 'action.selected',
                   }}
                 >

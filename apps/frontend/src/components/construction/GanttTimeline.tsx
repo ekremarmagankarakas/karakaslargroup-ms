@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ConstructionProject, ConstructionProjectStatus } from '../../types';
 
 const STATUS_COLORS: Record<ConstructionProjectStatus, string> = {
-  planning: '#2563eb',
+  planning: '#4338ca',
   active: '#16a34a',
   on_hold: '#d97706',
   completed: '#64748b',

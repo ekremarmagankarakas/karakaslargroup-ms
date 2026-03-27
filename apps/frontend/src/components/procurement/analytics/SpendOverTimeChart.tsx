@@ -66,7 +66,7 @@ export function SpendOverTimeChart({ filters }: Props) {
           <YAxis tickFormatter={(v) => `₺${formatPrice(v)}`} tick={{ fontSize: 11 }} width={80} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <Bar dataKey="Toplam" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={32} />
+          <Bar dataKey="Toplam" fill="#4338ca" radius={[4, 4, 0, 0]} maxBarSize={32} />
           <Line type="monotone" dataKey="Onaylanan" stroke="#16a34a" strokeWidth={2} dot={false} />
         </ComposedChart>
       </ResponsiveContainer>

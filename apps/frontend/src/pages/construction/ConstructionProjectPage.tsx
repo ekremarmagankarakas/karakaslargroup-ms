@@ -1,15 +1,12 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import EditIcon from '@mui/icons-material/Edit';
-import GroupIcon from '@mui/icons-material/Group';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import {
   Box,
-  Button,
-  Chip,
-  CircularProgress,
   IconButton,
   LinearProgress,
+  Skeleton,
   Tab,
   Tabs,
   Tooltip,
@@ -71,9 +68,13 @@ export function ConstructionProjectPage() {
   if (isLoading) {
     return (
       <DashboardLayout hideChatWidget>
-        <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
-          <CircularProgress />
+        <Box sx={{ pt: 2, pb: 0, mx: { xs: -2, sm: -3 }, px: { xs: 2, sm: 3 }, borderBottom: '1px solid', borderColor: 'divider', mb: 3 }}>
+          <Skeleton variant="text" width={280} height={32} sx={{ mb: 0.5 }} />
+          <Skeleton variant="text" width={200} height={18} sx={{ mb: 1 }} />
+          <Skeleton variant="rounded" width="100%" height={4} sx={{ mb: 2 }} />
+          <Skeleton variant="rounded" width="100%" height={36} />
         </Box>
+        <Skeleton variant="rounded" width="100%" height={120} />
       </DashboardLayout>
     );
   }
@@ -139,24 +140,12 @@ export function ConstructionProjectPage() {
                 {project.name}
               </Typography>
               <ProjectStatusChip status={project.status} />
-              {project.team_count > 0 && (
-                <Chip
-                  icon={<GroupIcon sx={{ fontSize: '13px !important' }} />}
-                  label={`${project.team_count} üye`}
-                  size="small"
-                  sx={{ borderColor: 'divider', color: 'text.secondary' }}
-                  variant="outlined"
-                />
-              )}
               {canEdit && (
-                <Button
-                  startIcon={<EditIcon sx={{ fontSize: 14 }} />}
-                  size="small"
-                  variant="outlined"
-                  onClick={() => setEditOpen(true)}
-                >
-                  Düzenle
-                </Button>
+                <Tooltip title="Düzenle">
+                  <IconButton size="small" onClick={() => setEditOpen(true)} sx={{ color: 'text.secondary' }}>
+                    <EditIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
               )}
             </Box>
             <Box display="flex" gap={2} mt={0.5} flexWrap="wrap" alignItems="center">
@@ -183,18 +172,15 @@ export function ConstructionProjectPage() {
               )}
             </Box>
             {/* Progress bar */}
-            <Box mt={1} pb={1.5}>
-              <Box display="flex" justifyContent="space-between" mb={0.5}>
-                <Typography variant="caption" color="text.secondary">İlerleme</Typography>
-                <Typography variant="caption" fontWeight={700} color="primary.main">
-                  {project.progress_pct}%
-                </Typography>
-              </Box>
+            <Box mt={1} pb={1.5} display="flex" alignItems="center" gap={1.5}>
               <LinearProgress
                 variant="determinate"
                 value={project.progress_pct}
-                sx={{ height: 5, borderRadius: 3 }}
+                sx={{ flex: 1, height: 4, borderRadius: 2 }}
               />
+              <Typography variant="caption" fontWeight={700} color="primary.main" sx={{ flexShrink: 0 }}>
+                {project.progress_pct}%
+              </Typography>
             </Box>
           </Box>
         </Box>

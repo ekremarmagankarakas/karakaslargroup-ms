@@ -3,7 +3,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,8 +12,6 @@ import type { AnalyticsFilters } from '../../../types';
 import { formatPrice } from '../../../utils/formatters';
 import { useLocationStats } from '../../../hooks/procurement/useAnalytics';
 import { SectionCard } from '../../common/SectionCard';
-
-const COLORS = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706', '#dc2626'];
 
 interface TooltipPayloadEntry {
   name: string;
@@ -105,11 +102,7 @@ export function SpendByLocationChart({ filters }: Props) {
             width={110}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="total_price" radius={[0, 4, 4, 0]} maxBarSize={28}>
-            {chartData.map((_, index) => (
-              <Cell key={index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Bar>
+          <Bar dataKey="total_price" fill="#4338ca" radius={[0, 4, 4, 0]} maxBarSize={28} />
         </BarChart>
       </ResponsiveContainer>
     </SectionCard>

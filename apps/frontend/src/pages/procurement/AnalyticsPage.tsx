@@ -23,13 +23,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useUsers } from '../../hooks/useUsers';
 import type { AnalyticsFilters } from '../../types';
 
-const currentDate = new Date().toLocaleDateString('tr-TR', {
-  weekday: 'long',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
 const TURKISH_MONTHS = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
@@ -53,7 +46,6 @@ export function AnalyticsPage() {
     <DashboardLayout>
       <PageHeader
         title="Analitik"
-        subtitle={currentDate}
         actions={
           <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
             {canFilterByUser && (
@@ -145,11 +137,6 @@ export function AnalyticsPage() {
       {/* Location charts (hidden for employee) */}
       {canSeeLocationCharts && (
         <>
-          <Box mb={1} mt={1}>
-            <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.7rem' }}>
-              Lokasyon Analizi
-            </Typography>
-          </Box>
           <Grid container spacing={2.5} mb={6}>
             <Grid size={{ xs: 12, md: 6 }}>
               <SpendByLocationChart filters={{ month: filters.month, year: filters.year }} />

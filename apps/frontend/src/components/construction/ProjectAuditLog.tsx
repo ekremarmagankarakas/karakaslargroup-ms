@@ -2,7 +2,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
   Box,
   Chip,
-  CircularProgress,
+  Skeleton,
   Paper,
   Typography,
 } from '@mui/material';
@@ -46,7 +46,7 @@ interface Props {
 export function ProjectAuditLog({ projectId }: Props) {
   const { data: logs = [], isLoading } = useProjectAuditLog(projectId);
 
-  if (isLoading) return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
+  if (isLoading) return <Skeleton variant="rounded" height={120} />;
 
   if (logs.length === 0) {
     return (

@@ -8,7 +8,7 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
+  Skeleton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -165,9 +165,7 @@ export function SafetyLog({ projectId, userRole }: Props) {
   const dsliColor = dsli == null ? '#22c55e' : dsli === 0 ? '#ef4444' : dsli < 30 ? '#f59e0b' : '#22c55e';
   const dsliText = dsli == null ? 'Hiç olay yok' : dsli === 0 ? 'Bugün olay yaşandı' : `${dsli} Gündür Kazasız`;
 
-  if (isLoading) {
-    return <Box display="flex" justifyContent="center" py={4}><CircularProgress size={28} /></Box>;
-  }
+  if (isLoading) return <Skeleton variant="rounded" height={120} />;
 
   if (isError) return <Alert severity="error">Veriler yüklenirken bir hata oluştu.</Alert>;
 
