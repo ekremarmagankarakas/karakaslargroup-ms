@@ -56,13 +56,12 @@ export function AppHeader({ onMenuClick }: Props) {
 
   return (
     <AppBar
-      position="fixed"
+      position="static"
       sx={{
         bgcolor: 'background.paper',
         borderBottom: '1px solid',
         borderColor: 'divider',
         color: 'text.primary',
-        zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar sx={{ gap: 1, minHeight: '56px !important', px: { xs: 1.5, sm: 2 } }}>

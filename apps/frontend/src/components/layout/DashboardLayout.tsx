@@ -1,4 +1,4 @@
-import { Box, Toolbar, useMediaQuery, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { useState } from 'react';
 import { ChatWidget } from '../procurement/chat/ChatWidget';
 import { AppHeader } from './AppHeader';
@@ -29,7 +29,7 @@ export function DashboardLayout({
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
       {/* Sidebar */}
       <Sidebar
         open={mobileOpen}
@@ -46,23 +46,23 @@ export function DashboardLayout({
           minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
         <AppHeader onMenuClick={() => (isMobile ? setMobileOpen(true) : handleToggleMini())} />
-        <Toolbar sx={{ minHeight: '56px !important' }} />
         <Box
           component="main"
           sx={{
             flex: 1,
+            overflowY: 'auto',
             px: { xs: 2, sm: 3 },
             pt: { xs: 2, sm: 2.5 },
             pb: 4,
-            maxWidth: 1400,
-            width: '100%',
-            mx: 'auto',
           }}
         >
-          {children}
+          <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
+            {children}
+          </Box>
         </Box>
       </Box>
 
