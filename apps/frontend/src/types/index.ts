@@ -217,6 +217,7 @@ export interface BudgetHistoryResponse {
 // ── Construction Management ──────────────────────────────────────────────────
 
 export type ConstructionProjectStatus = 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled';
+export type ConstructionProjectType = 'shopping_mall' | 'residential' | 'office' | 'mixed_use' | 'hotel' | 'industrial' | 'other';
 export type ConstructionMaterialUnit = 'm3' | 'kg' | 'ton' | 'adet' | 'm2' | 'm' | 'litre';
 export type ConstructionTaskStatus = 'not_started' | 'in_progress' | 'completed' | 'blocked';
 
@@ -229,11 +230,14 @@ export interface ConstructionProject {
   created_by: number;
   created_by_username: string;
   status: ConstructionProjectStatus;
+  project_type: ConstructionProjectType | null;
   start_date: string | null;
   end_date: string | null;
   budget: string | null;
   progress_pct: number;
   created_at: string;
+  is_favorite: boolean;
+  team_count: number;
 }
 
 export interface ConstructionMaterial {
@@ -265,5 +269,475 @@ export interface ConstructionProjectFilters {
   limit?: number;
   search?: string;
   status?: ConstructionProjectStatus;
+  project_type?: ConstructionProjectType;
   location_id?: number;
+  my_projects?: boolean;
+}
+
+export interface ConstructionStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface ConstructionTypeCount {
+  project_type: string;
+  count: number;
+}
+
+export interface ConstructionBudgetByProject {
+  name: string;
+  budget: number;
+  actual_cost: number;
+}
+
+export interface ConstructionMaterialCostByType {
+  material_type: string;
+  total_cost: number;
+}
+
+export interface ConstructionMilestoneStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface ConstructionAnalyticsResponse {
+  projects_by_status: ConstructionStatusCount[];
+  projects_by_type: ConstructionTypeCount[];
+  budget_by_project: ConstructionBudgetByProject[];
+  material_cost_by_type: ConstructionMaterialCostByType[];
+  milestone_status_counts: ConstructionMilestoneStatusCount[];
+  total_budget: number;
+  total_actual_cost: number;
+  avg_progress: number;
+}
+
+export type ConstructionIssueSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type ConstructionIssueStatus = 'open' | 'in_progress' | 'resolved';
+
+export interface ConstructionIssue {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string | null;
+  severity: ConstructionIssueSeverity;
+  status: ConstructionIssueStatus;
+  reported_by: number | null;
+  reporter_username: string | null;
+  created_at: string;
+}
+
+export interface ConstructionPhoto {
+  id: number;
+  project_id: number;
+  uploaded_by: number | null;
+  uploader_username: string | null;
+  file_key: string;
+  url: string;
+  caption: string | null;
+  created_at: string;
+}
+
+export interface ConstructionComment {
+  id: number;
+  project_id: number;
+  user_id: number | null;
+  username: string | null;
+  content: string;
+  created_at: string;
+}
+
+export type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'stormy' | 'snowy';
+
+export interface ConstructionDailyLog {
+  id: number;
+  project_id: number;
+  log_date: string;
+  weather: WeatherCondition;
+  temperature_c: number | null;
+  worker_count: number;
+  work_summary: string;
+  equipment_on_site: string | null;
+  visitors: string | null;
+  recorded_by: number | null;
+  recorder_username: string | null;
+  created_at: string;
+}
+
+export type SubcontractorStatus = 'active' | 'inactive' | 'blacklisted';
+
+export interface ConstructionSubcontractor {
+  id: number;
+  project_id: number;
+  company_name: string;
+  trade: string;
+  contact_name: string;
+  contact_phone: string;
+  contact_email: string | null;
+  contract_value: string | null;
+  status: SubcontractorStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export type PermitType = 'construction' | 'demolition' | 'electrical' | 'plumbing' | 'fire_safety' | 'environmental' | 'occupancy' | 'other';
+export type PermitStatus = 'not_applied' | 'applied' | 'under_review' | 'approved' | 'rejected' | 'expired';
+
+export interface ConstructionPermit {
+  id: number;
+  project_id: number;
+  permit_type: PermitType;
+  permit_number: string | null;
+  issuing_authority: string;
+  status: PermitStatus;
+  applied_date: string | null;
+  approved_date: string | null;
+  expiry_date: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export type ChangeOrderStatus = 'draft' | 'submitted' | 'approved' | 'rejected';
+
+export interface ConstructionChangeOrder {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string;
+  cost_delta: string;
+  schedule_delta_days: number | null;
+  status: ChangeOrderStatus;
+  requested_by: number | null;
+  requester_username: string | null;
+  reviewed_by: number | null;
+  reviewer_username: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export type ConstructionAuditAction = 'created' | 'status_changed' | 'budget_changed' | 'progress_updated' | 'edited';
+
+export interface ConstructionAuditLog {
+  id: number;
+  project_id: number;
+  user_id: number | null;
+  username: string | null;
+  action: ConstructionAuditAction;
+  field_name: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+}
+
+export interface ConstructionDocument {
+  id: number;
+  project_id: number;
+  uploaded_by: number | null;
+  uploader_username: string | null;
+  file_key: string;
+  url: string;
+  original_filename: string;
+  file_size_bytes: number | null;
+  document_type: string | null;
+  caption: string | null;
+  created_at: string;
+}
+
+export type ConstructionProjectRole =
+  | 'project_manager'
+  | 'site_engineer'
+  | 'foreman'
+  | 'architect'
+  | 'safety_officer'
+  | 'consultant'
+  | 'observer';
+
+export interface ConstructionProjectMember {
+  id: number;
+  project_id: number;
+  user_id: number;
+  username: string;
+  email: string;
+  global_role: string;
+  construction_role: ConstructionProjectRole;
+  joined_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export type ShipmentStatus = 'ordered' | 'in_transit' | 'delivered' | 'partial' | 'rejected' | 'returned';
+
+export interface ConstructionShipment {
+  id: number;
+  project_id: number;
+  material_id: number | null;
+  material_name: string;
+  supplier_name: string;
+  quantity_ordered: string;
+  quantity_delivered: string | null;
+  unit: ConstructionMaterialUnit;
+  unit_cost: string | null;
+  total_cost: string | null;
+  status: ShipmentStatus;
+  order_date: string;
+  expected_delivery_date: string | null;
+  actual_delivery_date: string | null;
+  delivery_note_number: string | null;
+  notes: string | null;
+  received_by: number | null;
+  receiver_username: string | null;
+  created_at: string;
+}
+
+// ── Budget Lines ──────────────────────────────────────────────────────────────
+
+export type BudgetCategory = 'labor' | 'materials' | 'equipment' | 'subcontractors' | 'overhead' | 'contingency' | 'other';
+
+export interface ConstructionBudgetLine {
+  id: number;
+  project_id: number;
+  category: BudgetCategory;
+  description: string | null;
+  planned_amount: string;
+  actual_amount: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface BudgetSummaryResponse {
+  lines: ConstructionBudgetLine[];
+  total_planned: string;
+  total_actual: string;
+  variance: string;
+  utilization_pct: number;
+}
+
+// ── RFI ───────────────────────────────────────────────────────────────────────
+
+export type RFIStatus = 'draft' | 'submitted' | 'under_review' | 'answered' | 'closed';
+export type RFIPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+export interface ConstructionRFI {
+  id: number;
+  project_id: number;
+  rfi_number: string;
+  subject: string;
+  question: string;
+  response: string | null;
+  status: RFIStatus;
+  priority: RFIPriority;
+  submitted_to: string;
+  submitted_date: string | null;
+  response_date: string | null;
+  due_date: string | null;
+  submitted_by: number | null;
+  submitter_username: string | null;
+  answered_by_name: string | null;
+  days_open: number | null;
+  is_overdue: boolean;
+  created_at: string;
+}
+
+// ── Punch List ────────────────────────────────────────────────────────────────
+
+export type PunchListStatus = 'open' | 'in_progress' | 'completed' | 'verified' | 'rejected';
+
+export interface ConstructionPunchListItem {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string | null;
+  location_on_site: string | null;
+  subcontractor_id: number | null;
+  subcontractor_name: string | null;
+  assigned_to: number | null;
+  assignee_username: string | null;
+  status: PunchListStatus;
+  due_date: string | null;
+  completed_date: string | null;
+  verified_by: number | null;
+  verifier_username: string | null;
+  created_by: number;
+  creator_username: string | null;
+  is_overdue: boolean;
+  created_at: string;
+}
+
+// ── Invoices ──────────────────────────────────────────────────────────────────
+
+export type InvoiceStatus = 'received' | 'under_review' | 'approved' | 'paid' | 'disputed' | 'cancelled';
+
+export interface ConstructionInvoice {
+  id: number;
+  project_id: number;
+  invoice_number: string;
+  subcontractor_id: number | null;
+  subcontractor_name: string | null;
+  shipment_id: number | null;
+  description: string;
+  amount: string;
+  tax_amount: string;
+  total_amount: string;
+  status: InvoiceStatus;
+  invoice_date: string;
+  due_date: string | null;
+  paid_date: string | null;
+  paid_by: number | null;
+  payer_username: string | null;
+  notes: string | null;
+  is_overdue: boolean;
+  created_at: string;
+}
+
+// ── Safety Incidents ──────────────────────────────────────────────────────────
+
+export type IncidentType = 'near_miss' | 'minor_injury' | 'major_injury' | 'property_damage' | 'environmental' | 'fire' | 'other';
+export type IncidentStatus = 'reported' | 'under_investigation' | 'corrective_action_pending' | 'closed';
+
+export interface ConstructionSafetyIncident {
+  id: number;
+  project_id: number;
+  incident_type: IncidentType;
+  title: string;
+  description: string;
+  location_on_site: string | null;
+  incident_date: string;
+  injured_person_name: string | null;
+  time_lost_days: number | null;
+  root_cause: string | null;
+  corrective_actions: string | null;
+  status: IncidentStatus;
+  reported_by: number | null;
+  reporter_username: string | null;
+  closed_at: string | null;
+  created_at: string;
+}
+
+export interface SafetyStatsResponse {
+  days_since_last_incident: number | null;
+  open_count: number;
+  major_injury_open: number;
+  by_type: Record<string, number>;
+}
+
+export interface BudgetLineCreate {
+  category: BudgetCategory;
+  description?: string;
+  planned_amount: string;
+  actual_amount?: string;
+  notes?: string;
+}
+
+export interface BudgetLineUpdate {
+  category?: BudgetCategory;
+  description?: string;
+  planned_amount?: string;
+  actual_amount?: string;
+  notes?: string;
+}
+
+export interface MeetingActionCreate {
+  description: string;
+  assigned_to_name: string;
+  due_date?: string | null;
+}
+
+export interface MeetingActionResponse {
+  id: number;
+  meeting_id: number;
+  description: string;
+  assigned_to_name: string;
+  due_date: string | null;
+  completed: boolean;
+  created_at: string;
+}
+
+export interface ConstructionMeetingCreate {
+  title: string;
+  meeting_date: string;
+  location?: string | null;
+  attendees?: string | null;
+  agenda?: string | null;
+  summary: string;
+  decisions?: string | null;
+  actions: MeetingActionCreate[];
+}
+
+export interface ConstructionMeetingUpdate {
+  title?: string;
+  meeting_date?: string;
+  location?: string | null;
+  attendees?: string | null;
+  agenda?: string | null;
+  summary?: string;
+  decisions?: string | null;
+}
+
+export type EquipmentStatus = 'available' | 'in_use' | 'under_maintenance' | 'out_of_service' | 'returned';
+export type EquipmentCategory = 'heavy_machinery' | 'lifting' | 'earthmoving' | 'compaction' | 'concrete' | 'electrical' | 'scaffolding' | 'safety' | 'survey' | 'other';
+
+export interface ConstructionEquipment {
+  id: number;
+  project_id: number;
+  name: string;
+  category: EquipmentCategory;
+  status: EquipmentStatus;
+  model_number: string | null;
+  serial_number: string | null;
+  supplier: string | null;
+  rental_rate_daily: string | null;
+  mobilization_date: string | null;
+  demobilization_date: string | null;
+  last_maintenance_date: string | null;
+  next_maintenance_date: string | null;
+  notes: string | null;
+  created_by: number | null;
+  creator_username: string | null;
+  maintenance_overdue: boolean;
+  created_at: string;
+}
+
+export interface EquipmentCreate {
+  name: string;
+  category?: EquipmentCategory;
+  status?: EquipmentStatus;
+  model_number?: string | null;
+  serial_number?: string | null;
+  supplier?: string | null;
+  rental_rate_daily?: string | null;
+  mobilization_date?: string | null;
+  demobilization_date?: string | null;
+  last_maintenance_date?: string | null;
+  next_maintenance_date?: string | null;
+  notes?: string | null;
+}
+
+export interface EquipmentUpdate {
+  name?: string;
+  category?: EquipmentCategory;
+  status?: EquipmentStatus;
+  model_number?: string | null;
+  serial_number?: string | null;
+  supplier?: string | null;
+  rental_rate_daily?: string | null;
+  mobilization_date?: string | null;
+  demobilization_date?: string | null;
+  last_maintenance_date?: string | null;
+  next_maintenance_date?: string | null;
+  notes?: string | null;
+}
+
+export interface ConstructionMeeting {
+  id: number;
+  project_id: number;
+  title: string;
+  meeting_date: string;
+  location: string | null;
+  attendees: string | null;
+  agenda: string | null;
+  summary: string;
+  decisions: string | null;
+  created_by: number | null;
+  creator_username: string | null;
+  actions: MeetingActionResponse[];
+  created_at: string;
 }

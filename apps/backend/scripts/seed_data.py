@@ -24,9 +24,20 @@ from app.models.notification import Notification
 from app.models.procurement.requirement import Requirement, RequirementPriority, RequirementStatus
 from app.models.procurement.requirement_comment import RequirementComment
 from app.models.user import User
-from app.models.construction.project import ConstructionProject, ConstructionProjectStatus
+from app.models.construction.project import ConstructionProject, ConstructionProjectStatus, ConstructionProjectType
 from app.models.construction.material import ConstructionMaterial, ConstructionMaterialUnit
 from app.models.construction.milestone import ConstructionMilestone, ConstructionTaskStatus
+from app.models.construction.issue import ConstructionIssue, ConstructionIssueSeverity, ConstructionIssueStatus
+from app.models.construction.shipment import ConstructionShipment, ShipmentStatus
+from app.models.construction.project_member import ConstructionProjectMember, ConstructionProjectRole
+from app.models.construction.budget_line import ConstructionBudgetLine, BudgetCategory
+from app.models.construction.safety_incident import ConstructionSafetyIncident, IncidentType, IncidentStatus
+from app.models.construction.invoice import ConstructionInvoice, InvoiceStatus
+from app.models.construction.subcontractor import ConstructionSubcontractor
+from app.models.construction.punch_list_item import ConstructionPunchListItem, PunchListStatus
+from app.models.construction.rfi import ConstructionRFI, RFIStatus, RFIPriority
+from app.models.construction.meeting import ConstructionMeeting, ConstructionMeetingAction
+from app.models.construction.equipment import ConstructionEquipment, EquipmentStatus, EquipmentCategory
 
 # ── Global config ─────────────────────────────────────────────────────────────
 
@@ -898,23 +909,315 @@ CONSTRUCTION_PROJECTS = [
 ]
 
 
+EXTRA_CONSTRUCTION_PROJECTS = [
+    {
+        "name": "Galataport Otel ve Marina",
+        "description": "Karaköy sahilinde karma kullanımlı yenileme projesi: 280 odalı butik otel, 150 teknelik yat limanı, çarşı alanı ve kültürel mekânlar. Tarihi rıhtım yapıları restore edilerek yeniden işlevlendirilecek.",
+        "location": "Kanyon AVM",
+        "creator": "admin",
+        "status": ConstructionProjectStatus.active,
+        "project_type": ConstructionProjectType.hotel,
+        "start_date": date(2024, 2, 1),
+        "end_date": date(2026, 8, 31),
+        "budget": Decimal("1_620_000_000"),
+        "progress_pct": 44,
+        "materials": [
+            {"name": "Tarihi Taş Restorasyon Harcı", "material_type": "Restorasyon", "unit": ConstructionMaterialUnit.kg, "quantity_planned": Decimal("85000"), "quantity_used": Decimal("52000"), "unit_cost": Decimal("48")},
+            {"name": "Antrasit Çelik Profil (Marina İskelesi)", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("1800"), "quantity_used": Decimal("920"), "unit_cost": Decimal("55000")},
+            {"name": "C35 Su Geçirimsiz Hazır Beton", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("22000"), "quantity_used": Decimal("14500"), "unit_cost": Decimal("4100")},
+            {"name": "Kristal Beyaz Mermer Döşeme", "material_type": "Kaplama", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("8500"), "quantity_used": Decimal("2800"), "unit_cost": Decimal("1650")},
+            {"name": "Otel Odası Akustik Duvar Paneli", "material_type": "Yalıtım", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("18000"), "quantity_used": Decimal("3500"), "unit_cost": Decimal("380")},
+            {"name": "Paslanmaz Deniz Suyu Arıtma Ünitesi", "material_type": "Mekanik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("2"), "quantity_used": Decimal("1"), "unit_cost": Decimal("2800000")},
+        ],
+        "milestones": [
+            {"title": "Rıhtım Güçlendirme ve Kazık Takviyesi", "description": "Tarihi rıhtım temeli boşluk enjeksiyonu ve 120 adet mikro kazık takviyesi.", "due_date": date(2024, 7, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Marina Altyapısı ve Pontoon Kurulumu", "description": "Yat yanaşma dubası, yakıt sistemi, su/elektrik bağlantıları.", "due_date": date(2025, 1, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Tarihi Bina Restorasyon (A Blok)", "description": "Eski gümrük binasının cephe restorasyonu, iç yenileme, tesisat yenileme.", "due_date": date(2025, 8, 31), "status": ConstructionTaskStatus.in_progress, "completion_pct": 58},
+            {"title": "Otel Yeni İnşaat Kütlesi (B Blok)", "description": "Yeni otel binasının kaba yapısı ve cephe kapatma.", "due_date": date(2026, 2, 28), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "İç Mimari ve Soft Opening", "description": "Otel, restoran, spa ve çarşı alanı ince yapı ve açılış.", "due_date": date(2026, 8, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+        "issues": [
+            {"title": "Tarihi Yapı Kazısında Arkeolojik Kalıntı", "description": "A Blok temel güçlendirme kazısında Bizans dönemi mozaik döşeme kalıntısına rastlandı, Kültür Bakanlığı çalışmaları durdurdu.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.in_progress},
+            {"title": "Marina Zemin Sondaj Sapması", "description": "3 adet zemin sondaj noktasında beklenen kayaya ulaşılmadı, temel derinliği revize ediliyor.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        ],
+    },
+    {
+        "name": "Kocaeli Organize Sanayi Lojistik Merkezi",
+        "description": "Kocaeli GOSB'de 120.000 m² kapalı alanlı A+ sınıfı lojistik depolama ve dağıtım merkezi. 12 m yüksekliğinde dock kapılı soğuk depo, kuru depo ve ofis bloğu.",
+        "location": None,
+        "creator": "admin",
+        "status": ConstructionProjectStatus.active,
+        "project_type": ConstructionProjectType.industrial,
+        "start_date": date(2024, 6, 1),
+        "end_date": date(2026, 2, 28),
+        "budget": Decimal("780_000_000"),
+        "progress_pct": 55,
+        "materials": [
+            {"name": "Prefabrik Beton Kolon (40x40)", "material_type": "Prefabrik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("480"), "quantity_used": Decimal("320"), "unit_cost": Decimal("38000")},
+            {"name": "Prefabrik Kiriş (L=18m)", "material_type": "Prefabrik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("320"), "quantity_used": Decimal("200"), "unit_cost": Decimal("52000")},
+            {"name": "Sandviç Panel (120mm EPS Çatı)", "material_type": "Çatı", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("125000"), "quantity_used": Decimal("68000"), "unit_cost": Decimal("380")},
+            {"name": "Endüstriyel Beton Zemin (100mm Fiber)", "material_type": "Zemin", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("115000"), "quantity_used": Decimal("42000"), "unit_cost": Decimal("185")},
+            {"name": "Soğuk Depo İzolasyon Paneli (PIR 200mm)", "material_type": "Yalıtım", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("18000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("680")},
+            {"name": "Endüstriyel Dock Kapısı (5x5m)", "material_type": "Kapı/Pencere", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("48"), "quantity_used": Decimal("12"), "unit_cost": Decimal("85000")},
+            {"name": "Yağmur Suyu Çatı Drenaj Sistemi", "material_type": "Tesisat", "unit": ConstructionMaterialUnit.m, "quantity_planned": Decimal("4800"), "quantity_used": Decimal("1800"), "unit_cost": Decimal("520")},
+        ],
+        "milestones": [
+            {"title": "Zemin ve Altyapı Hazırlığı", "description": "Zemin tesviyesi, drenaj, tüm altyapı bağlantıları ve stabilizasyon.", "due_date": date(2024, 10, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Prefabrik Taşıyıcı Sistem Montajı", "description": "480 kolon, 320 kiriş ve çatı makas montajı.", "due_date": date(2025, 3, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Çatı ve Cephe Panel Kapatma", "description": "Sandviç panel çatı, cephe giydirme ve su yalıtımı.", "due_date": date(2025, 7, 31), "status": ConstructionTaskStatus.in_progress, "completion_pct": 54},
+            {"title": "Soğuk Depo İç İnşaat", "description": "PIR panel, soğutma ekipmanı yerleşimi ve soğutma hatları.", "due_date": date(2025, 11, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Endüstriyel Zemin ve Dock Ekipmanları", "description": "Fiber takviyeli beton döşeme, dock leveler, kapı montajları.", "due_date": date(2026, 2, 28), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+        "issues": [
+            {"title": "Prefabrik Kolon Teslimat Gecikmesi", "description": "Fabrikadan 3 partide gelecek olan prefabrik kolonların 2. partisi 3 hafta gecikti, montaj sırası bozuldu.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.resolved},
+            {"title": "Zemin Taşıma Gücü Yetersizliği (C Bölgesi)", "description": "C bölgesinde zemin taşıma gücü 8 ton/m² yerine 5.5 ton/m² çıktı; raf sistemi takviye gerekiyor.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        ],
+    },
+    {
+        "name": "İstanbul Adalar Ekolojik Tatil Köyü",
+        "description": "Büyükada'da ruhsat alınmış 3.8 Ha arazide doğayla uyumlu ekolojik tatil tesisi. 80 bungalow, ortak sosyal alan, güneş enerjisi mikro şebeke ve yağmur suyu geri dönüşüm sistemi.",
+        "location": None,
+        "creator": "manager",
+        "status": ConstructionProjectStatus.cancelled,
+        "project_type": ConstructionProjectType.hotel,
+        "start_date": date(2023, 5, 1),
+        "end_date": date(2025, 6, 30),
+        "budget": Decimal("320_000_000"),
+        "progress_pct": 18,
+        "materials": [
+            {"name": "CLT Çapraz Lamine Ahşap Panel", "material_type": "Yapısal Ahşap", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("2800"), "quantity_used": Decimal("480"), "unit_cost": Decimal("18500")},
+            {"name": "Güneş Paneli (Monokristal 550W)", "material_type": "Elektrik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("960"), "quantity_used": Decimal("0"), "unit_cost": Decimal("4800")},
+            {"name": "Yeşil Çatı Substresi", "material_type": "Çatı", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("6400"), "quantity_used": Decimal("0"), "unit_cost": Decimal("280")},
+        ],
+        "milestones": [
+            {"title": "Arazi Düzenleme ve Altyapı", "description": "Mevcut bitki örtüsü tespiti, yollar, altyapı güzergahları.", "due_date": date(2023, 10, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Bungalow Kaba Yapısı (Pilot Grup — 10 Adet)", "description": "İlk 10 bungalow CLT iskelet kurulumu ve çatı kapatma.", "due_date": date(2024, 4, 30), "status": ConstructionTaskStatus.in_progress, "completion_pct": 40},
+            {"title": "Güneş Enerjisi Sistemi", "description": "960 panel kurulumu, akü deposu, mikro şebeke bağlantısı.", "due_date": date(2024, 8, 31), "status": ConstructionTaskStatus.blocked, "completion_pct": 0},
+        ],
+        "issues": [
+            {"title": "Çevre İzni İptal Davası", "description": "Bir sivil toplum kuruluşu projenin çevre izinlerine itiraz etti; mahkeme inşaatı durdurma kararı verdi.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.open},
+        ],
+    },
+    {
+        "name": "Gaziantep Endüstriyel Fırın Tesisi",
+        "description": "Gaziantep OSB'de otomasyonlu endüstriyel fırın üretim tesisi genişletme. Mevcut tesisin güneyi, 18.000 m² yeni üretim holü, test odası ve kalite kontrol laboratuvarı.",
+        "location": None,
+        "creator": "admin",
+        "status": ConstructionProjectStatus.completed,
+        "project_type": ConstructionProjectType.industrial,
+        "start_date": date(2022, 3, 1),
+        "end_date": date(2023, 11, 30),
+        "budget": Decimal("185_000_000"),
+        "progress_pct": 100,
+        "materials": [
+            {"name": "Çelik Konstrüksiyon (Sandviç Panel Taşıyıcı)", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("820"), "quantity_used": Decimal("820"), "unit_cost": Decimal("52000")},
+            {"name": "Endüstriyel Epoksi Zemin Kaplama", "material_type": "Zemin", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("16500"), "quantity_used": Decimal("16500"), "unit_cost": Decimal("380")},
+            {"name": "Yangın Bölme Duvarı (REI120)", "material_type": "Yangın Güvenliği", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("2800"), "quantity_used": Decimal("2800"), "unit_cost": Decimal("1200")},
+            {"name": "Köprülü Vinç Rayı (20 ton)", "material_type": "Mekanik", "unit": ConstructionMaterialUnit.m, "quantity_planned": Decimal("480"), "quantity_used": Decimal("480"), "unit_cost": Decimal("8500")},
+            {"name": "Endüstriyel Sprinkler Sistemi", "material_type": "Yangın Güvenliği", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("820"), "quantity_used": Decimal("820"), "unit_cost": Decimal("1850")},
+        ],
+        "milestones": [
+            {"title": "Zemin ve Temel", "description": "Zemin tesviyesi, temel betonajı ve kanallar.", "due_date": date(2022, 7, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Çelik Konstrüksiyon ve Çatı", "description": "Çelik iskelet montajı, sandviç panel çatı.", "due_date": date(2023, 1, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Mekanik ve Elektrik Tesisatlar", "description": "Köprülü vinç rayları, elektrik panoları, sprinkler.", "due_date": date(2023, 7, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "Teslim ve İşletmeye Alma", "description": "Epoksi zemin, son bitişler, makina montajı ve deneme üretimi.", "due_date": date(2023, 11, 30), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+        ],
+        "issues": [
+            {"title": "Çelik Malzeme Fiyat Artışı", "description": "Hammadde piyasasındaki dalgalanma nedeniyle sözleşme bedeline %12 fiyat artışı eklendi.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.resolved},
+        ],
+    },
+    {
+        "name": "Eskişehir Teknokent AR-GE Binası",
+        "description": "Eskişehir Teknoloji Geliştirme Bölgesi'nde 5 katlı çok kiracılı AR-GE ve ofis binası. Sismik yalıtımlı taban, akıllı bina sistemi, yeşil çatı, LEED Gold hedefi.",
+        "location": None,
+        "creator": "manager",
+        "status": ConstructionProjectStatus.active,
+        "project_type": ConstructionProjectType.office,
+        "start_date": date(2025, 1, 15),
+        "end_date": date(2027, 1, 31),
+        "budget": Decimal("420_000_000"),
+        "progress_pct": 15,
+        "materials": [
+            {"name": "Sismik İzolatör (LRB Tipi)", "material_type": "Yapısal", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("48"), "quantity_used": Decimal("48"), "unit_cost": Decimal("185000")},
+            {"name": "C40 Beton (Sismik İzolasyon Tablası)", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("12500"), "quantity_used": Decimal("4200"), "unit_cost": Decimal("4500")},
+            {"name": "S500 Yüksek Sünekli Çelik", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("1850"), "quantity_used": Decimal("380"), "unit_cost": Decimal("36000")},
+            {"name": "Fotovoltaik BIPV Cephe Paneli", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("2800"), "quantity_used": Decimal("0"), "unit_cost": Decimal("8200")},
+            {"name": "Triple Cam Isıcam (Süper Düşük-e)", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("4500"), "quantity_used": Decimal("0"), "unit_cost": Decimal("2800")},
+            {"name": "Yeşil Çatı Sistemi (Ekstra Derin)", "material_type": "Çatı", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("1800"), "quantity_used": Decimal("0"), "unit_cost": Decimal("650")},
+        ],
+        "milestones": [
+            {"title": "Sismik İzolasyon Tablası", "description": "LRB sismik izolatör montajı ve izolasyon tablası betonarme.", "due_date": date(2025, 6, 30), "status": ConstructionTaskStatus.in_progress, "completion_pct": 80},
+            {"title": "1-3. Kat Kaba Yapı", "description": "Kolon, perde ve döşeme sistemi 1-3. katlar.", "due_date": date(2025, 12, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "4-5. Kat ve Çatı", "description": "Üst katlar ve yeşil çatı sistemi.", "due_date": date(2026, 5, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "BIPV Cephe ve Akıllı Bina Sistemi", "description": "Fotovoltaik cephe panelleri, BMS kurulumu ve entegrasyon.", "due_date": date(2026, 10, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "LEED Sertifikasyon ve Teslim", "description": "İnce yapı, LEED denetimi, GreenBuilding belgesi ve açılış.", "due_date": date(2027, 1, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+        "issues": [
+            {"title": "Sismik İzolatör İthal Gecikmesi", "description": "LRB izolatörlerin Japonya'dan ithalatı gümrük prosedürleri nedeniyle 5 hafta gecikti.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.resolved},
+            {"title": "LEED Danışman Değişikliği", "description": "Proje LEED danışmanı firması iflas etti; yeni danışman aranıyor.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.in_progress},
+        ],
+    },
+    {
+        "name": "Pendik Marina Rezidans",
+        "description": "İstanbul Pendik'te sahil bandında 5 blok, 680 daireli üst orta segment konut projesi. Deniz manzaralı cepheler, marina bağlantısı, AVM ve okul sosyal donatıları.",
+        "location": "Forum İstanbul AVM",
+        "creator": "admin",
+        "status": ConstructionProjectStatus.active,
+        "project_type": ConstructionProjectType.residential,
+        "start_date": date(2024, 1, 1),
+        "end_date": date(2027, 6, 30),
+        "budget": Decimal("1_950_000_000"),
+        "progress_pct": 32,
+        "materials": [
+            {"name": "C35 Hazır Beton", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("180000"), "quantity_used": Decimal("68000"), "unit_cost": Decimal("3900")},
+            {"name": "S500 Nervürlü İnşaat Demiri", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("22500"), "quantity_used": Decimal("8200"), "unit_cost": Decimal("31500")},
+            {"name": "Isıcam (PVC Doğrama + Low-E)", "material_type": "Doğrama", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("65000"), "quantity_used": Decimal("8500"), "unit_cost": Decimal("1650")},
+            {"name": "Mantolama Sistemi ETICS 8cm", "material_type": "Yalıtım", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("220000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("310")},
+            {"name": "Seramik Cephe Kaplama (60x120)", "material_type": "Kaplama", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("28000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("480")},
+            {"name": "Gömme Asansör (15 Kişilik)", "material_type": "Mekanik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("20"), "quantity_used": Decimal("0"), "unit_cost": Decimal("950000")},
+        ],
+        "milestones": [
+            {"title": "Altyapı ve 5 Blok Hafriyatı", "description": "Tüm site altyapısı, kanal ve 5 blok temel hafriyatı.", "due_date": date(2024, 6, 30), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "A ve B Blok Kaba Yapı", "description": "A-B blok temel, bodrum ve 1-12. kat kaba yapısı.", "due_date": date(2025, 3, 31), "status": ConstructionTaskStatus.completed, "completion_pct": 100},
+            {"title": "C Blok Kaba Yapı", "description": "C blok temel ve kaba yapı tamamlama.", "due_date": date(2025, 9, 30), "status": ConstructionTaskStatus.in_progress, "completion_pct": 62},
+            {"title": "D ve E Blok Kaba Yapı", "description": "Son iki bloğun temelden çatıya kaba yapısı.", "due_date": date(2026, 3, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Cephe Kapatma — Tüm Bloklar", "description": "Doğrama, ETICS mantolama, seramik cephe.", "due_date": date(2026, 11, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "İnce Yapı ve Teslim", "description": "Daire iç imalatları, ortak alan, iskan ve teslimler.", "due_date": date(2027, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+        "issues": [
+            {"title": "Dolgu Alanda Farklı Oturma", "description": "B ve C blok arasındaki eski dolgu alanda zemin oturması farklı çıktı, fore kazık derinliği revize edildi.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.resolved},
+            {"title": "Beton Pompası Arızası", "description": "32. kat döşemesi betonajında pompa arıza yaptı; 12 saat duruş.", "severity": ConstructionIssueSeverity.low, "status": ConstructionIssueStatus.resolved},
+            {"title": "İSG: Forklift Kazası", "description": "Şantiye içi forklift ile yaya çarpışması: hafif yaralanma. İSG soruşturması başlatıldı.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.in_progress},
+        ],
+    },
+    {
+        "name": "Trabzon Şehir Hastanesi",
+        "description": "Trabzon'da kamu-özel ortaklığı modeli ile inşa edilecek 650 yataklı üçüncü basamak şehir hastanesi. Ana hastane, poliklinik bloğu, teknik merkez ve helikopter pisti.",
+        "location": None,
+        "creator": "manager",
+        "status": ConstructionProjectStatus.planning,
+        "project_type": ConstructionProjectType.other,
+        "start_date": date(2026, 3, 1),
+        "end_date": date(2030, 6, 30),
+        "budget": Decimal("6_800_000_000"),
+        "progress_pct": 0,
+        "materials": [
+            {"name": "C45 Hazır Beton (Medikal Yük Sınıfı)", "material_type": "Beton", "unit": ConstructionMaterialUnit.m3, "quantity_planned": Decimal("120000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("5000")},
+            {"name": "S500 Süneklik Düzeyi Yüksek Çelik", "material_type": "Çelik", "unit": ConstructionMaterialUnit.ton, "quantity_planned": Decimal("18000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("37000")},
+            {"name": "Hastane Hibrit Cephe Sistemi", "material_type": "Cephe", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("62000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("4200")},
+            {"name": "Medikal Gaz Boru Tesisatı (Bakır)", "material_type": "Tesisat", "unit": ConstructionMaterialUnit.m, "quantity_planned": Decimal("85000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("380")},
+        ],
+        "milestones": [
+            {"title": "ÇED ve Zemin Etüdü", "description": "Çevresel etki değerlendirmesi, zemin sondajları ve hidrojeolojik etüt.", "due_date": date(2026, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Mimari ve Mühendislik Projeleri", "description": "Hastane mimarisi, yapısal ve MEP mühendislik projeleri.", "due_date": date(2027, 2, 28), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Temel ve Bodrum İnşaatı", "description": "Tüm yapı kütleleri hafriyat, temel betonarme.", "due_date": date(2028, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Üst Yapı Kaba İnşaat", "description": "7 katlı ana hastane ve poliklinik blok kaba yapısı.", "due_date": date(2029, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Tıbbi Cihaz Yerleşimi ve Açılış", "description": "MEP tesisatları, tıbbi cihaz montajı, iskan ve açılış.", "due_date": date(2030, 6, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+        "issues": [],
+    },
+    {
+        "name": "Antalya Turizm Kompleksi Renovasyonu",
+        "description": "Antalya Konyaaltı'nda mevcut 5 yıldızlı otelin kapsamlı renovasyonu. 480 oda yenileme, yeni aqua park, SPA merkezi, kongre salonu ve dış alan peyzaj çalışmaları.",
+        "location": "Cevahir AVM",
+        "creator": "admin",
+        "status": ConstructionProjectStatus.on_hold,
+        "project_type": ConstructionProjectType.hotel,
+        "start_date": date(2025, 11, 1),
+        "end_date": date(2026, 10, 31),
+        "budget": Decimal("540_000_000"),
+        "progress_pct": 5,
+        "materials": [
+            {"name": "Otel Odası Banyo Seramiği (Lüks)", "material_type": "Kaplama", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("28000"), "quantity_used": Decimal("0"), "unit_cost": Decimal("580")},
+            {"name": "Akustik Tavan Paneli (Hotel Sınıfı)", "material_type": "Tavan", "unit": ConstructionMaterialUnit.m2, "quantity_planned": Decimal("42000"), "quantity_used": Decimal("2500"), "unit_cost": Decimal("280")},
+            {"name": "Aqua Park FRP Kaydırak Seti", "material_type": "Eğlence Ekipmanı", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("12"), "quantity_used": Decimal("0"), "unit_cost": Decimal("850000")},
+            {"name": "LED Havuz Aydınlatma Sistemi", "material_type": "Elektrik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("380"), "quantity_used": Decimal("0"), "unit_cost": Decimal("4200")},
+            {"name": "Endüstriyel Mutfak Ekipmanı", "material_type": "Mekanik", "unit": ConstructionMaterialUnit.adet, "quantity_planned": Decimal("1"), "quantity_used": Decimal("0"), "unit_cost": Decimal("12500000")},
+        ],
+        "milestones": [
+            {"title": "Ön Çalışmalar ve Demontaj", "description": "Mevcut oda demontajı, asbestos tespiti ve temizleme.", "due_date": date(2025, 12, 31), "status": ConstructionTaskStatus.in_progress, "completion_pct": 30},
+            {"title": "Oda Renovasyonu (1-240 Arası)", "description": "İlk 240 odanın tamirat, boya, seramik ve doğrama yenileme.", "due_date": date(2026, 4, 30), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Oda Renovasyonu (241-480 Arası)", "description": "Son 240 odanın renovasyonu.", "due_date": date(2026, 7, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+            {"title": "Aqua Park ve Kongre Salonu", "description": "Yeni aqua park inşaatı, kongre salonu yenileme ve SPA.", "due_date": date(2026, 10, 31), "status": ConstructionTaskStatus.not_started, "completion_pct": 0},
+        ],
+        "issues": [
+            {"title": "Sezon Baskısı — Geçici Kapatma Süresi", "description": "Otel yönetimi renovasyon için daha kısa kapatma süresi talep ediyor; program sıkışık.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.open},
+            {"title": "Asbestos Tespiti (2. Kat Tavan)", "description": "Eski tavan dolgusunda asbestos tespit edildi; özel bertaraf ekibi bekleniyor, iş durduruldu.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.in_progress},
+        ],
+    },
+]
+
+CONSTRUCTION_PROJECT_TYPES = [
+    ConstructionProjectType.shopping_mall,
+    ConstructionProjectType.residential,
+    ConstructionProjectType.mixed_use,
+    ConstructionProjectType.residential,
+    ConstructionProjectType.office,
+    ConstructionProjectType.residential,
+]
+
+CONSTRUCTION_ISSUE_TEMPLATES = [
+    [
+        {"title": "Temel Beton Kalitesi Sorunu", "description": "B4 aks kesişiminde C30 beton numunelerinde 28 günlük dayanım değerleri hedefin %15 altında çıktı.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        {"title": "Vinç Bakım Gecikmesi", "description": "8 numaralı tower crane bakımı 3 gün gecikti, üst kat kalıp çalışmaları aksıyor.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.open},
+        {"title": "Elektrik Trafo Bağlantısı Bekleniyor", "description": "Kalıcı elektrik aboneliği için gerekli trafo bağlantısı BEDAŞ tarafından 6 hafta geciktirildi.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.open},
+    ],
+    [
+        {"title": "Su Sızıntısı — B2 Kat Perdesi", "description": "Kuzey cephe bodrum perdelerinde nem ve su sızıntısı tespit edildi; zemin etüt raporu ile uyumsuz.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        {"title": "Demir Tedarik Gecikmesi", "description": "S500 nervürlü inşaat demiri teslimatı limandekilerin grevinden dolayı 2 hafta gecikecek.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.open},
+        {"title": "Kalıp Düşmesi — Kaza Raporu", "description": "5. kat döşeme kalıbında kısmi düşme yaşandı; hasar minimal, yaralanma yok. İSG raporu hazırlandı.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.resolved},
+    ],
+    [
+        {"title": "Zemin Etüt Revizyonu Gerekiyor", "description": "İhale aşamasında zemin etüt raporundaki zemin sınıfı revizyonu yapılması gerekiyor, proje başlangıcını etkileyebilir.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.open},
+        {"title": "Ruhsat Ek Süresi Talebi", "description": "Mimari projedeki kat alanı değişikliği nedeniyle belediyeye ek süre talebi yapıldı.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.in_progress},
+    ],
+    [
+        {"title": "Cephe Cam Montaj Kusuru", "description": "D blok 8-12. katlarda cam cephe silikon derzlerinde ayrılma görüldü; alt yüklenici değişimi gündemde.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.resolved},
+        {"title": "Mesleki İzin Süresi Doldu", "description": "Baş iş güvenliği uzmanının mesleki yeterlilik belgesi yenilenmedi.", "severity": ConstructionIssueSeverity.low, "status": ConstructionIssueStatus.resolved},
+        {"title": "Teslim Sonrası Su Tesisatı Sızıntısı", "description": "Bazı dairelerde teslimden sonra pişirme alanı altında sızıntı bildirimi alındı.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.resolved},
+    ],
+    [
+        {"title": "Altyapı Bağlantı Noktası Sorunu", "description": "Yapı ruhsatında gösterilen altyapı (atık su) bağlantı noktası ile sahada mevcut konum arasında 8 m sapma var.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.open},
+        {"title": "İSG: Yüksekte Çalışma Belgesi Eksik", "description": "Çatı ve cephe ekibinde iki işçinin yüksekte çalışma belgesi yok; iş durdurma riski.", "severity": ConstructionIssueSeverity.critical, "status": ConstructionIssueStatus.in_progress},
+    ],
+    [
+        {"title": "Geç Teslim Riski — Zemin Kat Kaba Yapı", "description": "Mevcut ilerlemeye göre zemin kat kaba yapısının 3 hafta gecikmesi bekleniyor.", "severity": ConstructionIssueSeverity.medium, "status": ConstructionIssueStatus.open},
+        {"title": "Prefabrik Merdiven Ölçü Hatası", "description": "C bloğu için sipariş edilen prefabrik merdiven ve sahanlıkların plandaki ölçüden 5 cm fazla geldiği anlaşıldı.", "severity": ConstructionIssueSeverity.high, "status": ConstructionIssueStatus.in_progress},
+        {"title": "Doğalgaz Bağlantı Gecikme", "description": "Doğalgaz aboneliği GASDAŞ/İGDAŞ onayı bekleniyor, sıcak test yapılamıyor.", "severity": ConstructionIssueSeverity.low, "status": ConstructionIssueStatus.open},
+    ],
+]
+
+
 async def seed_construction_projects(db, users: dict, locs: dict) -> None:
-    count_result = await db.execute(select(func.count()).select_from(ConstructionProject))
-    if count_result.scalar_one() > 0:
-        print(f"  skip  construction projects (already exist)")
-        return
+    # Fetch existing project names to skip duplicates
+    existing_result = await db.execute(select(ConstructionProject.name))
+    existing_names: set[str] = {row[0] for row in existing_result.all()}
 
     created_projects = 0
     created_materials = 0
     created_milestones = 0
+    created_issues = 0
 
-    for pdata in CONSTRUCTION_PROJECTS:
+    reporter = users.get("manager") or users.get("admin")
+
+    all_projects = [
+        (idx, pdata, False) for idx, pdata in enumerate(CONSTRUCTION_PROJECTS)
+    ] + [
+        (idx, pdata, True) for idx, pdata in enumerate(EXTRA_CONSTRUCTION_PROJECTS)
+    ]
+
+    for idx, pdata, has_type in all_projects:
+        if pdata["name"] in existing_names:
+            print(f"  skip  project '{pdata['name']}' (already exists)")
+            continue
+
         creator = users.get(pdata["creator"])
         if not creator:
             print(f"  skip  project '{pdata['name']}' (creator '{pdata['creator']}' not found)")
             continue
 
         loc = locs.get(pdata["location"]) if pdata["location"] else None
+        project_type = pdata["project_type"] if has_type else CONSTRUCTION_PROJECT_TYPES[idx % len(CONSTRUCTION_PROJECT_TYPES)]
 
         project = ConstructionProject(
             name=pdata["name"],
@@ -922,6 +1225,7 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
             location_id=loc.id if loc else None,
             created_by=creator.id,
             status=pdata["status"],
+            project_type=project_type,
             start_date=pdata["start_date"],
             end_date=pdata["end_date"],
             budget=pdata["budget"],
@@ -930,6 +1234,7 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
         db.add(project)
         await db.flush()
         created_projects += 1
+        existing_names.add(pdata["name"])
 
         for mdata in pdata["materials"]:
             db.add(ConstructionMaterial(
@@ -954,11 +1259,506 @@ async def seed_construction_projects(db, users: dict, locs: dict) -> None:
             ))
             created_milestones += 1
 
+        issue_list = pdata.get("issues") or CONSTRUCTION_ISSUE_TEMPLATES[idx % len(CONSTRUCTION_ISSUE_TEMPLATES)]
+        for idata in issue_list:
+            db.add(ConstructionIssue(
+                project_id=project.id,
+                title=idata["title"],
+                description=idata["description"],
+                severity=idata["severity"],
+                status=idata["status"],
+                reported_by=reporter.id if reporter else None,
+            ))
+            created_issues += 1
+
     await db.flush()
-    print(f"  created {created_projects} construction projects, {created_materials} materials, {created_milestones} milestones")
+    print(f"  created {created_projects} construction projects, {created_materials} materials, {created_milestones} milestones, {created_issues} issues")
+
+
+async def seed_construction_team(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionProjectMember))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction team members (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction team members (no projects)")
+        return
+
+    all_users = list(users.values())
+    role_cycle = [
+        ConstructionProjectRole.project_manager,
+        ConstructionProjectRole.site_engineer,
+        ConstructionProjectRole.foreman,
+        ConstructionProjectRole.architect,
+    ]
+    today = date.today()
+    created = 0
+
+    for project in projects:
+        assigned_users: set[int] = set()
+        for idx, role in enumerate(role_cycle):
+            user = all_users[idx % len(all_users)]
+            if user.id in assigned_users:
+                continue
+            assigned_users.add(user.id)
+            db.add(ConstructionProjectMember(
+                project_id=project.id,
+                user_id=user.id,
+                construction_role=role,
+                joined_at=today - timedelta(days=30 * (idx + 1)),
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction team members")
+
+
+async def seed_construction_shipments(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionShipment))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction shipments (already exist)")
+        return
+
+    # Fetch all projects and their materials
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction shipments (no projects)")
+        return
+
+    materials_result = await db.execute(select(ConstructionMaterial))
+    materials = list(materials_result.scalars().all())
+    materials_by_project: dict[int, list[ConstructionMaterial]] = {}
+    for m in materials:
+        materials_by_project.setdefault(m.project_id, []).append(m)
+
+    receiver = users.get("manager") or users.get("admin")
+    today = date.today()
+    created = 0
+
+    shipment_templates = [
+        {"supplier_name": "Çelik Yapı A.Ş.", "status": ShipmentStatus.delivered, "days_ago_order": 30, "days_ago_delivery": 10},
+        {"supplier_name": "İnşaat Malzemeleri Ltd.", "status": ShipmentStatus.in_transit, "days_ago_order": 7, "days_ago_delivery": None},
+        {"supplier_name": "Güven Tedarik", "status": ShipmentStatus.ordered, "days_ago_order": 2, "days_ago_delivery": None},
+    ]
+
+    for project in projects:
+        mats = materials_by_project.get(project.id, [])
+        for idx, tmpl in enumerate(shipment_templates):
+            mat = mats[idx % len(mats)] if mats else None
+            order_date = today - timedelta(days=tmpl["days_ago_order"])
+            actual_delivery = (today - timedelta(days=tmpl["days_ago_delivery"])) if tmpl["days_ago_delivery"] else None
+            qty_ordered = Decimal("50") if mat is None else Decimal(str(round(float(mat.quantity_planned) * 0.4, 2)))
+            qty_delivered = qty_ordered if tmpl["status"] == ShipmentStatus.delivered else None
+            db.add(ConstructionShipment(
+                project_id=project.id,
+                material_id=mat.id if mat else None,
+                material_name=mat.name if mat else f"Malzeme {idx+1}",
+                supplier_name=tmpl["supplier_name"],
+                quantity_ordered=qty_ordered,
+                quantity_delivered=qty_delivered,
+                unit=mat.unit if mat else ConstructionMaterialUnit.adet,
+                unit_cost=mat.unit_cost if mat else Decimal("100"),
+                status=tmpl["status"],
+                order_date=order_date,
+                expected_delivery_date=order_date + timedelta(days=14),
+                actual_delivery_date=actual_delivery,
+                received_by=receiver.id if receiver and tmpl["status"] == ShipmentStatus.delivered else None,
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction shipments")
+
+
+async def seed_rfis(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionRFI))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction RFIs (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction RFIs (no projects)")
+        return
+
+    submitter = users.get("manager") or users.get("admin")
+    if not submitter:
+        print("  skip  construction RFIs (no user)")
+        return
+
+    today = date.today()
+    created = 0
+    for idx, project in enumerate(projects):
+        # RFI-001: answered
+        db.add(ConstructionRFI(
+            project_id=project.id,
+            rfi_number="RFI-001",
+            subject="Zemin betonu katkı maddesi spesifikasyonu",
+            question="Teknik şartname S3.2'de belirtilen beton katkı maddesi XYZ-450'in yerini hangi eşdeğer ürün alabilir?",
+            response="XYZ-450 yerine ABC-500 veya DEF-480 kullanılabilir. Her iki ürün de TS EN 934-2 standardını karşılamaktadır.",
+            status=RFIStatus.answered,
+            priority=RFIPriority.high,
+            submitted_to="Proje Tasarım Ofisi — İstanbul",
+            submitted_date=today - timedelta(days=30),
+            response_date=today - timedelta(days=22),
+            submitted_by=submitter.id,
+            answered_by_name="Mimar Ahmet Yılmaz",
+        ))
+        # RFI-002: open
+        db.add(ConstructionRFI(
+            project_id=project.id,
+            rfi_number="RFI-002",
+            subject="Çatı detayı — ısı köprüsü çözümü",
+            question="A/3.1 çatı detayında belirtilen ısı köprüsü çözümü sahada uygulanamıyor. Alternatif detay talep edilmektedir.",
+            response=None,
+            status=RFIStatus.submitted,
+            priority=RFIPriority.normal,
+            submitted_to="Statik Mühendislik Bürosu",
+            submitted_date=today - timedelta(days=7),
+            due_date=today + timedelta(days=7),
+            submitted_by=submitter.id,
+        ))
+        created += 2
+
+    await db.flush()
+    print(f"  created {created} construction RFIs")
+
+
+async def seed_punch_list(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionPunchListItem))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction punch list (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = [p for p in (await db.execute(select(ConstructionProject))).scalars().all()
+                if p.status in (ConstructionProjectStatus.active, ConstructionProjectStatus.completed)]
+    if not projects:
+        print("  skip  construction punch list (no active/completed projects)")
+        return
+
+    creator = users.get("manager") or users.get("admin")
+    if not creator:
+        print("  skip  construction punch list (no manager/admin user)")
+        return
+
+    today = date.today()
+    templates = [
+        {"title": "Tavan sıva eksiklikleri — B kat koridor", "location_on_site": "B Kat", "status": PunchListStatus.open, "due_days": 14},
+        {"title": "Elektrik pano kapağı takılmadı", "location_on_site": "Elektrik Odası", "status": PunchListStatus.in_progress, "due_days": 7},
+        {"title": "Zemin kaplama çatlakları tamir edildi", "location_on_site": "Zemin Kat", "status": PunchListStatus.completed, "due_days": -3},
+        {"title": "İnce sıva boya uygulaması", "location_on_site": "A Kat", "status": PunchListStatus.verified, "due_days": -10},
+    ]
+    created = 0
+    for idx, project in enumerate(projects):
+        for t_idx, tmpl in enumerate(templates[:3]):
+            db.add(ConstructionPunchListItem(
+                project_id=project.id,
+                title=tmpl["title"],
+                location_on_site=tmpl["location_on_site"],
+                status=tmpl["status"],
+                due_date=today + timedelta(days=tmpl["due_days"]),
+                created_by=creator.id,
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction punch list items")
+
+
+async def seed_invoices(db) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionInvoice))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction invoices (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction invoices (no projects)")
+        return
+
+    today = date.today()
+    templates = [
+        {"status": InvoiceStatus.paid, "days_ago": 60, "due_days": 30, "amount_pct": 0.08},
+        {"status": InvoiceStatus.approved, "days_ago": 20, "due_days": 15, "amount_pct": 0.12},
+        {"status": InvoiceStatus.received, "days_ago": 5, "due_days": 30, "amount_pct": 0.07},
+    ]
+    created = 0
+    for idx, project in enumerate(projects):
+        budget = float(project.budget) if project.budget else 5_000_000
+        for t_idx, tmpl in enumerate(templates):
+            inv_date = today - timedelta(days=tmpl["days_ago"])
+            due = inv_date + timedelta(days=tmpl["due_days"])
+            amount = Decimal(str(round(budget * tmpl["amount_pct"], 2)))
+            tax = round(float(amount) * 0.20, 2)
+            db.add(ConstructionInvoice(
+                project_id=project.id,
+                invoice_number=f"INV-{project.id:03d}-{t_idx+1:02d}",
+                description=f"{'İşçilik' if t_idx==0 else 'Malzeme tedariki' if t_idx==1 else 'Ekipman kiralama'} faturası",
+                amount=amount,
+                tax_amount=Decimal(str(tax)),
+                status=tmpl["status"],
+                invoice_date=inv_date,
+                due_date=due,
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction invoices")
+
+
+async def seed_safety_incidents(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionSafetyIncident))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction safety incidents (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction safety incidents (no projects)")
+        return
+
+    reporter = users.get("manager") or users.get("admin")
+    today = date.today()
+    templates = [
+        {
+            "incident_type": IncidentType.near_miss,
+            "title": "Yüksekten Düşme Ramak Kalası",
+            "description": "İşçi çatı çalışması sırasında emniyet kemeri takmadı, kaymak üzereyken tutunarak kurtuldu.",
+            "location_on_site": "Çatı Katı",
+            "days_ago": 45,
+            "status": IncidentStatus.closed,
+        },
+        {
+            "incident_type": IncidentType.minor_injury,
+            "title": "El Kesisi — Demir Kesme İşlemi",
+            "description": "İşçi demir kesme işlemi sırasında eldiven takmadan çalışırken elini kesti. Yara pansumanla kapatıldı.",
+            "location_on_site": "Demir Deposu",
+            "days_ago": 12,
+            "status": IncidentStatus.corrective_action_pending,
+        },
+    ]
+    created = 0
+    for idx, project in enumerate(projects):
+        tmpl = templates[idx % len(templates)]
+        if not reporter:
+            continue
+        db.add(ConstructionSafetyIncident(
+            project_id=project.id,
+            incident_type=tmpl["incident_type"],
+            title=tmpl["title"],
+            description=tmpl["description"],
+            location_on_site=tmpl["location_on_site"],
+            incident_date=today - timedelta(days=tmpl["days_ago"]),
+            corrective_actions="Güvenlik eğitimi zorunlu hale getirildi, kontrol listeleri güncellendi.",
+            status=tmpl["status"],
+            reported_by=reporter.id,
+        ))
+        created += 1
+
+    await db.flush()
+    print(f"  created {created} construction safety incidents")
+
+
+async def seed_budget_lines(db) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionBudgetLine))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction budget lines (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction budget lines (no projects)")
+        return
+
+    templates = [
+        {"category": BudgetCategory.labor, "pct_planned": 0.25, "pct_actual": 0.22},
+        {"category": BudgetCategory.materials, "pct_planned": 0.35, "pct_actual": 0.30},
+        {"category": BudgetCategory.equipment, "pct_planned": 0.15, "pct_actual": 0.12},
+        {"category": BudgetCategory.subcontractors, "pct_planned": 0.12, "pct_actual": 0.10},
+        {"category": BudgetCategory.overhead, "pct_planned": 0.08, "pct_actual": 0.07},
+        {"category": BudgetCategory.contingency, "pct_planned": 0.05, "pct_actual": 0.00},
+    ]
+    created = 0
+    for project in projects:
+        budget = float(project.budget) if project.budget else 5_000_000
+        progress = project.progress_pct / 100
+        for tmpl in templates:
+            planned = round(budget * tmpl["pct_planned"], 2)
+            actual = round(planned * progress * (tmpl["pct_actual"] / tmpl["pct_planned"]) * 0.95, 2)
+            db.add(ConstructionBudgetLine(
+                project_id=project.id,
+                category=tmpl["category"],
+                planned_amount=Decimal(str(planned)),
+                actual_amount=Decimal(str(actual)),
+            ))
+            created += 1
+
+    await db.flush()
+    print(f"  created {created} construction budget lines")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+
+async def seed_meetings(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionMeeting))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction meetings (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction meetings (no projects)")
+        return
+
+    creator = users.get("manager") or users.get("admin")
+    if not creator:
+        print("  skip  construction meetings (no user)")
+        return
+
+    today = date.today()
+    created = 0
+    for project in projects:
+        # Meeting 1: recent site coordination meeting
+        m1 = ConstructionMeeting(
+            project_id=project.id,
+            title="Haftalık Saha Koordinasyon Toplantısı",
+            meeting_date=today - timedelta(days=7),
+            location="Proje Sahası — Toplantı Odası",
+            attendees="Proje Müdürü, Şantiye Şefi, Taşeron Koordinatörü, İSG Uzmanı",
+            agenda="1. Haftalık ilerleme değerlendirmesi\n2. Açık sorunların takibi\n3. Malzeme teslimat durumu\n4. Güvenlik gözlemleri",
+            summary="Haftalık ilerleme hedeflerin %85 oranında gerçekleştirildiği değerlendirildi. Çelik kolonların montajı planlandığı gibi tamamlandı. Beton döküm gecikmeleri tartışıldı.",
+            decisions="1. Beton tedarikçisi ile acil toplantı yapılacak.\n2. Vardiya sayısı artırılacak.\n3. Güvenlik gözlem kayıtları günlük tutulacak.",
+            created_by=creator.id,
+        )
+        db.add(m1)
+        await db.flush()
+        db.add(ConstructionMeetingAction(
+            meeting_id=m1.id,
+            description="Beton tedarikçisi ile acil toplantı organize et",
+            assigned_to_name="Proje Müdürü",
+            due_date=today - timedelta(days=3),
+            completed=True,
+        ))
+        db.add(ConstructionMeetingAction(
+            meeting_id=m1.id,
+            description="Güvenlik gözlem formlarını güncelle ve dağıt",
+            assigned_to_name="İSG Uzmanı",
+            due_date=today + timedelta(days=3),
+            completed=False,
+        ))
+        # Meeting 2: design review
+        m2 = ConstructionMeeting(
+            project_id=project.id,
+            title="Tasarım Revizyon Toplantısı — 3. Kat Planları",
+            meeting_date=today - timedelta(days=21),
+            location="Mimar Ofisi — İstanbul",
+            attendees="Mimar, Statik Mühendis, Proje Müdürü, İşveren Temsilcisi",
+            agenda="1. 3. kat strüktürel revizyonların değerlendirilmesi\n2. MEP koordinasyon sorunları\n3. Malzeme değişiklikleri onayı",
+            summary="Statik revizyonlar onaylandı. MEP koordinasyon çakışmaları belirlendi ve çözüm takvimi oluşturuldu. Duvar kaplama malzemesi değişikliği revizyon emri sürecine alındı.",
+            decisions="1. MEP revizyonları 10 gün içinde tamamlanacak.\n2. Kaplama değişikliği için RFI açılacak.",
+            created_by=creator.id,
+        )
+        db.add(m2)
+        await db.flush()
+        db.add(ConstructionMeetingAction(
+            meeting_id=m2.id,
+            description="MEP koordinasyon çizimlerini revize et",
+            assigned_to_name="MEP Mühendisi",
+            due_date=today - timedelta(days=11),
+            completed=True,
+        ))
+        db.add(ConstructionMeetingAction(
+            meeting_id=m2.id,
+            description="Kaplama değişikliği için RFI-003 hazırla",
+            assigned_to_name="Proje Müdürü",
+            due_date=today + timedelta(days=5),
+            completed=False,
+        ))
+        created += 2
+
+    await db.flush()
+    print(f"  created {created} construction meetings")
+
+
+async def seed_equipment(db, users: dict) -> None:
+    count_result = await db.execute(select(func.count()).select_from(ConstructionEquipment))
+    if count_result.scalar_one() > 0:
+        print("  skip  construction equipment (already exist)")
+        return
+
+    projects_result = await db.execute(select(ConstructionProject))
+    projects = list(projects_result.scalars().all())
+    if not projects:
+        print("  skip  construction equipment (no projects)")
+        return
+
+    creator = users.get("manager") or users.get("admin")
+    if not creator:
+        print("  skip  construction equipment (no user)")
+        return
+
+    today = date.today()
+    created = 0
+    for project in projects:
+        db.add(ConstructionEquipment(
+            project_id=project.id,
+            name="Teleskopik Forklift",
+            category=EquipmentCategory.lifting,
+            status=EquipmentStatus.in_use,
+            model_number="JLG 4017RS",
+            serial_number="TF-20240315-001",
+            supplier="Kiralık Makine A.Ş.",
+            rental_rate_daily=2500,
+            mobilization_date=today - timedelta(days=60),
+            last_maintenance_date=today - timedelta(days=15),
+            next_maintenance_date=today + timedelta(days=15),
+            notes="Maksimum yükseklik: 17m, taşıma kapasitesi: 4 ton",
+            created_by=creator.id,
+        ))
+        db.add(ConstructionEquipment(
+            project_id=project.id,
+            name="Beton Mikseri",
+            category=EquipmentCategory.concrete,
+            status=EquipmentStatus.available,
+            model_number="SERMAC 3Z24",
+            serial_number="BM-2023-007",
+            supplier="Çukurova Ekipman Ltd.",
+            rental_rate_daily=1800,
+            mobilization_date=today - timedelta(days=45),
+            last_maintenance_date=today - timedelta(days=30),
+            next_maintenance_date=today + timedelta(days=30),
+            created_by=creator.id,
+        ))
+        db.add(ConstructionEquipment(
+            project_id=project.id,
+            name="Kule Vinci",
+            category=EquipmentCategory.lifting,
+            status=EquipmentStatus.under_maintenance,
+            model_number="Liebherr 280 EC-H",
+            serial_number="KV-2024-001",
+            supplier="Asansör & Vinç Sistemleri A.Ş.",
+            rental_rate_daily=8500,
+            mobilization_date=today - timedelta(days=90),
+            last_maintenance_date=today - timedelta(days=2),
+            next_maintenance_date=today + timedelta(days=28),
+            notes="Periyodik bakım devam ediyor. Tahmini teslim: 3 gün.",
+            created_by=creator.id,
+        ))
+        created += 3
+
+    await db.flush()
+    print(f"  created {created} construction equipment items")
+
 
 async def main() -> None:
     settings = get_settings()
@@ -991,6 +1791,24 @@ async def main() -> None:
         await seed_audit_logs(db, users, all_reqs)
         await seed_budget_limits(db, users, locs)
         await seed_construction_projects(db, users, locs)
+        await db.flush()
+        await seed_construction_team(db, users)
+        await db.flush()
+        await seed_construction_shipments(db, users)
+        await db.flush()
+        await seed_budget_lines(db)
+        await db.flush()
+        await seed_safety_incidents(db, users)
+        await db.flush()
+        await seed_invoices(db)
+        await db.flush()
+        await seed_punch_list(db, users)
+        await db.flush()
+        await seed_rfis(db, users)
+        await db.flush()
+        await seed_meetings(db, users)
+        await db.flush()
+        await seed_equipment(db, users)
 
         await db.commit()
 

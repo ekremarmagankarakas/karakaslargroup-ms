@@ -87,7 +87,7 @@ export function ForgotPasswordPage() {
         )}
 
         <Box mt={2} textAlign="center">
-          <Link to="/login" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.875rem' }}>
+          <Link to="/login" style={{ color: '#4338ca', textDecoration: 'none', fontSize: '0.875rem' }}>
             Giriş sayfasına dön
           </Link>
         </Box>

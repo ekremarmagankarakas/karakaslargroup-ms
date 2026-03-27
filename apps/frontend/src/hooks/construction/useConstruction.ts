@@ -9,6 +9,7 @@ import {
   fetchMaterials,
   fetchMilestones,
   fetchProject,
+  fetchProjectHealth,
   fetchProjects,
   updateMaterial,
   updateMilestone,
@@ -29,6 +30,14 @@ export function useProject(id: number | undefined) {
   return useQuery({
     queryKey: ['construction-project', id],
     queryFn: () => fetchProject(id!),
+    enabled: id !== undefined,
+  });
+}
+
+export function useProjectHealth(id: number | undefined) {
+  return useQuery({
+    queryKey: ['construction-project-health', id],
+    queryFn: () => fetchProjectHealth(id!),
     enabled: id !== undefined,
   });
 }

@@ -71,7 +71,7 @@ export function ResetPasswordPage() {
             <Alert severity="success" sx={{ mb: 2 }}>
               Şifreniz başarıyla güncellendi!
             </Alert>
-            <Link to="/login" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.875rem' }}>
+            <Link to="/login" style={{ color: '#4338ca', textDecoration: 'none', fontSize: '0.875rem' }}>
               Giriş yap
             </Link>
           </>

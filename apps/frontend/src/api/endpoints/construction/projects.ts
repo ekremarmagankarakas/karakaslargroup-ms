@@ -138,3 +138,16 @@ export async function updateMilestone(
 export async function deleteMilestone(projectId: number, milestoneId: number): Promise<void> {
   await api.delete(`/construction/${projectId}/milestones/${milestoneId}`);
 }
+
+export interface ProjectHealth {
+  overall: 'red' | 'amber' | 'green';
+  budget_status: 'red' | 'amber' | 'green';
+  schedule_status: 'red' | 'amber' | 'green';
+  issue_status: 'red' | 'amber' | 'green';
+  details: string[];
+}
+
+export async function fetchProjectHealth(projectId: number): Promise<ProjectHealth> {
+  const { data } = await api.get(`/construction/${projectId}/health`);
+  return data;
+}

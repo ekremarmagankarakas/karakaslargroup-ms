@@ -1,11 +1,8 @@
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import {
   Box,
-  CircularProgress,
   Grid,
-  IconButton,
   Paper,
   Skeleton,
   Table,
@@ -14,7 +11,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -44,34 +42,19 @@ export function FavoritesSection() {
       {/* Layout toggle — only show when there's content */}
       {data && data.items.length > 0 && (
         <Box display="flex" justifyContent="flex-end" mb={1.5}>
-          <Box display="flex" gap={0.5}>
-            <Tooltip title="Kart görünümü">
-              <IconButton
-                size="small"
-                onClick={() => handleLayoutChange('grid-layout')}
-                sx={{
-                  color: layout === 'grid-layout' ? 'primary.main' : 'text.disabled',
-                  bgcolor: layout === 'grid-layout' ? 'action.selected' : 'transparent',
-                  borderRadius: 1.5,
-                }}
-              >
-                <GridViewIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Liste görünümü">
-              <IconButton
-                size="small"
-                onClick={() => handleLayoutChange('list-layout')}
-                sx={{
-                  color: layout === 'list-layout' ? 'primary.main' : 'text.disabled',
-                  bgcolor: layout === 'list-layout' ? 'action.selected' : 'transparent',
-                  borderRadius: 1.5,
-                }}
-              >
-                <ViewListIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          <ToggleButtonGroup
+            value={layout}
+            exclusive
+            size="small"
+            onChange={(_, v) => { if (v) handleLayoutChange(v); }}
+          >
+            <ToggleButton value="grid-layout" aria-label="kart görünümü">
+              <GridViewIcon sx={{ fontSize: 18 }} />
+            </ToggleButton>
+            <ToggleButton value="list-layout" aria-label="liste görünümü">
+              <ViewListIcon sx={{ fontSize: 18 }} />
+            </ToggleButton>
+          </ToggleButtonGroup>
         </Box>
       )}
 
@@ -80,28 +63,19 @@ export function FavoritesSection() {
           <Grid container spacing={2}>
             {Array.from({ length: 3 }).map((_, i) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
-                <Skeleton variant="rounded" height={160} sx={{ borderRadius: 3 }} />
+                <Skeleton variant="rounded" height={160} />
               </Grid>
             ))}
           </Grid>
         ) : (
-          <CircularProgress size={24} />
+          <Skeleton variant="rounded" height={120} />
         )
       ) : !data || data.items.length === 0 ? (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            py: 5,
-            color: 'text.disabled',
-          }}
-        >
-          <FavoriteIcon sx={{ fontSize: 48, mb: 1.5, opacity: 0.2 }} />
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        <Box sx={{ py: 4, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
             Henüz favori talep eklemediniz
           </Typography>
-          <Typography variant="caption" color="text.disabled" align="center">
+          <Typography variant="caption" color="text.disabled">
             Taleplerin yanındaki kalp ikonuna tıklayarak favoriye ekleyebilirsiniz.
           </Typography>
         </Box>

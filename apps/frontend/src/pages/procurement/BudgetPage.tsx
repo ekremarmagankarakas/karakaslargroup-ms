@@ -1,9 +1,6 @@
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import EditIcon from '@mui/icons-material/Edit';
-import SavingsIcon from '@mui/icons-material/Savings';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -11,7 +8,6 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Grid,
   IconButton,
   LinearProgress,
   Paper,
@@ -38,6 +34,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { PageHeader } from '../../components/common/PageHeader';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useBudgetHistory, useBudgetStatus, useSetBudget } from '../../hooks/procurement/useBudget';
@@ -45,67 +42,7 @@ import { useLocations } from '../../hooks/useLocations';
 import type { BudgetHistoryItem } from '../../types';
 import { formatPrice } from '../../utils/formatters';
 
-const currentDate = new Date().toLocaleDateString('tr-TR', {
-  weekday: 'long',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
 // ── Sub-components ────────────────────────────────────────────────────────────
-
-function SummaryCard({
-  icon,
-  label,
-  value,
-  sub,
-  color,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  sub?: string;
-  color: string;
-}) {
-  return (
-    <Box
-      sx={{
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 3,
-        p: 2.5,
-        height: '100%',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-        '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' },
-      }}
-    >
-      <Box sx={{ height: 3, bgcolor: color, borderRadius: 1, mb: 2 }} />
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-        <Box>
-          <Typography
-            variant="caption"
-            sx={{ fontWeight: 600, letterSpacing: '0.08em', fontSize: '0.63rem', textTransform: 'uppercase', color: 'text.secondary' }}
-          >
-            {label}
-          </Typography>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.75rem', lineHeight: 1.1, mt: 0.5, color, letterSpacing: '-0.03em' }}>
-            {value}
-          </Typography>
-          {sub && (
-            <Typography variant="caption" color="text.secondary" mt={0.5} display="block">
-              {sub}
-            </Typography>
-          )}
-        </Box>
-        <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {icon}
-        </Box>
-      </Box>
-    </Box>
-  );
-}
 
 function UtilizationChip({ pct }: { pct: number }) {
   const color = pct >= 100 ? 'error' : pct >= 80 ? 'warning' : 'success';
@@ -120,12 +57,26 @@ function UtilizationChip({ pct }: { pct: number }) {
   );
 }
 
-function ChartTooltip({ active, payload, label }: any) {
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  color?: string;
+  stroke?: string;
+  dataKey: string;
+}
+
+interface ChartTooltipComponentProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+function ChartTooltip({ active, payload, label }: ChartTooltipComponentProps) {
   if (!active || !payload?.length) return null;
   return (
     <Paper elevation={3} sx={{ p: 1.5, minWidth: 180 }}>
       <Typography variant="caption" fontWeight={700} display="block" mb={0.5}>{label}</Typography>
-      {payload.map((entry: any) => (
+      {payload.map((entry) => (
         <Typography key={entry.name} variant="caption" display="block" sx={{ color: entry.color ?? entry.stroke }}>
           {entry.name}: {entry.name === 'Kullanım (%)' ? `%${entry.value?.toFixed(1)}` : `₺${formatPrice(entry.value)}`}
         </Typography>
@@ -210,12 +161,12 @@ export function BudgetPage() {
   // undefined = company-wide; number = specific location
   const [selectedLocationId, setSelectedLocationId] = useState<number | undefined>(undefined);
 
-  const { data: currentBudget, isLoading: budgetLoading } = useBudgetStatus(
+  const { data: currentBudget, isLoading: budgetLoading, isError: budgetError } = useBudgetStatus(
     now.getMonth() + 1,
     now.getFullYear(),
     selectedLocationId,
   );
-  const { data: history, isLoading: historyLoading } = useBudgetHistory(12, selectedLocationId);
+  const { data: history, isLoading: historyLoading, isError: historyError } = useBudgetHistory(12, selectedLocationId);
 
   const [dialogItem, setDialogItem] = useState<BudgetHistoryItem | null>(null);
 
@@ -237,13 +188,9 @@ export function BudgetPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <Box mb={3} mt={1} display="flex" alignItems="flex-end" justifyContent="space-between" flexWrap="wrap" gap={2}>
-        <Box>
-          <Typography variant="h4" sx={{ mb: 0.25 }}>Bütçe Yönetimi</Typography>
-          <Typography variant="body2" color="text.secondary">{currentDate}</Typography>
-        </Box>
-        {isAdmin && (
+      <PageHeader
+        title="Bütçe Yönetimi"
+        actions={isAdmin ? (
           <Button
             variant="contained"
             startIcon={<EditIcon />}
@@ -260,8 +207,8 @@ export function BudgetPage() {
           >
             Bu Ay Bütçe Belirle
           </Button>
-        )}
-      </Box>
+        ) : undefined}
+      />
 
       {/* Location selector */}
       {locations.length > 0 && (
@@ -287,92 +234,83 @@ export function BudgetPage() {
       )}
 
       {/* Scope label */}
-      <Box mb={2} display="flex" alignItems="center" gap={1}>
-        <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.7rem' }}>
+      <Box mb={2}>
+        <Typography sx={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'text.disabled' }}>
           {scopeLabel}
         </Typography>
-        {selectedLocationId !== undefined && (
-          <Chip label="Lokasyon Bütçesi" size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
-        )}
       </Box>
 
-      {/* Summary cards */}
-      {budgetLoading ? (
-        <Grid container spacing={2} mb={3}>
-          {[0, 1, 2, 3].map((i) => <Grid size={{ xs: 6, md: 3 }} key={i}><Skeleton variant="rounded" height={110} sx={{ borderRadius: 3 }} /></Grid>)}
-        </Grid>
-      ) : (
-        <Grid container spacing={2} mb={3}>
-          <Grid size={{ xs: 6, md: 3 }}>
-            <SummaryCard
-              icon={<SavingsIcon sx={{ color: '#2563eb', fontSize: 20 }} />}
-              label="Aylık Bütçe"
-              value={limit !== null ? `₺${formatPrice(limit)}` : 'Belirsiz'}
-              sub={`${now.toLocaleString('tr-TR', { month: 'long' })} ${now.getFullYear()}`}
-              color="#2563eb"
-            />
-          </Grid>
-          <Grid size={{ xs: 6, md: 3 }}>
-            <SummaryCard
-              icon={<TrendingUpIcon sx={{ color: '#d97706', fontSize: 20 }} />}
-              label="Harcanan"
-              value={`₺${formatPrice(used)}`}
-              sub="Onaylanan talepler"
-              color="#d97706"
-            />
-          </Grid>
-          <Grid size={{ xs: 6, md: 3 }}>
-            <SummaryCard
-              icon={<AccountBalanceWalletIcon sx={{ color: remaining !== null && remaining < 0 ? '#dc2626' : '#16a34a', fontSize: 20 }} />}
-              label="Kalan"
-              value={remaining !== null ? `₺${formatPrice(Math.abs(remaining))}` : '—'}
-              sub={remaining !== null && remaining < 0 ? 'Bütçe aşıldı' : 'Kullanılabilir'}
-              color={remaining !== null && remaining < 0 ? '#dc2626' : '#16a34a'}
-            />
-          </Grid>
-          <Grid size={{ xs: 6, md: 3 }}>
-            <SummaryCard
-              icon={<TrendingDownIcon sx={{ color: utilizationColor, fontSize: 20 }} />}
-              label="Kullanım Oranı"
-              value={limit !== null ? `%${utilizationPct.toFixed(1)}` : '—'}
-              sub={utilizationPct >= 100 ? 'Bütçe doldu' : utilizationPct >= 80 ? 'Uyarı seviyesi' : 'Normal'}
-              color={utilizationColor}
-            />
-          </Grid>
+      {/* Error states */}
+      {(budgetError || historyError) && (
+        <Alert severity="error" sx={{ mb: 2 }}>Veriler yüklenirken bir hata oluştu.</Alert>
+      )}
 
-          {limit !== null && (
-            <Grid size={12}>
-              <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2 }}>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography variant="caption" fontWeight={600} color="text.secondary">
-                    Bu Ay Bütçe Kullanımı — {scopeLabel}
-                  </Typography>
-                  <Typography variant="caption" fontWeight={700} color={utilizationColor}>
-                    ₺{formatPrice(used)} / ₺{formatPrice(limit)} · %{utilizationPct.toFixed(1)}
-                  </Typography>
-                </Box>
-                <Tooltip title={`%${utilizationPct.toFixed(1)} kullanıldı`}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={Math.min(utilizationPct, 100)}
-                    sx={{
-                      height: 10,
-                      borderRadius: 5,
-                      '& .MuiLinearProgress-bar': { bgcolor: utilizationColor },
-                    }}
-                  />
-                </Tooltip>
+      {/* Summary strip */}
+      {budgetLoading ? (
+        <Skeleton variant="rounded" height={72} sx={{ mb: limit !== null ? 1.5 : 3 }} />
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: 'flex',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+              overflow: 'hidden',
+              mb: limit !== null ? 1.5 : 3,
+            }}
+          >
+            {([
+              { label: 'Aylık Bütçe', value: limit !== null ? `₺${formatPrice(limit)}` : 'Belirsiz', color: undefined },
+              { label: 'Harcanan', value: `₺${formatPrice(used)}`, color: '#d97706' },
+              { label: 'Kalan', value: remaining !== null ? `${remaining < 0 ? '-' : ''}₺${formatPrice(Math.abs(remaining))}` : '—', color: remaining !== null ? (remaining < 0 ? '#dc2626' : '#16a34a') : undefined },
+              { label: 'Kullanım', value: limit !== null ? `%${utilizationPct.toFixed(1)}` : '—', color: utilizationColor },
+            ] as { label: string; value: string; color?: string }[]).map(({ label, value, color }, i, arr) => (
+              <Box
+                key={label}
+                sx={{
+                  flex: 1,
+                  px: { xs: 1.5, sm: 2.5 },
+                  py: 1.75,
+                  borderRight: i < arr.length - 1 ? '1px solid' : 'none',
+                  borderColor: 'divider',
+                }}
+              >
+                <Typography sx={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 }}>
+                  {label}
+                </Typography>
+                <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '1.25rem', sm: '1.5rem' }, fontWeight: 700, lineHeight: 1, color: color ?? 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+                  {value}
+                </Typography>
               </Box>
-            </Grid>
+            ))}
+          </Box>
+          {limit !== null && (
+            <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 2, mb: 3 }}>
+              <Box display="flex" justifyContent="space-between" mb={0.75}>
+                <Typography variant="caption" fontWeight={600} color="text.secondary">
+                  Bu Ay — {scopeLabel}
+                </Typography>
+                <Typography variant="caption" fontWeight={700} color={utilizationColor}>
+                  ₺{formatPrice(used)} / ₺{formatPrice(limit)} · %{utilizationPct.toFixed(1)}
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={Math.min(utilizationPct, 100)}
+                sx={{ height: 6, borderRadius: 3, '& .MuiLinearProgress-bar': { bgcolor: utilizationColor } }}
+              />
+            </Box>
           )}
-        </Grid>
+        </>
       )}
 
       {/* Budget vs Spend chart */}
       {historyLoading ? (
-        <Skeleton variant="rounded" height={300} sx={{ borderRadius: 3, mb: 2.5 }} />
+        <Skeleton variant="rounded" height={300} sx={{ mb: 2.5 }} />
       ) : (
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5, mb: 2.5 }}>
+        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 2.5, mb: 2.5 }}>
           <Typography variant="subtitle1" fontWeight={700} mb={2}>
             Bütçe vs Harcama — {scopeLabel} (Son 12 Ay)
           </Typography>
@@ -396,7 +334,7 @@ export function BudgetPage() {
               />
               <RechartsTooltip content={<ChartTooltip />} />
               <Legend />
-              <Bar yAxisId="left" dataKey="Harcanan" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={32} />
+              <Bar yAxisId="left" dataKey="Harcanan" fill="#4338ca" radius={[4, 4, 0, 0]} maxBarSize={32} />
               <Line
                 yAxisId="left"
                 type="monotone"
@@ -422,7 +360,7 @@ export function BudgetPage() {
       )}
 
       {/* History table */}
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', mb: 6, overflow: 'hidden' }}>
+      <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider', mb: 6, overflow: 'hidden' }}>
         <Box px={2.5} py={2} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
           <Typography variant="subtitle1" fontWeight={700}>
             Aylık Bütçe Geçmişi — {scopeLabel}
@@ -475,7 +413,7 @@ export function BudgetPage() {
                         )}
                       </TableCell>
                       <TableCell align="right">
-                        <Typography variant="body2" fontWeight={500} color={usedAmt > 0 ? '#2563eb' : 'text.secondary'}>
+                        <Typography variant="body2" fontWeight={500} color={usedAmt > 0 ? 'primary.main' : 'text.secondary'}>
                           ₺{formatPrice(usedAmt)}
                         </Typography>
                       </TableCell>

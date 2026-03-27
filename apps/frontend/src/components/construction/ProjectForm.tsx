@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useLocations } from '../../hooks/useLocations';
-import type { ConstructionProject } from '../../types';
+import type { ConstructionProject, ConstructionProjectType } from '../../types';
 
 const STATUS_OPTIONS = [
   { value: 'planning', label: 'Planlama' },
@@ -22,6 +22,16 @@ const STATUS_OPTIONS = [
   { value: 'on_hold', label: 'Beklemede' },
   { value: 'completed', label: 'Tamamlandı' },
   { value: 'cancelled', label: 'İptal' },
+];
+
+const TYPE_OPTIONS: { value: ConstructionProjectType; label: string }[] = [
+  { value: 'shopping_mall', label: 'Alışveriş Merkezi' },
+  { value: 'residential', label: 'Konut' },
+  { value: 'office', label: 'Ofis' },
+  { value: 'mixed_use', label: 'Karma Kullanım' },
+  { value: 'hotel', label: 'Otel' },
+  { value: 'industrial', label: 'Endüstriyel' },
+  { value: 'other', label: 'Diğer' },
 ];
 
 interface Props {
@@ -32,6 +42,7 @@ interface Props {
     description?: string;
     location_id?: number;
     status: string;
+    project_type?: ConstructionProjectType;
     start_date?: string;
     end_date?: string;
     budget?: string;
@@ -48,6 +59,7 @@ export function ProjectForm({ open, onClose, onSubmit, loading, project }: Props
   const [description, setDescription] = useState('');
   const [locationId, setLocationId] = useState<number | ''>('');
   const [status, setStatus] = useState('planning');
+  const [projectType, setProjectType] = useState<ConstructionProjectType>('other');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [budget, setBudget] = useState('');
@@ -59,6 +71,7 @@ export function ProjectForm({ open, onClose, onSubmit, loading, project }: Props
       setDescription(project.description ?? '');
       setLocationId(project.location_id ?? '');
       setStatus(project.status);
+      setProjectType(project.project_type ?? 'other');
       setStartDate(project.start_date ?? '');
       setEndDate(project.end_date ?? '');
       setBudget(project.budget ?? '');
@@ -68,6 +81,7 @@ export function ProjectForm({ open, onClose, onSubmit, loading, project }: Props
       setDescription('');
       setLocationId('');
       setStatus('planning');
+      setProjectType('other');
       setStartDate('');
       setEndDate('');
       setBudget('');
@@ -82,6 +96,7 @@ export function ProjectForm({ open, onClose, onSubmit, loading, project }: Props
       description: description.trim() || undefined,
       location_id: locationId !== '' ? (locationId as number) : undefined,
       status,
+      project_type: projectType,
       start_date: startDate || undefined,
       end_date: endDate || undefined,
       budget: budget || undefined,
@@ -130,6 +145,20 @@ export function ProjectForm({ open, onClose, onSubmit, loading, project }: Props
             <InputLabel>Durum</InputLabel>
             <Select value={status} label="Durum" onChange={(e) => setStatus(e.target.value)}>
               {STATUS_OPTIONS.map((o) => (
+                <MenuItem key={o.value} value={o.value}>
+                  {o.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" fullWidth>
+            <InputLabel>Proje Tipi</InputLabel>
+            <Select
+              value={projectType}
+              label="Proje Tipi"
+              onChange={(e) => setProjectType(e.target.value as ConstructionProjectType)}
+            >
+              {TYPE_OPTIONS.map((o) => (
                 <MenuItem key={o.value} value={o.value}>
                   {o.label}
                 </MenuItem>

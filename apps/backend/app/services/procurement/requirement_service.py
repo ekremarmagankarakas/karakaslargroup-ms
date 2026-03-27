@@ -11,10 +11,16 @@ from app.repositories.procurement.favorite_repository import FavoriteRepository
 from app.repositories.procurement.image_repository import ImageRepository
 from app.repositories.location_repository import LocationRepository
 from app.repositories.notification_repository import NotificationRepository
+from app.repositories.procurement.comment_repository import CommentRepository
 from app.repositories.procurement.requirement_repository import RequirementRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.image import ImageResponse
-from app.schemas.procurement.requirement import PaginatedRequirementsResponse, RequirementResponse
+from app.schemas.procurement.requirement import (
+    AuditLogResponse,
+    CommentResponse,
+    PaginatedRequirementsResponse,
+    RequirementResponse,
+)
 from app.services.email_service import EmailService
 from app.services.storage_service import StorageService
 
@@ -31,6 +37,7 @@ class RequirementService:
         notif_repo: NotificationRepository | None = None,
         audit_repo: AuditLogRepository | None = None,
         location_repo: LocationRepository | None = None,
+        comment_repo: CommentRepository | None = None,
     ) -> None:
         self.req_repo = req_repo
         self.img_repo = img_repo
@@ -41,6 +48,7 @@ class RequirementService:
         self.notif_repo = notif_repo
         self.audit_repo = audit_repo
         self.location_repo = location_repo
+        self.comment_repo = comment_repo
 
     def _build_response(self, req: Requirement, favorited_ids: set[int]) -> RequirementResponse:
         images = [
@@ -360,3 +368,50 @@ class RequirementService:
             except HTTPException:
                 pass
         return results
+
+    async def list_comments(self, requirement_id: int) -> list[CommentResponse]:
+        if not self.comment_repo:
+            return []
+        comments = await self.comment_repo.get_by_requirement(requirement_id)
+        return [
+            CommentResponse(
+                id=c.id,
+                requirement_id=c.requirement_id,
+                user_id=c.user_id,
+                username=c.user.username,
+                body=c.body,
+                created_at=c.created_at,
+            )
+            for c in comments
+        ]
+
+    async def create_comment(self, requirement_id: int, user_id: int, body: str) -> CommentResponse:
+        if not self.comment_repo:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Comment service unavailable")
+        comment = await self.comment_repo.create(requirement_id=requirement_id, user_id=user_id, body=body)
+        return CommentResponse(
+            id=comment.id,
+            requirement_id=comment.requirement_id,
+            user_id=comment.user_id,
+            username=comment.user.username,
+            body=comment.body,
+            created_at=comment.created_at,
+        )
+
+    async def get_audit_log(self, requirement_id: int) -> list[AuditLogResponse]:
+        if not self.audit_repo:
+            return []
+        logs = await self.audit_repo.get_for_requirement(requirement_id)
+        return [
+            AuditLogResponse(
+                id=log.id,
+                requirement_id=log.requirement_id,
+                actor_id=log.actor_id,
+                actor_username=log.actor.username,
+                action=log.action.value,
+                old_value=log.old_value,
+                new_value=log.new_value,
+                created_at=log.created_at,
+            )
+            for log in logs
+        ]

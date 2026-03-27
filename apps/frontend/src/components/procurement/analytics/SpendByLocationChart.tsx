@@ -1,9 +1,8 @@
-import { Box, Paper, Skeleton, Typography } from '@mui/material';
+import { Paper, Skeleton, Typography } from '@mui/material';
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -12,14 +11,33 @@ import {
 import type { AnalyticsFilters } from '../../../types';
 import { formatPrice } from '../../../utils/formatters';
 import { useLocationStats } from '../../../hooks/procurement/useAnalytics';
+import { SectionCard } from '../../common/SectionCard';
 
-const COLORS = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706', '#dc2626'];
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  color: string;
+  dataKey: string;
+  payload: {
+    location_name: string;
+    total_price: number;
+    accepted_price: number;
+    total_count: number;
+    accepted_count: number;
+  };
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
 
 interface Props {
   filters: Pick<AnalyticsFilters, 'month' | 'year'>;
 }
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const approvalRate = d.total_count > 0 ? ((d.accepted_count / d.total_count) * 100).toFixed(0) : 0;
@@ -47,7 +65,7 @@ function CustomTooltip({ active, payload }: any) {
 export function SpendByLocationChart({ filters }: Props) {
   const { data, isLoading } = useLocationStats(filters);
 
-  if (isLoading) return <Skeleton variant="rounded" height={280} sx={{ borderRadius: 3 }} />;
+  if (isLoading) return <Skeleton variant="rounded" height={280} />;
 
   const chartData = (data?.data ?? []).map((d) => ({
     location_name: d.location_name,
@@ -59,20 +77,16 @@ export function SpendByLocationChart({ filters }: Props) {
 
   if (chartData.length === 0) {
     return (
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5 }}>
-        <Typography variant="subtitle1" fontWeight={700} mb={2}>Lokasyona Göre Harcama</Typography>
+      <SectionCard title="Lokasyona Göre Harcama">
         <Typography variant="body2" color="text.disabled" textAlign="center" py={4}>
           Lokasyon verisi bulunamadı
         </Typography>
-      </Box>
+      </SectionCard>
     );
   }
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5 }}>
-      <Typography variant="subtitle1" fontWeight={700} mb={2}>
-        Lokasyona Göre Harcama
-      </Typography>
+    <SectionCard title="Lokasyona Göre Harcama">
       <ResponsiveContainer width="100%" height={280}>
         <BarChart layout="vertical" data={chartData} margin={{ top: 4, right: 24, bottom: 0, left: 16 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" horizontal={false} />
@@ -88,13 +102,9 @@ export function SpendByLocationChart({ filters }: Props) {
             width={110}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="total_price" radius={[0, 4, 4, 0]} maxBarSize={28}>
-            {chartData.map((_, index) => (
-              <Cell key={index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Bar>
+          <Bar dataKey="total_price" fill="#4338ca" radius={[0, 4, 4, 0]} maxBarSize={28} />
         </BarChart>
       </ResponsiveContainer>
-    </Box>
+    </SectionCard>
   );
 }

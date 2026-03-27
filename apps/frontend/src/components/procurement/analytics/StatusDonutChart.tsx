@@ -1,7 +1,8 @@
-import { Box, Skeleton, Typography } from '@mui/material';
+import { Skeleton } from '@mui/material';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import type { StatisticsFilters } from '../../../types';
 import { useStatistics } from '../../../hooks/procurement/useStatistics';
+import { SectionCard } from '../../common/SectionCard';
 
 interface Props {
   filters: StatisticsFilters;
@@ -16,7 +17,7 @@ const SLICES = [
 export function StatusDonutChart({ filters }: Props) {
   const { data, isLoading } = useStatistics(filters);
 
-  if (isLoading) return <Skeleton variant="rounded" height={260} sx={{ borderRadius: 3 }} />;
+  if (isLoading) return <Skeleton variant="rounded" height={260} />;
   if (!data) return null;
 
   const chartData = SLICES.map((s) => ({ name: s.label, value: data[s.key], color: s.color })).filter(
@@ -24,10 +25,7 @@ export function StatusDonutChart({ filters }: Props) {
   );
 
   return (
-    <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5, height: '100%' }}>
-      <Typography variant="subtitle1" fontWeight={700} mb={2}>
-        Durum Dağılımı
-      </Typography>
+    <SectionCard title="Durum Dağılımı" sx={{ height: '100%' }}>
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie
@@ -47,6 +45,6 @@ export function StatusDonutChart({ filters }: Props) {
           <Legend />
         </PieChart>
       </ResponsiveContainer>
-    </Box>
+    </SectionCard>
   );
 }

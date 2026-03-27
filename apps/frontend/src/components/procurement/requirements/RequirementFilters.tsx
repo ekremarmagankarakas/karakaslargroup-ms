@@ -10,8 +10,6 @@ import {
   MenuItem,
   Select,
   TextField,
-  Tooltip,
-  Typography,
 } from '@mui/material';
 import type { RequirementFilters, RequirementPriority, RequirementStatus, UserDropdownItem } from '../../../types';
 import { useAuth } from '../../../context/AuthContext';
@@ -81,9 +79,6 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
           ),
         }}
       />
-
-      {/* Separator */}
-      <Box sx={{ width: 1, height: 32, bgcolor: 'divider', mx: 0.5 }} />
 
       {!isEmployee && (
         <FormControl size="small" sx={{ minWidth: 130 }}>
@@ -226,53 +221,27 @@ export function RequirementFilters({ filters, users, onChange }: Props) {
       )}
 
       {activeCount > 0 && (
-        <Tooltip title="Tüm filtreleri temizle">
-          <Button
-            size="small"
-            onClick={clearFilters}
-            sx={{
-              color: 'text.secondary',
-              borderColor: 'divider',
-              ml: 0.5,
-              height: 40,
-              px: 1.5,
-              minWidth: 0,
-              border: '1px solid',
-              borderRadius: 2,
-              '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
-            }}
-          >
-            <TuneIcon sx={{ fontSize: 16, mr: 0.75 }} />
-            <Typography variant="caption" fontWeight={600}>
-              Temizle ({activeCount})
-            </Typography>
-          </Button>
-        </Tooltip>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={clearFilters}
+          startIcon={<TuneIcon sx={{ fontSize: 15 }} />}
+          sx={{ color: 'text.secondary', borderColor: 'divider' }}
+        >
+          Temizle ({activeCount})
+        </Button>
       )}
 
       {canExport && (
-        <Tooltip title="CSV olarak indir">
-          <Button
-            size="small"
-            onClick={() => exportRequirements(filters)}
-            sx={{
-              color: 'text.secondary',
-              borderColor: 'divider',
-              ml: 'auto',
-              height: 40,
-              px: 1.5,
-              minWidth: 0,
-              border: '1px solid',
-              borderRadius: 2,
-              '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
-            }}
-          >
-            <DownloadIcon sx={{ fontSize: 16, mr: 0.75 }} />
-            <Typography variant="caption" fontWeight={600}>
-              CSV İndir
-            </Typography>
-          </Button>
-        </Tooltip>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => exportRequirements(filters)}
+          startIcon={<DownloadIcon sx={{ fontSize: 15 }} />}
+          sx={{ color: 'text.secondary', borderColor: 'divider', ml: 'auto' }}
+        >
+          CSV İndir
+        </Button>
       )}
     </Box>
   );

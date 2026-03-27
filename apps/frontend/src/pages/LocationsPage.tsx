@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -103,12 +104,7 @@ export function LocationsPage() {
   return (
     <DashboardLayout>
       <Box mb={3} mt={1} display="flex" justifyContent="space-between" alignItems="center">
-        <Box>
-          <Typography variant="h4" sx={{ mb: 0.25 }}>Lokasyonlar</Typography>
-          <Typography variant="body2" color="text.secondary">
-            AVM lokasyonlarını ve atamalarını yönetin
-          </Typography>
-        </Box>
+        <Typography variant="h2" sx={{ fontWeight: 700 }}>Lokasyonlar</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowCreate(true)}>
           Lokasyon Ekle
         </Button>
@@ -116,8 +112,8 @@ export function LocationsPage() {
 
       <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         {isLoading ? (
-          <Box display="flex" justifyContent="center" py={6}>
-            <CircularProgress />
+          <Box p={2.5}>
+            <Skeleton variant="rounded" height={200} />
           </Box>
         ) : (
           <TableContainer>

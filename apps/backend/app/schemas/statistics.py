@@ -1,9 +1,11 @@
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class StatisticsResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     total_count: int
     pending_count: int
     accepted_count: int
@@ -15,6 +17,8 @@ class StatisticsResponse(BaseModel):
 
 
 class SpendDataPoint(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     year: int
     month: int
     month_label: str
@@ -24,10 +28,14 @@ class SpendDataPoint(BaseModel):
 
 
 class SpendOverTimeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     data: list[SpendDataPoint]
 
 
 class TopRequesterItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     user_id: int
     username: str
     total_price: Decimal
@@ -36,10 +44,14 @@ class TopRequesterItem(BaseModel):
 
 
 class TopRequestersResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     data: list[TopRequesterItem]
 
 
 class LocationStatsItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     location_id: int
     location_name: str
     total_count: int
@@ -51,4 +63,6 @@ class LocationStatsItem(BaseModel):
 
 
 class LocationStatsResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     data: list[LocationStatsItem]

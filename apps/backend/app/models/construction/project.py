@@ -18,6 +18,16 @@ class ConstructionProjectStatus(str, enum.Enum):
     cancelled = "cancelled"
 
 
+class ConstructionProjectType(str, enum.Enum):
+    shopping_mall = "shopping_mall"
+    residential = "residential"
+    office = "office"
+    mixed_use = "mixed_use"
+    hotel = "hotel"
+    industrial = "industrial"
+    other = "other"
+
+
 class ConstructionProject(Base):
     __tablename__ = "construction_projects"
 
@@ -36,6 +46,11 @@ class ConstructionProject(Base):
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     budget: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    project_type: Mapped[ConstructionProjectType | None] = mapped_column(
+        SAEnum(ConstructionProjectType, name="construction_project_type"),
+        nullable=True,
+        default=ConstructionProjectType.other,
+    )
     progress_pct: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMPTZ(timezone=True), server_default=func.now())
 
@@ -51,3 +66,23 @@ class ConstructionProject(Base):
     milestones: Mapped[list["ConstructionMilestone"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
+    issues: Mapped[list["ConstructionIssue"]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        back_populates="project", cascade="all, delete-orphan"
+    )
+    photos: Mapped[list["ConstructionPhoto"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    comments: Mapped[list["ConstructionComment"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    daily_logs: Mapped[list["ConstructionDailyLog"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    subcontractors: Mapped[list["ConstructionSubcontractor"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    permits: Mapped[list["ConstructionPermit"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    change_orders: Mapped[list["ConstructionChangeOrder"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    audit_logs: Mapped[list["ConstructionAuditLog"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    documents: Mapped[list["ConstructionDocument"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    shipments: Mapped[list["ConstructionShipment"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    members: Mapped[list["ConstructionProjectMember"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    budget_lines: Mapped[list["ConstructionBudgetLine"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    safety_incidents: Mapped[list["ConstructionSafetyIncident"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    invoices: Mapped[list["ConstructionInvoice"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    punch_list_items: Mapped[list["ConstructionPunchListItem"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    rfis: Mapped[list["ConstructionRFI"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    meetings: Mapped[list["ConstructionMeeting"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
+    equipment: Mapped[list["ConstructionEquipment"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore[name-defined]  # noqa: F821
